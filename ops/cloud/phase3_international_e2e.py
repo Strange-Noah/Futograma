@@ -9,7 +9,7 @@ from squad_pipeline.cloud.github_store import GitHubStore
 from squad_pipeline.cloud.quality import inspect,sha,snapshot,pack
 from squad_pipeline.international_discovery import profile_hints,team_fixture_hints,payload
 from squad_pipeline.international_fotmob import parse_public_match
-from squad_pipeline.international_store import migrate,evidence,team,put_match,put_appearance,encoded,digest,import_reference_evidence_package,bridge_references
+from squad_pipeline.international_store import migrate,evidence,team,put_match,put_appearance,encoded,digest,import_reference_evidence_package,bridge_references,complete_missing_minutes
 from squad_pipeline.international_retry import observe
 from squad_pipeline.provider_identity_discovery import verify_team_identities
 from squad_pipeline.identity_pipeline import DDL,Record,persist_verified_alias,similarity
@@ -23,7 +23,7 @@ def isolated():
  require_hosted()
  if os.environ.get('FUTBOL_CLOUD_ENABLED')!='false' or os.environ.get('FUTBOL_AUTHORITY_HANDOVER')!='UNCONFIRMED':raise RuntimeError('ISOLATION_REQUIRED')
 def main():
- isolated();work=ROOT/'.cloud/phase3-international';work.mkdir(parents=True,exist_ok=False);token=os.environ['GITHUB_TOKEN'];prod=GitHubStore('Strange-Noah/Futograma-data',token,'main');store=GitHubStore('Strange-Noah/Futograma-data',token,REF);prod_before=prod.head();head,_=store.head();prod.restore(work/'working.sqlite');before=inspect(work/'working.sqlite')['tables'];db=sqlite3.connect(work/'working.sqlite');db.row_factory=sqlite3.Row
+ isolated();work=ROOT/'.cloud/phase3-international';work.mkdir(parents=True,exist_ok=False);token=os.environ['GITHUB_TOKEN'];prod=GitHubStore('Strange-Noah/Futograma-data',token,'main');store=GitHubStore('Strange-Noah/Futograma-data',token,REF);prod_before=prod.head();head,_=store.head();store.restore(work/'working.sqlite');before=inspect(work/'working.sqlite')['tables'];db=sqlite3.connect(work/'working.sqlite');db.row_factory=sqlite3.Row
  store.download(688943155,work/'identity.json.gz');asset=store.api('GET',store.base+'/releases/assets/688943155');assert asset['digest']=='sha256:'+sha(work/'identity.json.gz');audit=json.loads(gzip.decompress((work/'identity.json.gz').read_bytes()));roster=audit['roster'];management_migrate(db);import_verified_history(db);db.executescript(DDL)
  from dataclasses import fields
  for r in roster['source_results']:
@@ -45,11 +45,12 @@ def main():
  with tarfile.open(work/'legacy.tar.gz') as t:
   package=json.load(t.extractfile('manifest.json'))
   for row in package['source_records']:assert hashlib.sha256(t.extractfile(row['retained_body_path']).read()).hexdigest()==row['retained_body_sha256']
- import_reference_evidence_package(db,package,'github://Strange-Noah/Futograma-data/releases/assets/688695104');bridge=bridge_references(db);assert len(bridge)==21 and all(x['state']=='INTEGRATED_PRIOR_TARGET_VERIFICATION' for x in bridge);db.commit()
+ import_reference_evidence_package(db,package,'github://Strange-Noah/Futograma-data/releases/assets/688695104');bridge=bridge_references(db);assert all(x['state']=='INTEGRATED_PRIOR_TARGET_VERIFICATION' for x in bridge);assert db.execute('SELECT COUNT(*) FROM international_reference_bridge').fetchone()[0]==21;db.commit()
+ prior_international_rows=db.execute('SELECT COUNT(*) FROM international_appearances').fetchone()[0]
  HOSTS.add('www.fotmob.com');client=Client('phase3-international-'+os.environ['GITHUB_RUN_ID'],budget=500);fixtures={};claims=defaultdict(list);affiliations={};coverage={};captures=[];errors=[];parsed=[];conflicts=[];canonical_rows=0;held=[];now=datetime.now(timezone.utc).isoformat()
  def fetch(url,purpose):
   r,b=client.fetch(url,purpose,conditional=False);captures.append(r)
-  if r['status']!='SUCCESS':raise ValueError('SOURCE_UNAVAILABLE:'+str(r.get('error') or r.get('http_status')))
+  if r['status']!='SUCCESS':raise ValueError('SOURCE_UNAVAILABLE:'+str(r.get('error') or 'HTTP_'+str(r.get('http_status'))))
   return r,b.decode('utf-8','replace')
  def add_fixture(f):
   key=f['provider_match_id'];old=fixtures.get(key)
@@ -60,7 +61,7 @@ def main():
  def pending(entity,provider_id,url,error,pid=None,fixture=None,source=None):
   if source and source.get('sha256'):evidence(db,dict(source,retained_asset_ref='phase3-international-evidence-'+os.environ['GITHUB_RUN_ID']),'UNRESOLVED_DISCOVERY_EVIDENCE','UNACCEPTED_SOURCE_CLAIM',1)
   task=dict(entity_type=entity,provider='FotMob',provider_entity_id=provider_id,url=url,player_id=pid,date=(fixture or {}).get('kickoff','')[:10],fixture=fixture,source=source)
-  result=dict(status='SOURCE_UNAVAILABLE' if str(error).startswith('SOURCE_UNAVAILABLE:') else 'PENDING',error=str(error));observe(db,task,result,os.environ['GITHUB_RUN_ID']);errors.append(dict(player_id=pid,entity=entity,provider_id=provider_id,error=str(error)))
+  result=dict(status='SOURCE_UNAVAILABLE' if ('SOURCE_UNAVAILABLE:' in str(error) or 'NETWORK_BUDGET_EXHAUSTED' in str(error)) else 'PENDING',error=str(error));observe(db,task,result,os.environ['GITHUB_RUN_ID']);errors.append(dict(player_id=pid,entity=entity,provider_id=provider_id,error=str(error)))
  provider_discovery=[]
  for cid in sorted({c for pid in managed for c in clubs[pid]}):
   url='https://www.fotmob.com/teams/'+str(cid)+'/squad'
@@ -100,6 +101,9 @@ def main():
    for pid,a in entries:coverage[pid]['fixture_status']='FALLBACK_FAILED'
  print('FIXTURES_DISCOVERED',len(fixtures),flush=True)
  for mid,f in sorted(fixtures.items()):
+  frozen=db.execute("SELECT state FROM international_acquisition_queue WHERE entity_type='MATCH' AND provider='FotMob' AND provider_entity_id=? AND state IN ('QUARANTINED','HUMAN_REVIEW')",(mid,)).fetchone()
+  if frozen:
+   errors.append(dict(entity='MATCH',provider_id=mid,error='EXISTING_'+frozen['state']+';NO_AUTOMATIC_FACT_WRITE'));continue
   row_count_before=canonical_rows;source=None;db.execute('SAVEPOINT acquired_international_match')
   try:
    source,body=fetch(f['url'],'international_match_lineup:'+mid);sheet=parse_public_match(body,source,f,claims[mid]);eid=evidence(db,dict(source,retained_asset_ref='phase3-international-evidence-'+os.environ['GITHUB_RUN_ID']),'EXACT_MATCH_IDS_SIDES_DATE_AND_LINEUP','RAW_RESPONSE_VERIFIED',1);teams={s['side']:team(db,s['name'],sheet['level'],eid,'FotMob',s['provider_team_id']) for s in sheet['sheets']};match=dict(match_id='nt_fotmob_'+mid,home_team_key=teams['home'],away_team_key=teams['away'],kickoff_utc=sheet['kickoff_utc'],madrid_date=sheet['madrid_date'],competition_key=sheet['competition_key'],stage=None,match_state='FINISHED',score=sheet['score'],duration_minutes=sheet['duration_minutes'],extra_time_status=sheet['extra_time_status'],identity_status='PROVIDER_ID_SIDES_DATE_VERIFIED',metadata_json=encoded(dict(competition=sheet['competition_label'],full_squad_identity_status=sheet['full_squad_identity_status'],identity_issues=sheet['identity_issues'])));accepted=put_match(db,match,'FotMob',mid,eid);accepted_players=[]
@@ -111,6 +115,8 @@ def main():
      a=dict(match_id=accepted,player_id=pid,represented_team_key=teams[side['side']],participation_status=p['participation_status'],minutes=p['minutes'],reported_minutes=p['reported_minutes'],derived_minutes=p['derived_minutes'],minutes_precision=p['minutes_precision'],verification_status=p['verification_status'],evidence_scope=p['evidence_scope'],revision=1,metadata_json=encoded(dict(source_path=p['source_path'],provider_player_id=p['provider_player_id'],shirt=p['shirt'],role=p['role'])))
      old=db.execute('SELECT * FROM international_appearances WHERE match_id=? AND player_id=?',(accepted,pid)).fetchone()
      if old:
+      if old['minutes'] is None and a['minutes'] is not None and not old['verification_status'].startswith('RETAINED_PRIOR'):
+       complete_missing_minutes(db,a,eid);old=db.execute('SELECT * FROM international_appearances WHERE match_id=? AND player_id=?',(accepted,pid)).fetchone()
       if a['minutes'] is not None and old['minutes']!=a['minutes']:
        conflicts.append(dict(player_id=pid,match_id=mid,retained_minutes=old['minutes'],new_minutes=a['minutes'],reason='RETAIN_ORIGINAL_REFERENCE;EXPLICIT_REVISION_REQUIRED'));decision='RETAINED_ORIGINAL_ADJUDICATION';agree=0
       else:decision='CORROBORATES_EXISTING_REFERENCE';agree=1
@@ -118,6 +124,10 @@ def main():
      db.execute('INSERT OR IGNORE INTO international_fact_evidence VALUES(?,?,?,?,?,?,?)',(accepted,pid,eid,'lineup_and_minutes',encoded(a),agree,decision))
      if p['history_source']:
       he=evidence(db,dict(p['history_source'],retained_asset_ref='phase3-international-evidence-'+os.environ['GITHUB_RUN_ID']),'PERSONAL_HISTORY_TARGET_MINUTES','PROVIDER_ASSERTION_WITH_LINEUP_ID_CHECK',1);db.execute('INSERT OR IGNORE INTO international_fact_evidence VALUES(?,?,?,?,?,?,?)',(accepted,pid,he,'reported_minutes',encoded(dict(minutes=p['minutes'],scope=p['evidence_scope'])),agree,decision))
+     if a['minutes'] is None:
+      pending('PLAYER_MINUTES',mid+':'+str(pid),f['url'],'SOURCE_MINUTES_INCOMPLETE',pid,dict(f,represented_team_provider_id=p['represented_team_provider_id']),source=source)
+     else:
+      observe(db,dict(entity_type='PLAYER_MINUTES',provider='FotMob',provider_entity_id=mid+':'+str(pid),url=f['url'],player_id=pid,fixture=f),dict(status='UNCHANGED',match_id=accepted),os.environ['GITHUB_RUN_ID'])
      accepted_players.append(pid)
     # Unknown source IDs are held as structural issues; they never become canonical player 0.
    parsed.append(dict(provider_match_id=mid,canonical_match_id=accepted,players=accepted_players,structural_identity=sheet['full_squad_identity_status'],identity_issues=sheet['identity_issues']));observe(db,dict(entity_type='MATCH',provider='FotMob',provider_entity_id=mid,url=f['url'],fixture=f),dict(status='DISCOVERED',match_id=accepted),os.environ['GITHUB_RUN_ID'])
@@ -131,8 +141,8 @@ def main():
   print('MATCH_DISCOVERY',mid,'parsed' if parsed and parsed[-1]['provider_match_id']==mid else 'held',flush=True)
  for pid,c in coverage.items():
   count=db.execute('SELECT COUNT(*) FROM international_appearances WHERE player_id=?',(pid,)).fetchone()[0];unresolved=db.execute("SELECT COUNT(*) FROM international_acquisition_queue WHERE player_id=? AND state<>'RESOLVED'",(pid,)).fetchone()[0];c['lineup_status']='VERIFIED_RECORDS:'+str(count)+';PARTIAL_DISCOVERY_NO_COMPLETENESS_CLAIM';db.execute('INSERT OR REPLACE INTO player_discovery_coverage VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',(pid,START,END,'ALL_PLAYER_INTERNATIONAL_MATCHES',c['history_status'],c['affiliation_status'],c['fixture_status'],c['lineup_status'],now,encoded(dict(strategy='PERSONAL_HISTORY_THEN_EXPLICIT_NATIONAL_FIXTURES',global_unresolved_fixture_count=sum(e['entity']=='MATCH' for e in errors))),unresolved,encoded(c['evidence'])))
- assert bridge_references(db)==[];assert db.execute('SELECT COUNT(*) FROM international_reference_bridge').fetchone()[0]==21;assert not db.execute('PRAGMA foreign_key_check').fetchone();db.commit();counts=dict(db.execute('SELECT COUNT(*) AS appearances,COUNT(DISTINCT player_id) AS players,COUNT(DISTINCT match_id) AS matches FROM international_appearances').fetchone());queue=dict(Counter(r[0] for r in db.execute('SELECT state FROM international_acquisition_queue')));db.close();assert inspect(work/'working.sqlite')['tables']==before,'LEGACY_FACTS_CHANGED';snapshot(work/'working.sqlite',work/'snapshot.sqlite');pack(work/'snapshot.sqlite',work/'snapshot.sqlite.gz');code=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip();data_head,pointer=store.publish(work/'snapshot.sqlite',work/'snapshot.sqlite.gz',head,code);pointer['dataset_ref']=REF;manifest=export_all_matches(work/'snapshot.sqlite',work/'site',data_head,pointer,END,True);browser=json.loads((work/'site/data/browser.json').read_text());assert browser['version']['sqlite_sha256']==pointer['current']['database']['sha256'];assert sum(r.get('match_type')=='NATIONAL' and not r.get('pending') for rows in browser['records'].values() for r in rows)==counts['appearances']
- report=dict(kind='ISOLATED_INTERNATIONAL_DEVELOPMENT_ACCEPTANCE;NOT_PRODUCTION',code_commit=code,data_head=data_head,data_ref=REF,pointer=pointer,old_fact_tables_unchanged=True,production_pointer_unchanged=prod.head()==prod_before,managed_players=len(managed),provider_identity_discovery=provider_discovery,coverage_rows=len(coverage),live_requests=client.calls,fixtures_discovered=len(fixtures),parsed_matches=parsed,new_international_rows=canonical_rows,total=counts,legacy_reference_records=21,unresolved=errors,retained_reference_disagreements=conflicts,retry_states=queue,export_manifest=manifest,national_history_complete=False,production_authority='DISABLED',website_publication='NOT_PERFORMED')
+ assert bridge_references(db)==[];assert db.execute('SELECT COUNT(*) FROM international_reference_bridge').fetchone()[0]==21;assert not db.execute('PRAGMA foreign_key_check').fetchone();db.commit();counts=dict(db.execute('SELECT COUNT(*) AS appearances,COUNT(DISTINCT player_id) AS players,COUNT(DISTINCT match_id) AS matches FROM international_appearances').fetchone());assert counts['appearances']>=prior_international_rows,'INTERNATIONAL_FACTS_DROPPED';queue=dict(Counter(r[0] for r in db.execute('SELECT state FROM international_acquisition_queue')));db.close();assert inspect(work/'working.sqlite')['tables']==before,'LEGACY_FACTS_CHANGED';snapshot(work/'working.sqlite',work/'snapshot.sqlite');pack(work/'snapshot.sqlite',work/'snapshot.sqlite.gz');code=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip();data_head,pointer=store.publish(work/'snapshot.sqlite',work/'snapshot.sqlite.gz',head,code);pointer['dataset_ref']=REF;manifest=export_all_matches(work/'snapshot.sqlite',work/'site',data_head,pointer,END,True);browser=json.loads((work/'site/data/browser.json').read_text());assert browser['version']['sqlite_sha256']==pointer['current']['database']['sha256'];assert sum(r.get('match_type')=='NATIONAL' and not r.get('pending') for rows in browser['records'].values() for r in rows)==counts['appearances']
+ report=dict(kind='ISOLATED_INTERNATIONAL_DEVELOPMENT_ACCEPTANCE;NOT_PRODUCTION',code_commit=code,data_head=data_head,data_ref=REF,pointer=pointer,old_fact_tables_unchanged=True,production_pointer_unchanged=prod.head()==prod_before,prior_international_rows=prior_international_rows,managed_players=len(managed),provider_identity_discovery=provider_discovery,coverage_rows=len(coverage),live_requests=client.calls,fixtures_discovered=len(fixtures),parsed_matches=parsed,new_international_rows=canonical_rows,total=counts,legacy_reference_records=21,unresolved=errors,retained_reference_disagreements=conflicts,retry_states=queue,export_manifest=manifest,national_history_complete=False,production_authority='DISABLED',website_publication='NOT_PERFORMED')
  assert report['production_pointer_unchanged'];write(work/'result.json',report)
  release=store.api('POST',store.base+'/releases',dict(tag_name='phase3-international-'+os.environ['GITHUB_RUN_ID'],target_commitish=REF,name='Phase 3 isolated international database and export audit',body='Development snapshot only. Coverage and unresolved sources explicit; production disabled.',draft=True))
  for file in [work/'result.json',work/'site/data/browser.json',work/'site/data/manifest.json']:

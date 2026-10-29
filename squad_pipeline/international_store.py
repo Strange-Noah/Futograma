@@ -131,3 +131,15 @@ def import_reference_evidence_package(db,manifest,asset_ref):
         source=dict(row['original_evidence'],evidence_id=row['source_id'],retained_asset_ref=asset_ref+'#'+row['retained_body_path'],body_sha256=row['retained_body_sha256'])
         evidence(db,source,'ORIGINAL_TARGET_SPECIFIC_SCOPE_AND_REVIEWED_EXTRACT_QUALIFICATIONS','ORIGINAL_SOURCE_OR_REVIEWED_EXTRACT_AS_LABELLED',hold=1)
     return {'source_records':len(supplied),'legacy_payloads_unchanged':True,'asset_ref':asset_ref}
+
+
+def complete_missing_minutes(db,appearance,evidence_id):
+    """Only supplement new typed NULL facts with exact-ID evidence; never revise legacy adjudications."""
+    mid,pid=appearance['match_id'],appearance['player_id'];old=db.execute('SELECT * FROM international_appearances WHERE match_id=? AND player_id=?',(mid,pid)).fetchone()
+    if old is None:raise ValueError('EXISTING_UNKNOWN_FACT_REQUIRED')
+    if old['minutes'] is not None or db.execute('SELECT 1 FROM international_reference_bridge WHERE match_id=? AND player_id=?',(mid,pid)).fetchone():raise ValueError('KNOWN_OR_LEGACY_FACT_REQUIRES_EXPLICIT_ADJUDICATION')
+    if appearance['minutes'] is None or appearance['represented_team_key']!=old['represented_team_key'] or appearance['verification_status'] not in ('PROVIDER_ID_AND_MATCH_VERIFIED','TARGET_HISTORY_AND_LINEUP_ID_VERIFIED'):raise ValueError('EXACT_ID_VERIFIED_MINUTES_REQUIRED')
+    e=db.execute('SELECT body_sha256 FROM persistent_source_evidence WHERE evidence_id=?',(evidence_id,)).fetchone()
+    if e is None or not e[0] or len(e[0])!=64:raise ValueError('HASHED_SOURCE_EVIDENCE_REQUIRED')
+    revised=dict(appearance,revision=old['revision']+1);revision_id=digest([dict(old),revised,evidence_id]);db.execute('INSERT INTO international_fact_revisions VALUES(?,?,?,?,?,?,?)',(revision_id,mid,pid,encoded(dict(old)),encoded(revised),encoded({'evidence_id':evidence_id,'reason':'SUPPLEMENT_UNKNOWN_MINUTES;IDENTITY_UNCHANGED'}),datetime.now(timezone.utc).isoformat()))
+    columns=['participation_status','minutes','reported_minutes','derived_minutes','minutes_precision','verification_status','evidence_scope','revision','metadata_json'];db.execute('UPDATE international_appearances SET '+','.join(c+'=?' for c in columns)+' WHERE match_id=? AND player_id=?',[revised.get(c) for c in columns]+[mid,pid]);return True

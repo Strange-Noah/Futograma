@@ -1,5 +1,5 @@
 import unittest,sqlite3,json
-from squad_pipeline.international_store import migrate,team,evidence,put_match,put_appearance,bridge_references
+from squad_pipeline.international_store import migrate,team,evidence,put_match,put_appearance,bridge_references,complete_missing_minutes
 class InternationalStoreTests(unittest.TestCase):
     def setUp(self):
         self.db=sqlite3.connect(':memory:');self.db.row_factory=sqlite3.Row
@@ -39,3 +39,15 @@ class InternationalStoreTests(unittest.TestCase):
         self.db.execute('INSERT INTO validation_national_reference VALUES(?,?,?)',(1,'legacy',raw));result=bridge_references(self.db);self.assertEqual(result[0]['state'],'PENDING');self.assertEqual(self.db.execute('SELECT payload_json FROM validation_national_reference').fetchone()[0],raw)
     def test_migration_rejects_active_transaction(self):
         with self.assertRaisesRegex(ValueError,'CLEAN_TRANSACTION'):migrate(self.db)
+    def test_fill_unknown_minutes_appends_revision(self):
+        f=self.fact();f.update(minutes=None,reported_minutes=None);put_appearance(self.db,f);eid=evidence(self.db,dict(url='https://provider.example/exact-match',sha256='a'*64),'EXACT_MATCH_IDS');new=dict(f,minutes=67,reported_minutes=67,verification_status='PROVIDER_ID_AND_MATCH_VERIFIED');self.assertTrue(complete_missing_minutes(self.db,new,eid));row=self.db.execute('SELECT minutes,revision FROM international_appearances').fetchone();self.assertEqual(tuple(row),(67,2));revision=self.db.execute('SELECT previous_json,new_json FROM international_fact_revisions').fetchone();self.assertIsNone(json.loads(revision[0])['minutes']);self.assertEqual(json.loads(revision[1])['minutes'],67)
+    def test_fill_never_replaces_known_minutes(self):
+        put_appearance(self.db,self.fact());eid=evidence(self.db,dict(url='https://provider.example/exact-match',sha256='b'*64));new=self.fact();new.update(minutes=90,verification_status='PROVIDER_ID_AND_MATCH_VERIFIED')
+        with self.assertRaisesRegex(ValueError,'KNOWN_OR_LEGACY'):complete_missing_minutes(self.db,new,eid)
+        self.assertEqual(self.db.execute('SELECT COUNT(*) FROM international_fact_revisions').fetchone()[0],0)
+    def test_fill_requires_hashed_evidence(self):
+        f=self.fact();f.update(minutes=None,reported_minutes=None);put_appearance(self.db,f);new=dict(f,minutes=90,verification_status='PROVIDER_ID_AND_MATCH_VERIFIED')
+        with self.assertRaisesRegex(ValueError,'HASHED_SOURCE'):complete_missing_minutes(self.db,new,self.eid)
+    def test_fill_never_revises_legacy_target(self):
+        f=self.fact();f.update(minutes=None,reported_minutes=None);put_appearance(self.db,f);self.db.execute('INSERT INTO validation_national_reference VALUES(?,?,?)',(1,'legacy','{}'));self.db.execute('INSERT INTO international_reference_bridge VALUES(?,?,?,?,?,?,?)',(1,'legacy',self.mid,'original','INTEGRATED','TARGET',1));new=dict(f,minutes=90,verification_status='PROVIDER_ID_AND_MATCH_VERIFIED')
+        with self.assertRaisesRegex(ValueError,'KNOWN_OR_LEGACY'):complete_missing_minutes(self.db,new,self.eid)

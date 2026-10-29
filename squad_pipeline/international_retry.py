@@ -13,6 +13,7 @@ def observe(db,task,result,token,at=None):
     if success:classification=None;state='RESOLVED';slot=None
     else:
         classification,retryable=classify(result,dict(date=task.get('date','')),at)
+        if (result.get('error') or '')=='SOURCE_MINUTES_INCOMPLETE':classification,retryable='TEMPORARY_SOURCE_INCOMPLETE',True
         if any(x in (result.get('error') or '') for x in ('RETURNED_MATCH_ID_MISMATCH','ORDERED_TEAM_ID_MISMATCH','MATCH_KICKOFF_MISMATCH','MATCH_COMPETITION_ID_MISMATCH')):classification,retryable='ROSTER_IDENTITY_CONFLICT',False
         state='HUMAN_REVIEW' if age>=timedelta(hours=p['escalate_after_hours']) else 'PENDING' if retryable else 'QUARANTINED';slot=next_slot(at,p) if state=='PENDING' else None
     if old.get('state') in ('QUARANTINED','HUMAN_REVIEW') and not result.get('human_review_authorized'):state=old['state'];classification=old['failure_classification'];slot=None
