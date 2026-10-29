@@ -121,6 +121,8 @@ def academy_biographies(raw,capture,club_id):
     return result
 
 def person_profile(raw,capture,club_id=None):
+    owned={8456:{'www.mancity.com'},9825:{'www.arsenal.com'},9823:{'fcbayern.com','app.fcbayern.com'},9847:{'www.psg.fr'},8634:{'www.fcbarcelona.com','www.fcbarcelona.es'},8636:{'www.inter.it'}}
+    if urlsplit(capture['url']).hostname not in owned.get(club_id,set()):return []
     rows=[]
     for i,d in enumerate(jsonld(raw)):
         if d.get('@type')=='Person' and d.get('name') and d.get('birthDate'):
@@ -215,3 +217,14 @@ def dfb_roster(raw,capture,club_id):
         result.append(base(capture,f'DFB squad table tr[{i}]','DFB',[name],provider_ids={'DFB':pid},birth_date=f'{birthday[2]}-{birthday[1]}-{birthday[0]}',official_clubs=[str(club_id)],scope='COMPETITION_REGISTRATION',authority='OFFICIAL',raw_fields={'profile_url':urljoin(capture['url'],a.attrs['href'])}))
     if not result:raise ValueError('DFB_REGISTERED_PLAYER_DOB_ROWS_UNAVAILABLE')
     return result
+
+
+def dfb_profile(raw,capture):
+    if urlsplit(capture['url']).hostname!='datencenter.dfb.de':return []
+    pid=re.search(r'/(?:personen|persons)/[^/]+-(\d+)/spieler',capture['url'])
+    if not pid:return []
+    root=Tree(raw).root;text=root.txt();dob=re.search(r'Geburtstag:\s*(\d{2})\.(\d{2})\.(\d{4})',text);name=re.search(r'Name:\s*(.*?)\s*Geburtstag:',text,re.S)
+    if not dob or not name:return []
+    club=[]
+    if any('/bayern-muenchen' in a.attrs.get('href','') for a in root.all(tag='a')):club=['9823']
+    return [base(capture,'DFB person name/birthday + evidenced club-history links','DFB',[name[1].strip()],provider_ids={'DFB':pid[1]},birth_date=f'{dob[3]}-{dob[2]}-{dob[1]}',official_clubs=club,scope='ACADEMY_AFFILIATION' if club else 'IDENTITY_ONLY',authority='OFFICIAL',date_precision='OBSERVED_CAREER_ASSOCIATION_NOT_CURRENT_MANAGEMENT')]

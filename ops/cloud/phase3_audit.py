@@ -92,6 +92,7 @@ def main():
                 if not rows and url.startswith('https://www.arsenal.com/fixtures/men/players/'):
                     rr,rendered=render(url,len(captures))
                     if rendered:rows=parsers.current_official_profile(rendered,rr,dossier['club_id'])
+                if not rows and urlsplit(url).hostname=='datencenter.dfb.de':rows=parsers.dfb_profile(raw,r)
                 if not rows:rows=parsers.person_profile(raw,r,dossier['club_id'])
                 records.extend(rows)
             except Exception as exc:attempted.append(dict(player_id=str(p.player_id),url=url,status='AUTO_PATH_FAILED',error=type(exc).__name__+':'+str(exc)))
