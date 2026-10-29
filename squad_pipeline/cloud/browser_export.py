@@ -4,6 +4,7 @@ from datetime import datetime,timezone
 from pathlib import Path
 from .quality import inspect,readonly
 from ..managed_roster import decision
+from ..live_parse import CLUBS
 
 def minute_state(status,minutes):
  if status in ('UNKNOWN','UNVERIFIED','PENDING') or minutes is None:return 'UNKNOWN'
@@ -40,7 +41,7 @@ def export_browser(database,out,data_head,pointer,as_of,acceptance=True):
      if x['match_id']==r['canonical_match_id'] and x['club_id']==str(r['club_id']):x['new_source_warning']=r['failure_classification']
     continue
    # This is a team fixture with unknown player selection, never a fabricated player appearance.
-   own=c.get('catalog_home');away=c.get('catalog_away');opponent=away if own==c.get('club_canonical') else own or c.get('opponent') or '待核实'
+   own=c.get('catalog_home');away=c.get('catalog_away');opponent=away if own==next((name for name,tid in CLUBS.items() if tid==r['club_id']),None) else own or c.get('opponent') or '待核实'
    rows.append(dict(match_id=r['match_key'],date=r['match_date'],competition=(c.get('catalog_competition')+'（待阵容页核实）') if c.get('catalog_competition') else '赛事待核实',opponent=opponent,club_id=str(r['club_id']),club=club['name'],minutes=None,minute_state='PENDING_SOURCE' if r['state']=='PENDING' else 'REQUIRES_REVIEW',participation_status='PLAYER_SELECTION_UNCONFIRMED',verification_status=r['failure_classification'],source_url=r['url'],pending=True,queue_state=r['state'],next_retry_at=r['next_retry_at']))
  for rows in records.values():rows.sort(key=lambda x:(x['date'],x['club']),reverse=True)
  version=dict(data_commit=data_head,data_version=pointer['current']['version'],sqlite_sha256=info['sha256'],code_commit=pointer['current']['code_commit']);result=dict(schema_version=2,as_of=as_of,generated_at=datetime.now(timezone.utc).isoformat(),acceptance_dataset=acceptance,production_ingestion_enabled=False,authority_handover=False,scope='RECORDED_CLUB_MATCHES_ONLY;NOT_COMPLETE_PERSONAL_WORKLOAD',version=version,clubs=clubs,players=players,records=records,pending=pending)

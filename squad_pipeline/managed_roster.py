@@ -14,12 +14,12 @@ def decision(db,club_id,player_id,on):
  rows=[r for r in rows if r['verification_status']=='VERIFIED' and (r['effective_from'] or r['observed_on'])<=on and (r['status'] in NEGATIVE or not r['end_exclusive'] or on<r['end_exclusive'])]
  # A verified departure/loan-out persists until an explicit dated return/re-signing event, not an ownership profile.
  negatives=[r for r in rows if r['status'] in NEGATIVE]
- positives=[r for r in rows if r['status'] in POSITIVE]
+ positives=[r for r in rows if r['status'] in POSITIVE and (not r['end_exclusive'] or on<r['end_exclusive'])]
  last_out=max(negatives,key=lambda r:(r['observed_on'],r['effective_from'] or r['observed_on']),default=None)
  if last_out:
   returned=[r for r in positives if (r['effective_from'] or r['observed_on'])>(last_out['effective_from'] or last_out['observed_on']) and r['date_precision'] in ('EXPLICIT_RETURN_DAY','EXPLICIT_SIGNING_DAY')]
   if not returned and last_out['end_exclusive'] and on>=last_out['end_exclusive']:return dict(state='UNKNOWN',included=False,status='RETURN_UNVERIFIED',sources=json.loads(last_out['source_json']),reason='Scheduled loan end is not proof of return')
-  if not returned:return dict(state='EXCLUDED',included=False,status=last_out['status'],effective_from=last_out['effective_from'],end_exclusive=last_out['end_exclusive'],date_precision=last_out['date_precision'],sources=json.loads(last_out['source_json']),reason=last_out['reason'])
+  if not returned:return dict(state='UNKNOWN' if last_out['end_exclusive'] and on>=last_out['end_exclusive'] else 'EXCLUDED',included=False,status=last_out['status'],effective_from=last_out['effective_from'],end_exclusive=last_out['end_exclusive'],date_precision=last_out['date_precision'],sources=json.loads(last_out['source_json']),reason=last_out['reason'])
   positives=returned
  if not positives:return dict(state='UNKNOWN',included=False,status='UNKNOWN',sources=[],reason='No current verified management assertion; historic appearances and ownership are insufficient')
  r=max(positives,key=lambda r:(r['observed_on'],r['effective_from'] or ''));return dict(state='INCLUDED',included=True,status=r['status'],effective_from=r['effective_from'],end_exclusive=r['end_exclusive'],date_precision=r['date_precision'],sources=json.loads(r['source_json']),reason=r['reason'])
@@ -31,4 +31,4 @@ def import_verified_history(db):
   if status not in POSITIVE|NEGATIVE:continue
   source=json.loads(r['source_json'] or '[]')
   if not source:continue
-  add_event(db,r['club_id'],r['player_id'],status,r['start_date'],r['verified_as_of'],source,'Retained independently verified affiliation assertion: '+(r['reason'] or ''),precision='LEGACY_KNOWN_BY_DAY' if status in NEGATIVE else 'LEGACY_VERIFIED_START_OR_SNAPSHOT')
+  add_event(db,r['club_id'],r['player_id'],status,r['start_date'],r['verified_as_of'],source,'Retained independently verified affiliation assertion: '+(r['reason'] or ''),end_exclusive=r.get('end_date'),precision='LEGACY_KNOWN_BY_DAY' if status in NEGATIVE else 'LEGACY_VERIFIED_START_OR_SNAPSHOT')

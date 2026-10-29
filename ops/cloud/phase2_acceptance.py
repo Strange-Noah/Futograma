@@ -90,12 +90,13 @@ def add_current_memberships(db,captures,on):
 def retain(s,head,work,report,client):
  # Minimal audit JSON plus explicit acquired bodies; private, unresolved evidence is not a regular expiring log.
  import tarfile
+ work.mkdir(parents=True,exist_ok=True)
  write(work/'report.json',report);archive=work/'phase2-evidence.tar.gz'
  with tarfile.open(archive,'w:gz') as tar:
   tar.add(work/'report.json',arcname='report.json')
   for r in client.records:
    if r.get('path') and (ROOT/r['path']).is_file():tar.add(ROOT/r['path'],arcname=r['path'],recursive=False)
- release=s.api('POST',s.base+'/releases',dict(tag_name='futograma-phase2-evidence-'+os.environ['GITHUB_RUN_ID']+'-'+os.environ['FUTOGRAMA_PHASE'],target_commitish=head,name='Phase 2 audit evidence',body='Persistent unresolved roster/source audit evidence. Never delete with snapshot or routine temporary retention.',draft=True));asset=s.upload(release['id'],archive);s.download(asset['id'],work/'evidence-readback.gz')
+ release=s.api('POST',s.base+'/releases',dict(tag_name='futograma-phase2-evidence-'+os.environ['GITHUB_RUN_ID']+'-'+os.environ['FUTOGRAMA_PHASE']+'-'+work.name,target_commitish=head,name='Phase 2 audit evidence',body='Persistent unresolved roster/source audit evidence. Never delete with snapshot or routine temporary retention.',draft=True));asset=s.upload(release['id'],archive);s.download(asset['id'],work/'evidence-readback.gz')
  if sha(archive)!=sha(work/'evidence-readback.gz'):raise RuntimeError('PRIVATE_EVIDENCE_READBACK_FAILED')
  s.api('PATCH',s.base+'/releases/'+str(release['id']),dict(draft=False));return dict(asset_id=asset['id'],release_id=release['id'],sha256=sha(archive))
 
@@ -125,9 +126,9 @@ def main():
    report['six_club_audit'].append(dict(club_id=club['club_id'],club=club['name'],counts=dict(Counter(m['management']['state'] for m in members)),players=members))
   cup=captures['cup'];expected=db.execute("SELECT * FROM matches WHERE lower(metadata_json) LIKE '%osnab%' AND competition_id=209").fetchone();report['german_cup']=dict(canonical_match_id=expected['match_id'],competition_id=209,home='osnabruck',away='bayern',kickoff=expected['kickoff'],source_url=urls['cup'],live_capture_status=cup['status'])
   if cup['status']=='SUCCESS':
-   f,sheets=german_parse((ROOT/cup['path']).read_text(),cup);own=next(x for x in sheets if x['club_id']==9823);target=[p for p in own['players'] if norm(p['name']).endswith('kim') and p['shirt']=='3'];print('CUP_DIAGNOSTIC',json.dumps(dict(parsed=f,expected=dict(expected),target=target),default=str),flush=True);assert f['match_id']==expected['match_id'] and f['competition_id']==209 and f['home_team']=='osnabruck' and f['away_team']=='bayern';assert len(target)==1 and target[0]['derived_minutes']==90;report['german_cup'].update(status='PASS',home_identity_confirmed=True,away_club_id=9823,own_starting_xi=sum(x['role']=='starters' for x in own['players']),own_squad=len(own['players']),min_jae_kim_minutes=90,provider_match_id='556658',identity_method='RETAINED_CANONICAL_MATCH_AND_PLAYER_BRIDGE;NO_NEW_ID_INVENTED')
+   f,sheets=german_parse((ROOT/cup['path']).read_text(),cup);own=next(x for x in sheets if x['club_id']==9823);target=[p for p in own['players'] if norm(p['name']).endswith('kim') and p['shirt']=='3'];bridge=json.loads(expected['metadata_json']);assert f['match_id'] in (expected['match_id'],bridge.get('discovery_match_id')) and retry.dt(f['kickoff'])==retry.dt(expected['kickoff']) and f['score']==expected['result'] and f['competition_id']==expected['competition_id']==209 and f['home_team']==bridge['home_team']=='osnabruck' and f['away_team']==bridge['away_team']=='bayern';assert len(target)==1 and target[0]['derived_minutes']==90;report['german_cup'].update(status='PASS',home_identity_confirmed=True,away_club_id=9823,own_starting_xi=sum(x['role']=='starters' for x in own['players']),own_squad=len(own['players']),min_jae_kim_minutes=90,provider_match_id='556658',discovery_match_id=f['match_id'],stable_identity_bridge=bridge.get('discovery_match_id'),identity_method='RETAINED_CANONICAL_MATCH_AND_PLAYER_BRIDGE;NO_NEW_ID_INVENTED')
   else:report['german_cup']['status']='PENDING_LIVE_SOURCE_ACCESS'
-  db.commit();db.close();os.environ['FUTBOL_DATABASE_PATH']=str(work/'working.sqlite');os.environ['FUTBOL_SETTINGS_PATH']=str(ROOT/'ops/cloud/runtime.json');os.environ['FUTBOL_RUN_ORIGIN']='phase2_acceptance_preflight'
+  report['source_capture_receipt']=captures;report['preflight_audit_evidence']=retain(s,main_head,work/'initial-evidence',report,client);db.commit();db.close();os.environ['FUTBOL_DATABASE_PATH']=str(work/'working.sqlite');os.environ['FUTBOL_SETTINGS_PATH']=str(ROOT/'ops/cloud/runtime.json');os.environ['FUTBOL_RUN_ORIGIN']='phase2_acceptance_preflight'
   from types import SimpleNamespace
   network_exit=live_ingest.run(SimpleNamespace(preflight=True,recheck=True,budget=90,max_details=6));latest=json.loads((BASE/'audit/live_deployment/latest_run.json').read_text());http_log=BASE/'audit/live_deployment/http_requests.jsonl'
   if http_log.is_file():client.records.extend(json.loads(line) for line in http_log.read_text().splitlines() if json.loads(line).get('run_id')==latest['run_id'])
