@@ -62,4 +62,8 @@ class Phase2Tests(unittest.TestCase):
   from ops.cloud.phase2_acceptance import legal_senior
   html='<h5><a>Arsenal</a></h5><p>Senior, One<br>Senior, Two</p><p>U21 players</p><p>Youth, Three</p><h5>Other</h5><p>Other, Four</p>';self.assertEqual(legal_senior(html,'Arsenal'),['Senior, One','Senior, Two'])
  def test_verified_alternative_source_retried_after_72_hours_only(self):
-  c=self.c|dict(verified_alternative_sources=[dict(provider='Torlytics',url='https://example.com/alternative',verified_same_fixture=True)]);observe(self.db,c,dict(status='SOURCE_UNAVAILABLE',error='HTTP_503'),'first',self.now-timedelta(days=1));self.assertEqual(len(due_candidates(self.db,self.now)),1);self.assertEqual(len(due_candidates(self.db,self.now+timedelta(days=3))),2)
+  c=self.c|dict(match_completion_at=(self.now-timedelta(days=1)).isoformat(),verified_alternative_sources=[dict(provider='Torlytics',url='https://example.com/alternative',verified_same_fixture=True)]);observe(self.db,c,dict(status='SOURCE_UNAVAILABLE',error='HTTP_503'),'first',self.now-timedelta(days=1));self.assertEqual(len(due_candidates(self.db,self.now)),1);self.assertEqual(len(due_candidates(self.db,self.now+timedelta(days=3))),2)
+
+ def test_explicit_german_cup_label_is_supported_without_none_fallback(self):
+  from squad_pipeline.live_parse import fixture
+  f=fixture('German DFB Cup','2026-09-02T18:45:00+00:00','VfL Osnabrück','Bayern Munich','1-4',dict(test_only=True));self.assertEqual(f['competition_id'],209)

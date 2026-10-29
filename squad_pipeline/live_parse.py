@@ -8,7 +8,7 @@ from .six_club_validation import canon as base_canon,CLUBS,day
 from .multi_source_dataset import identity,norm
 # Same-page Sky header says Fleetwood Town, lineup header abbreviates it Fleetwood.
 def canon(name):return {'fleetwood':'fleetwoodtown'}.get(base_canon(name),base_canon(name))
-COMP={'Premier League':47,'Bundesliga':54,'La Liga':87,'LaLiga':87,'Serie A':55,'Ligue 1':53,'UEFA Champions League':42,'Champions League':42,'Carabao Cup':133,'EFL Cup':133,'FA Cup':132,'The FA Cup':132,'DFB Pokal':209,'DFB-Pokal':209,'Copa del Rey':138,'Coupe de France':141,'Coppa Italia':137,'Community Shield':247,'UEFA Super Cup':74,'Trophée des Champions':207,'DFL Supercup':'DFL_SUPERCUP'}
+COMP={'Premier League':47,'Bundesliga':54,'La Liga':87,'LaLiga':87,'Serie A':55,'Ligue 1':53,'UEFA Champions League':42,'Champions League':42,'Carabao Cup':133,'EFL Cup':133,'FA Cup':132,'The FA Cup':132,'DFB Pokal':209,'DFB-Pokal':209,'German DFB Cup':209,'Copa del Rey':138,'Coupe de France':141,'Coppa Italia':137,'Community Shield':247,'UEFA Super Cup':74,'Trophée des Champions':207,'DFL Supercup':'DFL_SUPERCUP'}
 class ParseError(ValueError):pass
 class Pending(ParseError):pass
 class Node:
