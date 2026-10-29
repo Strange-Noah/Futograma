@@ -15,7 +15,7 @@ def decision(db,club_id,player_id,on):
  # A verified departure/loan-out persists until an explicit dated return/re-signing event, not an ownership profile.
  negatives=[r for r in rows if r['status'] in NEGATIVE]
  positives=[r for r in rows if r['status'] in POSITIVE]
- last_out=max(negatives,key=lambda r:(r['effective_from'] or r['observed_on'],r['observed_on']),default=None)
+ last_out=max(negatives,key=lambda r:(r['observed_on'],r['effective_from'] or r['observed_on']),default=None)
  if last_out:
   returned=[r for r in positives if (r['effective_from'] or r['observed_on'])>(last_out['effective_from'] or last_out['observed_on']) and r['date_precision'] in ('EXPLICIT_RETURN_DAY','EXPLICIT_SIGNING_DAY')]
   if not returned and last_out['end_exclusive'] and on>=last_out['end_exclusive']:return dict(state='UNKNOWN',included=False,status='RETURN_UNVERIFIED',sources=json.loads(last_out['source_json']),reason='Scheduled loan end is not proof of return')

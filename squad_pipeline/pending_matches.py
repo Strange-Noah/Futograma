@@ -12,7 +12,15 @@ CREATE TABLE IF NOT EXISTS match_retry_history(event_id TEXT PRIMARY KEY,match_k
 CREATE INDEX IF NOT EXISTS match_retry_due ON match_retry_queue(state,next_retry_at);"""
 def policy():
  p=ROOT/'ops/cloud/retry-policy.json';return DEFAULT| (json.loads(p.read_text()) if p.is_file() else {})
-def migrate(db):db.executescript(DDL)
+def migrate(db):
+ db.executescript(DDL)
+ if not db.execute("SELECT 1 FROM sqlite_master WHERE name='live_tasks'").fetchone():return
+ for old in db.execute("SELECT * FROM live_tasks WHERE status NOT IN ('NEW_MATCH','UPDATED_MATCH','UNCHANGED')").fetchall():
+  old=dict(old);c=json.loads(old['payload_json'] or '{}')
+  if not all(k in c for k in ['club_id','provider','url','date']) or old.get('last_error') in ('NOT_CONFIRMED_FULL_TIME','SKY_NOT_FULL_TIME','FUTURE_KICKOFF'):continue
+  if db.execute('SELECT 1 FROM match_retry_queue WHERE match_key=?',(key(c),)).fetchone():continue
+  c['legacy_first_observation_precision']='EARLIEST_RETAINED_RUN_OR_MIGRATION_NOT_ORIGINAL_FIRST_FAILURE';run=db.execute('SELECT started_at FROM live_runs WHERE run_id=?',(old.get('last_run'),)).fetchone();at=dt(run[0]) if run and run[0] else clock();observe(db,c,dict(status=old['status'],error=old.get('last_error')),'legacy-migration:'+str(old.get('last_run')),at);db.execute('UPDATE match_retry_queue SET attempt_count=MAX(attempt_count,?) WHERE match_key=?',(old.get('attempts') or 0,key(c)))
+ db.commit()
 def iso(d):return d.astimezone(timezone.utc).isoformat()
 def dt(s):return datetime.fromisoformat(s.replace('Z','+00:00'))
 def clock():return datetime.now(timezone.utc)
@@ -78,5 +86,5 @@ def sky_context(raw,candidate):
  from .live_parse import Tree,COMP,canon,uk_datetime
  try:
   root=Tree(raw).root;h=root.one('sdc-site-match-header');names=h.all('sdc-site-match-header__team-name-block-target');label=h.one('sdc-site-match-header__detail-fixture').txt();known=next((x for x in COMP if re.search(r'\.\s*'+re.escape(x)+r'\b',label)),None);kick=uk_datetime(h.one('sdc-site-match-header__detail-time').txt());same=len(names)==2 and [canon(x.txt()) for x in names]==[candidate.get('catalog_home'),candidate.get('catalog_away')] and dt(kick).astimezone(ZoneInfo('Europe/Madrid')).date().isoformat()==candidate['date']
-  return dict(confirmed_full_time=h.attrs.get('data-status')=='4',fixture_identity_agrees=same,catalog_competition_known=candidate.get('catalog_competition') in COMP,competition_field_empty=known is None and len(names)==2 and not re.sub(r'(?i)\\b(?:vs?|versus)\\b|[. ;:–—-]','',label.replace(names[0].txt(),'').replace(names[1].txt(),'' )).strip(),identity_conflict=bool(root.all('sdc-site-team-lineup__col')) and ([canon(col.one('sdc-site-team-lineup__team-name').txt()) for col in root.all('sdc-site-team-lineup__col')]!=[canon(n.txt()) for n in names]),detail_label=label,catalog_competition=candidate.get('catalog_competition'),kickoff=kick)
+  return dict(confirmed_full_time=h.attrs.get('data-status')=='4',fixture_identity_agrees=same,catalog_competition_known=candidate.get('catalog_competition') in COMP,competition_field_empty=known is None and len(names)==2 and not re.sub(r'(?i)\b(?:vs?|versus)\b|[. ;:–—-]','',label.replace(names[0].txt(),'').replace(names[1].txt(),'' )).strip(),identity_conflict=bool(root.all('sdc-site-team-lineup__col')) and ([canon(col.one('sdc-site-team-lineup__team-name').txt()) for col in root.all('sdc-site-team-lineup__col')]!=[canon(n.txt()) for n in names]),detail_label=label,catalog_competition=candidate.get('catalog_competition'),kickoff=kick)
  except Exception:return dict(confirmed_full_time=False,fixture_identity_agrees=False,competition_field_empty=False)
