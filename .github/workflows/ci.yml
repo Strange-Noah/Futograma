@@ -41,6 +41,11 @@
         {
           "name": "Verify no forbidden files tracked",
           "run": "python ops/repository/check_tracked.py"
+        },
+        {
+          "name": "Report software result (not source acceptance)",
+          "if": "${{ always() }}",
+          "run": "echo 'Software job: ${{ job.status }}; live sources/roster/international/production: NOT ACCEPTED by this CI' >> \"$GITHUB_STEP_SUMMARY\""
         }
       ]
     }
