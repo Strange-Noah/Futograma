@@ -1,5 +1,5 @@
 """Raw browser export. Current management and historical match facts are separate dimensions."""
-import json,sqlite3
+import json,sqlite3,hashlib
 from datetime import datetime,timezone
 from pathlib import Path
 from .quality import inspect,readonly
@@ -47,6 +47,6 @@ def export_browser(database,out,data_head,pointer,as_of,acceptance=True):
  version=dict(data_commit=data_head,data_version=pointer['current']['version'],sqlite_sha256=info['sha256'],code_commit=pointer['current']['code_commit']);result=dict(schema_version=2,as_of=as_of,generated_at=datetime.now(timezone.utc).isoformat(),acceptance_dataset=acceptance,production_ingestion_enabled=False,authority_handover=False,scope='RECORDED_CLUB_MATCHES_ONLY;NOT_COMPLETE_PERSONAL_WORKLOAD',version=version,clubs=clubs,players=players,records=records,pending=pending)
  p=Path(out)/'data/browser.json';p.parent.mkdir(parents=True,exist_ok=True)
  with p.open('x') as f:json.dump(result,f,ensure_ascii=False,separators=(',',':'))
- manifest=dict(schema_version=2,exported_at=result['generated_at'],as_of=as_of,version=version,acceptance_dataset=acceptance,dataset_ref=pointer.get('dataset_ref'),club_only=True,national_history_complete=False,first_team_population_complete=all(c['unknown_count']==0 for c in clubs),endpoint='browser.json')
+ manifest=dict(browser_sha256=hashlib.sha256(p.read_bytes()).hexdigest(),schema_version=2,exported_at=result['generated_at'],as_of=as_of,version=version,acceptance_dataset=acceptance,dataset_ref=pointer.get('dataset_ref'),club_only=True,national_history_complete=False,first_team_population_complete=all(c['unknown_count']==0 for c in clubs),endpoint='browser.json')
  with (p.parent/'manifest.json').open('x') as f:json.dump(manifest,f,ensure_ascii=False,indent=2)
  db.close();return manifest

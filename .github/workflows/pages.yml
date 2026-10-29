@@ -42,7 +42,7 @@
           "uses": "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
           "with": {
             "repository": "Strange-Noah/Futograma-data",
-            "ref": "site",
+            "ref": "${{ vars.FUTOGRAMA_SITE_BRANCH || 'site' }}",
             "path": "private-site",
             "ssh-key": "${{ secrets.FUTOGRAMA_DATA_READ_KEY }}",
             "persist-credentials": false
@@ -52,7 +52,7 @@
           "uses": "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
           "with": {
             "repository": "Strange-Noah/Futograma-data",
-            "ref": "main",
+            "ref": "${{ vars.FUTOGRAMA_SITE_DATA_REF || 'main' }}",
             "path": "private-pointer",
             "ssh-key": "${{ secrets.FUTOGRAMA_DATA_READ_KEY }}",
             "persist-credentials": false
