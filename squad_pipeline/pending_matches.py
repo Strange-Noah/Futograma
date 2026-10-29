@@ -61,6 +61,7 @@ def observe(db,candidate,result,attempt_token,at=None):
  if success:
   db.execute("UPDATE match_retry_queue SET state='RESOLVED',resolved_at=?,last_attempt_at=?,attempt_count=attempt_count+1,canonical_match_id=COALESCE(?,canonical_match_id),next_retry_at=NULL,escalation_status='RESOLVED' WHERE match_key=?",(iso(at),iso(at),result.get('match_id'),k));return
  classification,retryable=classify(result,candidate,at);old=dict(old) if old else {};first=old.get('first_observed_at') or iso(at);completion=old.get('match_completion_at') or candidate.get('match_completion_at');age=at-dt(completion or first);escalated=age>=timedelta(hours=p['escalate_after_hours']);state='HUMAN_REVIEW' if escalated else 'PENDING' if retryable else 'QUARANTINED';escalation='MAX_RETRY_AGE_REACHED' if escalated else 'REQUIRES_REVIEW' if not retryable else 'NONE';attempted=result.get('error')!='DAILY_DETAIL_BUDGET_DEFERRED';count=old.get('attempt_count',0)+int(attempted)
+ if old.get('state') in ('QUARANTINED','HUMAN_REVIEW') and not result.get('human_review_authorized'):state=old['state'];classification=old['failure_classification'];escalation=old['escalation_status']
  values=(k,candidate['club_id'],candidate['provider'],str(candidate.get('catalog_provider_id') or candidate.get('provider_match_id') or candidate['url'].rstrip('/').rsplit('/',1)[-1]),result.get('match_id') or old.get('canonical_match_id') or candidate.get('match_id'),candidate['url'],candidate['date'],first,completion,iso(at) if attempted else old.get('last_attempt_at'),count,classification,json.dumps(evidence,ensure_ascii=False),next_slot(at,p) if state=='PENDING' else None,escalation,state,result.get('error'),json.dumps(candidate,ensure_ascii=False),None)
  db.execute('INSERT INTO match_retry_queue VALUES('+','.join('?' for _ in values)+') ON CONFLICT(match_key) DO UPDATE SET canonical_match_id=COALESCE(excluded.canonical_match_id,canonical_match_id),last_attempt_at=excluded.last_attempt_at,attempt_count=excluded.attempt_count,match_completion_at=COALESCE(match_completion_at,excluded.match_completion_at),failure_classification=excluded.failure_classification,evidence_json=excluded.evidence_json,next_retry_at=excluded.next_retry_at,escalation_status=excluded.escalation_status,state=excluded.state,last_error=excluded.last_error,candidate_json=excluded.candidate_json,resolved_at=NULL',values)
 
@@ -77,7 +78,7 @@ def due_candidates(db,at=None):
   c=json.loads(r['candidate_json']);c.update(retry_queue_key=r['match_key'],durable_pending_retry=True,window_start_utc=None,alternative_sources_allowed=age>=timedelta(hours=p['alternative_after_hours']));out.append(c)
   # Only previously corroborated alternative URLs; every response still passes full parser/team validation.
   if c['alternative_sources_allowed']:
-   for alt in c.get('verified_alternative_sources',[]):
+   for alt in verified_alternatives(db,c):
     if alt.get('provider') in ('Sky','Torlytics') and alt.get('verified_same_fixture'):
      out.append(c|{'url':alt['url'],'provider':alt['provider'],'alternative_source_for':r['match_key']})
  return out
@@ -88,3 +89,18 @@ def sky_context(raw,candidate):
   root=Tree(raw).root;h=root.one('sdc-site-match-header');names=h.all('sdc-site-match-header__team-name-block-target');label=h.one('sdc-site-match-header__detail-fixture').txt();known=next((x for x in COMP if re.search(r'\.\s*'+re.escape(x)+r'\b',label)),None);kick=uk_datetime(h.one('sdc-site-match-header__detail-time').txt());same=len(names)==2 and [canon(x.txt()) for x in names]==[candidate.get('catalog_home'),candidate.get('catalog_away')] and dt(kick).astimezone(ZoneInfo('Europe/Madrid')).date().isoformat()==candidate['date']
   return dict(confirmed_full_time=h.attrs.get('data-status')=='4',fixture_identity_agrees=same,catalog_competition_known=candidate.get('catalog_competition') in COMP,competition_field_empty=known is None and len(names)==2 and not re.sub(r'(?i)\b(?:vs?|versus)\b|[. ;:–—-]','',label.replace(names[0].txt(),'').replace(names[1].txt(),'' )).strip(),identity_conflict=bool(root.all('sdc-site-team-lineup__col')) and ([canon(col.one('sdc-site-team-lineup__team-name').txt()) for col in root.all('sdc-site-team-lineup__col')]!=[canon(n.txt()) for n in names]),detail_label=label,catalog_competition=candidate.get('catalog_competition'),kickoff=kick)
  except Exception:return dict(confirmed_full_time=False,fixture_identity_agrees=False,competition_field_empty=False)
+
+def verified_alternatives(db,c):
+ # Only source URLs bound to the same accepted canonical fixture; no guessed discovery links.
+ from .live_parse import COMP,canon
+ out=list(c.get('verified_alternative_sources',[]));mid=c.get('match_id')
+ if not mid and c.get('catalog_home') and c.get('catalog_away'):
+  hits=[]
+  for row in db.execute('SELECT * FROM matches WHERE local_date=?',(c['date'],)):
+   m=json.loads(row['metadata_json'] or '{}')
+   if canon(m.get('home_team',''))==c['catalog_home'] and canon(m.get('away_team',''))==c['catalog_away'] and COMP.get(c.get('catalog_competition'))==row['competition_id']:hits.append(row['match_id'])
+  if len(hits)==1:mid=hits[0]
+ if mid:
+  for row in db.execute('SELECT url,provider,body_sha256 FROM live_documents WHERE match_id=? AND club_id=?',(mid,c['club_id'])):
+   if row['url']!=c['url'] and row['body_sha256']:out.append(dict(url=row['url'],provider=row['provider'],verified_same_fixture=True,canonical_match_id=mid,evidence='PREVIOUSLY_ACCEPTED_LIVE_DOCUMENT_BINDING'))
+ return out

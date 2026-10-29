@@ -225,6 +225,7 @@ def run(args):
     if datetime.fromisoformat(f['kickoff'].replace('Z','+00:00'))>current:raise Pending('FUTURE_KICKOFF')
     if not args.preflight and not c.get('durable_pending_retry') and c.get('window_start_utc') and datetime.fromisoformat(f['kickoff'].replace('Z','+00:00'))<datetime.fromisoformat(c['window_start_utc']):
      result.update(status='UNCHANGED',reason='BEFORE_EXACT_72H_OR_CATCHUP_BOUND;NO_FACT_WRITE');report['results'].append(result);task(db,c,result,runid);continue
+    if c.get('catalog_home') and c.get('catalog_away') and (f['home_team'],f['away_team'],f['match_date'])!=(c['catalog_home'],c['catalog_away'],c['date']):raise IdentityError('CATALOG_DETAIL_FIXTURE_IDENTITY_MISMATCH')
     own=next((s for s in sheets if s['club_id']==c['club_id']),None)
     if not own:raise IdentityError('REQUESTED_CLUB_NOT_ON_PARSED_SIDE')
     if not args.preflight:stage_sheet(db,f,own)

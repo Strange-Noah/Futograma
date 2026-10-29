@@ -55,3 +55,11 @@ class Phase2Tests(unittest.TestCase):
   from squad_pipeline.cloud.browser_export import export_browser
   from squad_pipeline.cloud.quality import sha
   self.add('FIRST_TEAM');self.db.execute("UPDATE matches SET metadata_json=?",(json.dumps(dict(home_team='manchestercity',away_team='arsenal',source_evidence=[dict(url=None)])),));observe(self.db,self.c|dict(acceptance_test_only=True),dict(status='SOURCE_UNAVAILABLE',error='HTTP_503'),'probe',self.now);self.db.commit();pointer=dict(current=dict(database=dict(sha256=sha(self.path)),version='TEST_ONLY',code_commit='0'*40),dataset_ref='acceptance/controlled');out=Path(self.tmp.name)/'browser';export_browser(self.path,out,'a'*40,pointer,'2026-10-29');data=json.loads((out/'data/browser.json').read_text());self.assertEqual(data['pending'],[]);self.assertTrue(data['records'])
+
+ def test_quarantined_conflict_cannot_become_temporary_pending(self):
+  observe(self.db,self.c,dict(status='VALIDATION_FAILED',error='ParseError:SKY_ROSTER_SIDE_MISMATCH'),'bad',self.now);observe(self.db,self.c,dict(status='SOURCE_UNAVAILABLE',error='HTTP_503'),'later',self.now);r=self.db.execute('SELECT state,failure_classification FROM match_retry_queue').fetchone();self.assertEqual(tuple(r),('QUARANTINED','ROSTER_IDENTITY_CONFLICT'))
+ def test_registration_scope_never_crosses_into_other_club_or_under21(self):
+  from ops.cloud.phase2_acceptance import legal_senior
+  html='<h5><a>Arsenal</a></h5><p>Senior, One<br>Senior, Two</p><p>U21 players</p><p>Youth, Three</p><h5>Other</h5><p>Other, Four</p>';self.assertEqual(legal_senior(html,'Arsenal'),['Senior, One','Senior, Two'])
+ def test_verified_alternative_source_retried_after_72_hours_only(self):
+  c=self.c|dict(verified_alternative_sources=[dict(provider='Torlytics',url='https://example.com/alternative',verified_same_fixture=True)]);observe(self.db,c,dict(status='SOURCE_UNAVAILABLE',error='HTTP_503'),'first',self.now-timedelta(days=1));self.assertEqual(len(due_candidates(self.db,self.now)),1);self.assertEqual(len(due_candidates(self.db,self.now+timedelta(days=3))),2)

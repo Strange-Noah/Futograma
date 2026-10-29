@@ -38,7 +38,11 @@ def identities(db,tid):
  return result
 
 def roster_rows(tid,raw):
- if tid==8456:return parse_city(raw)[0]
+ if tid==8456:
+  d=payload(raw).get('playersListData')
+  if not d:return parse_city(raw)[0]
+  if d.get('cityTeamInfo',{}).get('category')!='mens':raise ValueError('CITY_NOT_MENS_FIRST_TEAM')
+  return [dict(name=p['name'],profile=p.get('urlName',''),loan_out=p.get('onLoan') is True) for group in d['body'] if group.get('name') in ('goalkeeper','defender','midfielder','forward') for p in group.get('players',[]) if p.get('isMensTeam') and not p.get('isManager') and not p.get('isCoach')]
  if tid==8636:
   # Explicit first-team application array is the authoritative category; do not scrape unrelated news/profile links.
   d=payload(raw);p=d['page']
@@ -65,9 +69,12 @@ def link_rows(identities,rows):
  return matched,ambiguous
 
 def legal_senior(raw,club):
- block=re.search(r'<h5[^>]*>\s*'+re.escape(club)+r'\s*</h5>(.*?)(?=<h5\b|\Z)',raw,re.S|re.I)
- if not block:return []
- text=block[1];senior=re.split(r'U(?:nder)?[- ]?21',text,flags=re.I)[0];return [re.sub('<[^>]*>',' ',x).replace('*','').strip() for x in re.split(r'<br\s*/?>|</p>',senior,flags=re.I) if ',' in re.sub('<[^>]*>',' ',x)]
+ headings=list(re.finditer(r'<h5\b[^>]*>(.*?)</h5>',raw,re.S|re.I))
+ for i,h in enumerate(headings):
+  if Tree(h[1]).root.txt().strip()!=club:continue
+  segment=raw[h.end():headings[i+1].start() if i+1<len(headings) else len(raw)];senior=re.split(r'U(?:nder)?[- ]?21',segment,flags=re.I)[0]
+  return [Tree(x).root.txt().replace('*','').strip() for x in re.split(r'<br\s*/?>|</p>',senior,flags=re.I) if ',' in Tree(x).root.txt()]
+ return []
 def add_current_memberships(db,captures,on):
  audits=[]
  for club in db.execute('SELECT * FROM clubs ORDER BY club_id').fetchall():
@@ -82,9 +89,9 @@ def add_current_memberships(db,captures,on):
     hits=[pid for pid,p in known.items() if any(len(tokens(n))>=2 and tokens(n)<=tokens(name) for n in p['names'])]
     if len(hits)==1 and hits[0] not in matched:matched[hits[0]]=dict(name=name,registration=True)
   for pid,row in matched.items():
-   prior=[x[0] for x in db.execute('SELECT classification FROM player_eligibility WHERE club_id=? AND player_id=?',(tid,pid))];development=any(x.startswith('ACADEMY') for x in prior);status='CLUB_MANAGED_DEVELOPMENT' if development else 'FIRST_TEAM_INJURED' if 'FIRST_TEAM_INJURED' in prior else 'FIRST_TEAM';source=registration if row.get('registration') else r
+   prior=[x[0] for x in db.execute('SELECT classification FROM player_eligibility WHERE club_id=? AND player_id=?',(tid,pid))];development=any(x.startswith('ACADEMY') for x in prior);status='LOAN_OUT' if row.get('loan_out') else 'CLUB_MANAGED_DEVELOPMENT' if development else 'FIRST_TEAM_INJURED' if 'FIRST_TEAM_INJURED' in prior else 'FIRST_TEAM';source=registration if row.get('registration') else r
    proof={k:source.get(k) for k in ['url','path','sha256','response_timestamp','http_status']};proof['identity_match']=row['name'];proof['method']='OWN_CLUB_SENIOR_REGISTER_WITH_KNOWN_ALIASES' if row.get('registration') else 'CURRENT_OFFICIAL_FIRST_TEAM_CARD_WITH_KNOWN_ALIASES';add_event(db,tid,pid,status,'2026-09-03' if row.get('registration') else None,on,[proof],'Official current first-team scope or own senior registration; no membership inferred from match frequency or ownership',precision='REGISTERED_BY_DAY_NOT_CONTRACT_START' if row.get('registration') else 'OBSERVED_CURRENT_SNAPSHOT')
-  audits.append(dict(club_id=tid,club=club['name'],official_url=ROSTER_SOURCES[tid],capture_status=r.get('status') if r else None,parse_error=error,linked_current_cards=len(matched),ambiguous_cards=ambiguous,unmapped_source_cards=[x for x in rows if x not in matched.values()]))
+  audits.append(dict(club_id=tid,club=club['name'],official_url=ROSTER_SOURCES[tid],capture_status=r.get('status') if r else None,parse_error=error,linked_current_cards=len(matched),ambiguous_cards=ambiguous,unmapped_source_cards=[x for x in rows if unquote(x.get('official_profile_url') or x.get('profile') or '').rstrip('/').rsplit('/',1)[-1] not in {unquote(v.get('official_profile_url') or v.get('profile') or '').rstrip('/').rsplit('/',1)[-1] for v in matched.values()}]))
  return audits
 
 def retain(s,head,work,report,client):
