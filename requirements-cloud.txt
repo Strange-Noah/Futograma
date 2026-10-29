@@ -1,0 +1,2 @@
+# Cloud runtime and portable regression tests use Python 3.12+ standard library only.
+# Historical plotting requirements remain separate in requirements.txt.

@@ -1,0 +1,92 @@
+{
+  "name": "Futograma Pages",
+  "on": {
+    "workflow_dispatch": {},
+    "schedule": [
+      {
+        "cron": "30 8 * * *"
+      }
+    ]
+  },
+  "permissions": {
+    "contents": "read",
+    "pages": "write",
+    "id-token": "write"
+  },
+  "concurrency": {
+    "group": "futograma-pages",
+    "cancel-in-progress": false
+  },
+  "jobs": {
+    "publish": {
+      "if": "${{ github.repository == 'Strange-Noah/Futograma' && vars.FUTOGRAMA_PAGES_ENABLED == 'true' }}",
+      "runs-on": "ubuntu-latest",
+      "environment": {
+        "name": "github-pages",
+        "url": "${{ steps.deployment.outputs.page_url }}"
+      },
+      "steps": [
+        {
+          "uses": "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "with": {
+            "persist-credentials": false
+          }
+        },
+        {
+          "uses": "actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+          "with": {
+            "python-version": "3.14"
+          }
+        },
+        {
+          "uses": "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "with": {
+            "repository": "Strange-Noah/Futograma-data",
+            "ref": "site",
+            "path": "private-site",
+            "ssh-key": "${{ secrets.FUTOGRAMA_DATA_READ_KEY }}",
+            "persist-credentials": false
+          }
+        },
+        {
+          "uses": "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "with": {
+            "repository": "Strange-Noah/Futograma-data",
+            "ref": "main",
+            "path": "private-pointer",
+            "ssh-key": "${{ secrets.FUTOGRAMA_DATA_READ_KEY }}",
+            "persist-credentials": false
+          }
+        },
+        {
+          "name": "Build verified source website",
+          "id": "build",
+          "run": "python -m ops.cloud.build_pages"
+        },
+        {
+          "uses": "actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b"
+        },
+        {
+          "uses": "actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b",
+          "with": {
+            "path": ".cloud/pages",
+            "retention-days": 1
+          }
+        },
+        {
+          "uses": "actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e",
+          "id": "deployment"
+        },
+        {
+          "name": "Verify public manifest",
+          "run": "python ops/cloud/verify_pages.py \"$PAGES_URL\" \"$DATA_HEAD\" \"$SQLITE_SHA\"",
+          "env": {
+            "PAGES_URL": "${{ steps.deployment.outputs.page_url }}",
+            "DATA_HEAD": "${{ steps.build.outputs.data_commit }}",
+            "SQLITE_SHA": "${{ steps.build.outputs.sqlite_sha256 }}"
+          }
+        }
+      ]
+    }
+  }
+}

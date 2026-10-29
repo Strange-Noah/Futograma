@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+.venv/
+.cloud/
+*.sqlite*
+*.db*
+.env*
+*.key
+*.pem
+archive/
+logs/
+node_modules
+squad_pipeline/raw/
+squad_pipeline/audit/
+squad_pipeline/state/

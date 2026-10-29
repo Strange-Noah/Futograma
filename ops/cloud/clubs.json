@@ -1,0 +1,50 @@
+[
+  {
+    "club_id": 8456,
+    "name": "Manchester City",
+    "canonical_slug": "manchestercity",
+    "torlytics_slug": "manchester-city",
+    "sky_slug": "manchester-city",
+    "enabled": true
+  },
+  {
+    "club_id": 9825,
+    "name": "Arsenal",
+    "canonical_slug": "arsenal",
+    "torlytics_slug": "arsenal",
+    "sky_slug": "arsenal",
+    "enabled": true
+  },
+  {
+    "club_id": 9823,
+    "name": "Bayern München",
+    "canonical_slug": "bayern",
+    "torlytics_slug": "fc-bayern-muenchen",
+    "sky_slug": "bayern-munich",
+    "enabled": true
+  },
+  {
+    "club_id": 9847,
+    "name": "Paris Saint-Germain",
+    "canonical_slug": "parissaintgermain",
+    "torlytics_slug": "paris-saint-germain",
+    "sky_slug": "paris-saint-germain",
+    "enabled": true
+  },
+  {
+    "club_id": 8634,
+    "name": "FC Barcelona",
+    "canonical_slug": "barcelona",
+    "torlytics_slug": "fc-barcelona",
+    "sky_slug": "barcelona",
+    "enabled": true
+  },
+  {
+    "club_id": 8636,
+    "name": "Inter Milan",
+    "canonical_slug": "inter",
+    "torlytics_slug": "inter",
+    "sky_slug": "inter-milan",
+    "enabled": true
+  }
+]

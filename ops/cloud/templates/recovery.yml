@@ -1,0 +1,136 @@
+{
+  "name": "Cloud-only snapshot recovery",
+  "on": {
+    "workflow_dispatch": {
+      "inputs": {
+        "mode": {
+          "description": "verify_previous restores and validates only; promote_previous requires confirmed handover and exact reviewed data head",
+          "type": "choice",
+          "options": [
+            "verify_previous",
+            "promote_previous"
+          ],
+          "default": "verify_previous",
+          "required": true
+        },
+        "expected_data_head": {
+          "description": "Exact current data commit reviewed during verify_previous; required for promotion",
+          "type": "string",
+          "required": false
+        },
+        "confirmation": {
+          "description": "Type PROMOTE_PREVIOUS only for approved recovery publication",
+          "type": "string",
+          "required": false
+        }
+      }
+    }
+  },
+  "permissions": {
+    "contents": "read"
+  },
+  "concurrency": {
+    "group": "futbol-authoritative-data-and-pages",
+    "cancel-in-progress": false
+  },
+  "jobs": {
+    "collect": {
+      "if": "${{ (github.event_name == 'schedule' && vars.FUTBOL_CLOUD_ENABLED == 'true' && vars.FUTBOL_AUTHORITY_HANDOVER == 'CONFIRMED') || (github.event_name == 'workflow_dispatch' && (vars.FUTBOL_REMOTE_ACCEPTANCE_ENABLED == 'true' || vars.FUTBOL_CLOUD_ENABLED == 'true')) }}",
+      "runs-on": "ubuntu-latest",
+      "timeout-minutes": 45,
+      "env": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "FUTBOL_CLOUD_ENABLED": "${{ vars.FUTBOL_CLOUD_ENABLED }}",
+        "FUTBOL_DATA_REPOSITORY": "${{ vars.FUTBOL_DATA_REPOSITORY }}",
+        "FUTBOL_DATA_REF": "${{ vars.FUTBOL_DATA_REF || 'main' }}",
+        "FUTBOL_DATA_TOKEN": "${{ secrets.FUTBOL_DATA_TOKEN }}",
+        "FUTBOL_MODE": "${{ inputs.mode == 'promote_previous' && 'recover' || 'restore' }}",
+        "FUTBOL_REMOTE_ACCEPTANCE_ENABLED": "${{ vars.FUTBOL_REMOTE_ACCEPTANCE_ENABLED }}",
+        "FUTBOL_AUTHORITY_HANDOVER": "${{ vars.FUTBOL_AUTHORITY_HANDOVER }}",
+        "FUTBOL_RECOVERY_CONFIRMATION": "${{ inputs.confirmation }}",
+        "EXPECTED_DATA_HEAD": "${{ inputs.expected_data_head }}"
+      },
+      "outputs": {
+        "publish_site": "${{ steps.run.outputs.publish_site }}",
+        "data_commit": "${{ steps.run.outputs.data_commit }}",
+        "sqlite_sha256": "${{ steps.run.outputs.sqlite_sha256 }}"
+      },
+      "steps": [
+        {
+          "name": "Checkout official action v6",
+          "uses": "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "with": {
+            "persist-credentials": false
+          }
+        },
+        {
+          "name": "Python 3.14 official action v6",
+          "uses": "actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+          "with": {
+            "python-version": "3.14"
+          }
+        },
+        {
+          "name": "Install dependency contract (stdlib runtime)",
+          "run": "python -m pip install --disable-pip-version-check -r requirements-cloud.txt"
+        },
+        {
+          "name": "Restore, preflight or safely update, verify and export",
+          "id": "run",
+          "run": "python -m squad_pipeline.cloud.driver \"$FUTBOL_MODE\" --backend github --previous --expected-data-head \"$EXPECTED_DATA_HEAD\" --work .cloud/recovery-${{ github.run_id }}-${{ github.run_attempt }}"
+        },
+        {
+          "name": "Prepare version-bound site artifact official v4",
+          "if": "${{ steps.run.outputs.publish_site == 'true' }}",
+          "uses": "actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b",
+          "with": {
+            "path": ".cloud/action-${{ github.run_id }}-${{ github.run_attempt }}/site",
+            "retention-days": 1
+          }
+        }
+      ]
+    },
+    "pages": {
+      "if": "${{ needs.collect.outputs.publish_site == 'true' }}",
+      "needs": "collect",
+      "runs-on": "ubuntu-latest",
+      "timeout-minutes": 15,
+      "permissions": {
+        "pages": "write",
+        "id-token": "write",
+        "contents": "read"
+      },
+      "environment": {
+        "name": "github-pages",
+        "url": "${{ steps.deployment.outputs.page_url }}"
+      },
+      "steps": [
+        {
+          "name": "Checkout verifier",
+          "uses": "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "with": {
+            "persist-credentials": false
+          }
+        },
+        {
+          "name": "Configure Pages",
+          "uses": "actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b"
+        },
+        {
+          "name": "Deploy official action v4",
+          "id": "deployment",
+          "uses": "actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e"
+        },
+        {
+          "name": "Verify public site data matches committed database",
+          "run": "python3 ops/cloud/verify_pages.py \"$PAGES_URL\" \"$EXPECTED_DATA_COMMIT\" \"$EXPECTED_SQLITE_SHA\"",
+          "env": {
+            "PAGES_URL": "${{ steps.deployment.outputs.page_url }}",
+            "EXPECTED_DATA_COMMIT": "${{ needs.collect.outputs.data_commit }}",
+            "EXPECTED_SQLITE_SHA": "${{ needs.collect.outputs.sqlite_sha256 }}"
+          }
+        }
+      ]
+    }
+  }
+}

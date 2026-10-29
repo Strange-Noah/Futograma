@@ -1,0 +1,122 @@
+{
+  "name": "Futograma data platform",
+  "on": {
+    "schedule": [
+      {
+        "cron": "0 8 * * *"
+      }
+    ],
+    "workflow_dispatch": {
+      "inputs": {
+        "mode": {
+          "type": "choice",
+          "options": [
+            "bootstrap",
+            "verify",
+            "preflight",
+            "acceptance",
+            "site",
+            "verify_previous",
+            "recover_acceptance",
+            "update"
+          ],
+          "default": "verify",
+          "required": true
+        },
+        "acceptance_run_id": {
+          "type": "string",
+          "required": false
+        }
+      }
+    }
+  },
+  "permissions": {
+    "contents": "write"
+  },
+  "concurrency": {
+    "group": "futograma-data-authority-and-recovery",
+    "cancel-in-progress": false
+  },
+  "jobs": {
+    "operate": {
+      "if": "${{ github.repository == 'Strange-Noah/Futograma-data' && ((github.event_name == 'schedule' && vars.FUTBOL_CLOUD_ENABLED == 'true' && vars.FUTBOL_AUTHORITY_HANDOVER == 'CONFIRMED') || (github.event_name == 'workflow_dispatch' && vars.FUTBOL_REMOTE_ACCEPTANCE_ENABLED == 'true')) }}",
+      "runs-on": "ubuntu-latest",
+      "timeout-minutes": 45,
+      "env": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "GITHUB_TOKEN": "${{ github.token }}",
+        "FUTOGRAMA_MODE": "${{ github.event_name == 'schedule' && 'update' || inputs.mode }}",
+        "FUTBOL_CLOUD_ENABLED": "${{ vars.FUTBOL_CLOUD_ENABLED }}",
+        "FUTBOL_AUTHORITY_HANDOVER": "${{ vars.FUTBOL_AUTHORITY_HANDOVER }}",
+        "FUTBOL_REMOTE_ACCEPTANCE_ENABLED": "${{ vars.FUTBOL_REMOTE_ACCEPTANCE_ENABLED }}",
+        "ACCEPTANCE_RUN_ID": "${{ inputs.acceptance_run_id }}"
+      },
+      "outputs": {
+        "acceptance_run_id": "${{ steps.run.outputs.acceptance_run_id }}"
+      },
+      "steps": [
+        {
+          "uses": "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "with": {
+            "repository": "Strange-Noah/Futograma",
+            "ref": "CODE_SHA_PLACEHOLDER",
+            "persist-credentials": false
+          }
+        },
+        {
+          "uses": "actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+          "with": {
+            "python-version": "3.14"
+          }
+        },
+        {
+          "run": "python -m pip install --disable-pip-version-check -r requirements-cloud.txt"
+        },
+        {
+          "name": "Execute explicit cloud operation",
+          "id": "run",
+          "run": "python -m ops.cloud.platform"
+        }
+      ]
+    },
+    "independent_recovery": {
+      "if": "${{ needs.operate.outputs.acceptance_run_id != '' }}",
+      "runs-on": "ubuntu-latest",
+      "timeout-minutes": 45,
+      "env": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "GITHUB_TOKEN": "${{ github.token }}",
+        "FUTOGRAMA_MODE": "recover_acceptance",
+        "FUTBOL_CLOUD_ENABLED": "${{ vars.FUTBOL_CLOUD_ENABLED }}",
+        "FUTBOL_AUTHORITY_HANDOVER": "${{ vars.FUTBOL_AUTHORITY_HANDOVER }}",
+        "FUTBOL_REMOTE_ACCEPTANCE_ENABLED": "${{ vars.FUTBOL_REMOTE_ACCEPTANCE_ENABLED }}",
+        "ACCEPTANCE_RUN_ID": "${{ needs.operate.outputs.acceptance_run_id }}"
+      },
+      "steps": [
+        {
+          "uses": "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "with": {
+            "repository": "Strange-Noah/Futograma",
+            "ref": "CODE_SHA_PLACEHOLDER",
+            "persist-credentials": false
+          }
+        },
+        {
+          "uses": "actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+          "with": {
+            "python-version": "3.14"
+          }
+        },
+        {
+          "run": "python -m pip install --disable-pip-version-check -r requirements-cloud.txt"
+        },
+        {
+          "name": "Execute explicit cloud operation",
+          "id": "run",
+          "run": "python -m ops.cloud.platform"
+        }
+      ],
+      "needs": "operate"
+    }
+  }
+}

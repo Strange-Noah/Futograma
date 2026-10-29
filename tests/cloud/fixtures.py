@@ -1,0 +1,15 @@
+"""Synthetic fixtures only. No real player appearances or SQLite binary committed to the code repository."""
+import sqlite3,json
+from pathlib import Path
+from squad_pipeline.core import ROOT
+from squad_pipeline.eligibility import add
+from squad_pipeline.cloud.quality import inspect
+
+def database(path):
+ db=sqlite3.connect(path);db.executescript((ROOT/'squad_pipeline/cloud/bootstrap_schema.sql').read_text());db.execute('PRAGMA foreign_keys=ON')
+ for tid,key,name in [(8456,'manchestercity','Manchester City'),(9825,'arsenal','Arsenal')]:db.execute('INSERT INTO clubs VALUES(?,?,?,NULL)',(tid,key,name))
+ db.execute("INSERT INTO periods VALUES('2026-27_H1','2026/27','H1','2026-07-01','2027-01-01','Europe/Madrid')");db.execute("INSERT INTO competitions VALUES('47','Premier League','COMPETITIVE',NULL)");db.execute("INSERT INTO raw_artifacts VALUES('synthetic',NULL,NULL,'TEST_ONLY',0,'CONTROLLED_SYNTHETIC',NULL,NULL,NULL)");meta=json.dumps(dict(home_team='manchestercity',away_team='arsenal',match_state='COMPLETED'));db.execute("INSERT INTO matches(match_id,home_id,away_id,kickoff,local_date,period_id,competition_id,result,scheduled_kickoff,match_state,metadata_json) VALUES('controlled-fixture',8456,9825,'2026-10-24T12:00:00Z','2026-10-24','2026-27_H1','47','0-0','2026-10-24T12:00:00Z','COMPLETED',?)",(meta,))
+ for side,tid in enumerate([8456,9825]):
+  for n in range(1,14):
+   pid=side*13+n;name=f'Controlled Test {side} Player {n}';role='starters' if n<=11 else 'bench';status='STARTER' if n<=11 else 'UNUSED_SUBSTITUTE';minutes=90 if n<=11 else 0;db.execute('INSERT INTO players VALUES(?,?,?)',(pid,name,'CONTROLLED_SYNTHETIC_TEST_ONLY'));db.execute('INSERT INTO squad_observations VALUES(?,?,?,?,?,?,?,?,?)',(tid,'controlled-fixture',pid,role,str(n),name,'synthetic-only','synthetic','2026-10-28T12:00:00+00:00'));db.execute('INSERT INTO player_match_minutes(club_id,match_id,player_id,minutes,minutes_status,played,artifact_id,participation_status,method,evidence_json,revision) VALUES(?,?,?,?,?,?,?,?,?,?,1)',(tid,'controlled-fixture',pid,minutes,'RESOLVED',int(n<=11),'synthetic',status,'CONTROLLED_SYNTHETIC',json.dumps(dict(test_only=True))));db.execute("INSERT INTO validation_roster_membership VALUES(?,?, 'OBSERVED_MATCHDAY_UNION','2026-10-24','2026-10-24',NULL,NULL,'{}')",(tid,pid));db.execute('INSERT INTO validation_player_aliases VALUES(?,?,?)',('controlled:'+str(pid),pid,json.dumps(dict(names=[name]))));add(db,pid,tid,'FIRST_TEAM' if pid!=13 else 'UNVERIFIED','FIRST_TEAM' if pid!=13 else 'UNVERIFIED',1 if pid!=13 else None,'2026-08-01',None,'2026-10-28',dict(url='https://example.com/controlled-synthetic-only',test_only=True),'Synthetic test only',status='VERIFIED' if pid!=13 else 'UNVERIFIED')
+ db.execute("INSERT INTO players VALUES(-9007199254740993,'Controlled Long-ID Player','CONTROLLED_SYNTHETIC_TEST_ONLY')");db.execute("INSERT INTO validation_national_reference VALUES(1,'synthetic-national','{\"test_only\":true}')");db.commit();db.close();return inspect(path)
