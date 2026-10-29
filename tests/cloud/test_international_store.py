@@ -55,3 +55,8 @@ class InternationalStoreTests(unittest.TestCase):
         original=team(self.db,'burkinafaso','SENIOR',self.eid);fresh=team(self.db,'Burkina Faso','SENIOR',self.eid,'FotMob','test-country');self.assertEqual(original,fresh)
     def test_country_and_youth_identities_do_not_collapse(self):
         congo=team(self.db,'Congo','SENIOR',self.eid);dr=team(self.db,'DR Congo','SENIOR',self.eid);youth=team(self.db,'Congo','U21',self.eid);self.assertEqual(len({congo,dr,youth}),3)
+    def test_unchanged_hashed_evidence_does_not_grow_per_fetch(self):
+        source=dict(provider='Example',url='https://example.com/match',sha256='c'*64,response_timestamp='first',headers={'x':'old'});first=evidence(self.db,source,'MATCH');second=evidence(self.db,dict(source,response_timestamp='second',headers={'x':'new'},path='new-run.response'),'MATCH');self.assertEqual(first,second);self.assertEqual(self.db.execute('SELECT payload_json FROM persistent_source_evidence WHERE evidence_id=?',(first,)).fetchone()[0].count('first'),1)
+    def test_explicit_legacy_source_id_remains_immutable(self):
+        source=dict(evidence_id='legacy-source',url='https://example.com/evidence',sha256='d'*64);evidence(self.db,source)
+        with self.assertRaisesRegex(ValueError,'IMMUTABLE'):evidence(self.db,dict(source,sha256='e'*64))

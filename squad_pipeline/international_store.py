@@ -42,11 +42,17 @@ def migrate(db):
         db.rollback();raise
 
 def evidence(db,source,scope='TARGET_SPECIFIC_LEGACY',verification='RETAINED_PRIOR_VERIFICATION',hold=0):
-    eid=source.get('evidence_id') or 'nt_e_'+digest(source)[:24]
-    url=source.get('url') or source.get('source_url');sha=source.get('sha256') or source.get('body_sha256') or source.get('sha256_of_extract')
-    payload=encoded(source);existing=db.execute('SELECT payload_json FROM persistent_source_evidence WHERE evidence_id=?',(eid,)).fetchone()
-    if existing and existing[0]!=payload:raise ValueError('IMMUTABLE_EVIDENCE_COLLISION')
-    db.execute('INSERT OR IGNORE INTO persistent_source_evidence VALUES(?,?,?,?,?,?,?,?,?,?,?)',(eid,source.get('provider'),url,source.get('acquired_at') or source.get('response_timestamp'),sha,source.get('retained_asset_ref'),source.get('json_path') or source.get('location'),scope,verification,hold,payload));return eid
+    url=source.get('url') or source.get('source_url');sha=source.get('sha256') or source.get('body_sha256') or source.get('sha256_of_extract');locator=source.get('json_path') or source.get('location');explicit=source.get('evidence_id')
+    fixture=source.get('verified_fixture_context') or {};physical={k:fixture.get(k) for k in ('provider_match_id','home','away','kickoff','competition_key','level')} if fixture else None
+    semantic=[source.get('provider'),url,sha,locator,scope,verification,source.get('national_career_claim'),physical]
+    eid=explicit or 'nt_e_'+digest(semantic if sha else source)[:24]
+    # Transport headers and repeated timestamps are not permanent analysis facts. Keep the first acquisition for identical hashed evidence.
+    retained=source if explicit else {k:v for k,v in source.items() if k not in ('headers','conditional_headers')};payload=encoded(retained);existing=db.execute('SELECT payload_json,body_sha256,source_url FROM persistent_source_evidence WHERE evidence_id=?',(eid,)).fetchone()
+    if existing:
+        if explicit and existing[0]!=payload or existing[1]!=sha or existing[2]!=url:raise ValueError('IMMUTABLE_EVIDENCE_COLLISION')
+        if hold:db.execute('UPDATE persistent_source_evidence SET unresolved_hold=1 WHERE evidence_id=?',(eid,))
+        return eid
+    db.execute('INSERT INTO persistent_source_evidence VALUES(?,?,?,?,?,?,?,?,?,?,?)',(eid,source.get('provider'),url,source.get('acquired_at') or source.get('response_timestamp'),sha,source.get('retained_asset_ref'),locator,scope,verification,hold,payload));return eid
 
 def team(db,name,level,eid,provider=None,provider_id=None):
     if not name or not level:raise ValueError('VERIFIED_TEAM_NAME_AND_LEVEL_REQUIRED')
@@ -143,7 +149,7 @@ def complete_missing_minutes(db,appearance,evidence_id):
     mid,pid=appearance['match_id'],appearance['player_id'];old=db.execute('SELECT * FROM international_appearances WHERE match_id=? AND player_id=?',(mid,pid)).fetchone()
     if old is None:raise ValueError('EXISTING_UNKNOWN_FACT_REQUIRED')
     if old['minutes'] is not None or db.execute('SELECT 1 FROM international_reference_bridge WHERE match_id=? AND player_id=?',(mid,pid)).fetchone():raise ValueError('KNOWN_OR_LEGACY_FACT_REQUIRES_EXPLICIT_ADJUDICATION')
-    if appearance['minutes'] is None or appearance['represented_team_key']!=old['represented_team_key'] or appearance['verification_status'] not in ('PROVIDER_ID_AND_MATCH_VERIFIED','TARGET_HISTORY_AND_LINEUP_ID_VERIFIED'):raise ValueError('EXACT_ID_VERIFIED_MINUTES_REQUIRED')
+    if appearance['minutes'] is None or appearance['represented_team_key']!=old['represented_team_key'] or appearance['verification_status'] not in ('PROVIDER_ID_AND_MATCH_VERIFIED','TARGET_HISTORY_AND_LINEUP_ID_VERIFIED','CROSS_PROVIDER_CERTIFIED_NAME_AND_PERSONAL_HISTORY_MATCH'):raise ValueError('EXACT_ID_VERIFIED_MINUTES_REQUIRED')
     e=db.execute('SELECT body_sha256 FROM persistent_source_evidence WHERE evidence_id=?',(evidence_id,)).fetchone()
     if e is None or not e[0] or len(e[0])!=64:raise ValueError('HASHED_SOURCE_EVIDENCE_REQUIRED')
     revised=dict(appearance,revision=old['revision']+1);revision_id=digest([dict(old),revised,evidence_id]);db.execute('INSERT INTO international_fact_revisions VALUES(?,?,?,?,?,?,?)',(revision_id,mid,pid,encoded(dict(old)),encoded(revised),encoded({'evidence_id':evidence_id,'reason':'SUPPLEMENT_UNKNOWN_MINUTES;IDENTITY_UNCHANGED'}),datetime.now(timezone.utc).isoformat()))

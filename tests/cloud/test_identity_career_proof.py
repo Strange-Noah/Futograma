@@ -1,0 +1,7 @@
+import unittest
+from squad_pipeline.identity_pipeline import Candidate,Record,verify_identity,management_state
+class CareerIdentityProofTests(unittest.TestCase):
+ def test_youth_primary_team_and_dated_senior_career_only_verify_identity(self):
+  official=Record('https://official.example/person','official-sha','dob','Official',['Example Person'],birth_date='2008-02-08',official_clubs=['8456'],authority='OFFICIAL');candidate=Candidate(-1,['Example Person'],[official]);fresh=Record('https://www.fotmob.com/players/123','fresh-sha','profile','FotMob',['Example Person'],provider_ids={'FotMob':'123'},birth_date='2008-02-08',official_clubs=['860800'],scope='IDENTITY_ONLY',raw_fields={'career_clubs':['8456']});proof=verify_identity(fresh,candidate);self.assertTrue(proof['verified']);self.assertIn('DOCUMENTED_CAREER',str(proof['proof']));self.assertFalse(management_state([fresh],'2026-10-29')['included'])
+ def test_matching_career_never_excuses_wrong_birthday(self):
+  official=Record('https://official.example/person','official-sha','dob','Official',['Example Person'],birth_date='2008-02-08',official_clubs=['8456'],authority='OFFICIAL');candidate=Candidate(-1,['Example Person'],[official]);fresh=Record('https://www.fotmob.com/players/123','fresh-sha','profile','FotMob',['Example Person'],provider_ids={'FotMob':'123'},birth_date='2007-02-08',official_clubs=['860800'],scope='IDENTITY_ONLY',raw_fields={'career_clubs':['8456']});self.assertFalse(verify_identity(fresh,candidate)['verified'])

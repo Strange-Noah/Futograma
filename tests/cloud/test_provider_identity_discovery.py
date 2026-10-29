@@ -13,3 +13,5 @@ class ProviderDiscoveryTests(unittest.TestCase):
   result=verify_team_identities(self.raw('2001-01-02'),dict(url='https://www.fotmob.com/teams/9/squad',sha256='raw'),9,self.dossier())[0][1];self.assertNotEqual(result['identity_status'],'VERIFIED')
  def test_wrong_team_rejected(self):
   with self.assertRaisesRegex(ValueError,'EXACT_TEAM'):team_identity_records(self.raw(),dict(url='x',sha256='raw'),10)
+ def test_previously_unresolved_official_biography_can_be_cross_verified(self):
+  raw=self.dossier();record=raw[0]['verified_source_records'][0];raw[0]['verified_source_records']=[];raw[0]['identity_status']='UNRESOLVED';result=verify_team_identities(self.raw(),dict(url='https://www.fotmob.com/teams/9/squad',sha256='new-raw'),9,raw,[dict(source_record=record)])[0][1];self.assertEqual(result['identity_status'],'VERIFIED');self.assertEqual(result['player_id'],'-45');self.assertFalse(any(p['method']=='SHARED_STABLE_PROVIDER_ID' for p in result['identity_proof']))

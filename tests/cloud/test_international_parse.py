@@ -13,3 +13,13 @@ class InternationalMinuteTests(unittest.TestCase):
         rows=minutes_from_events(self.players(),[self.event('sub-on',12,90,3),self.event('sub-off',1,90,3)],90);self.assertEqual(rows[0]['derived_minutes'],90);self.assertEqual(rows[11]['derived_minutes'],0)
     def test_unbalanced_substitution_rejected(self):
         with self.assertRaises(ParseError):minutes_from_events(self.players(),[self.event('sub-on',12,60)],90)
+
+class SkyDurationTemplateTests(unittest.TestCase):
+ def test_hidden_aet_template_never_implies_extra_time(self):
+  from squad_pipeline.international_parse import Tree,sky_duration
+  h=Tree('<div class="sdc-site-match-header" data-status="4"><span>FT Full Time</span><span>AET After Extra Time</span></div>').root.one('sdc-site-match-header');self.assertEqual(sky_duration(h,{}),90)
+ def test_explicit_extra_time_requires_same_match_evidence(self):
+  from squad_pipeline.international_parse import Tree,sky_duration
+  h=Tree('<div class="sdc-site-match-header" data-status="4"></div>').root.one('sdc-site-match-header')
+  with self.assertRaisesRegex(ValueError,'DURATION_EVIDENCE'):sky_duration(h,dict(verified_duration_minutes=120))
+  self.assertEqual(sky_duration(h,dict(verified_duration_minutes=120,duration_evidence=dict(scope='EXACT_MATCH_DURATION',sha256='verified-source'))),120)

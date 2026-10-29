@@ -23,11 +23,26 @@ def team_identity_records(raw,source,team_id):
             seen.add(str(pid));rows.append(Record(source['url'],source['sha256'],f'{prefix}.squad.squad[{gi}].members[{pi}]','FotMob',[p['name']],provider_ids={'FotMob':str(pid)},birth_date=dob[:10],official_clubs=[str(team_id)],scope='IDENTITY_ONLY',observed_on=(source.get('response_timestamp') or '')[:10],authority='PUBLIC_PROVIDER',raw_fields={'provider_team_roster_not_management_proof':True}))
     return rows
 
-def verify_team_identities(raw,source,team_id,dossiers):
+def provider_candidates(dossiers,source_results=()):
     candidates=[];keys={f.name for f in fields(Record)}
+    from .identity_pipeline import ranked_candidates
     for d in dossiers:
-        if d['identity_status']!='VERIFIED':continue
         records=[Record(**{k:v for k,v in r.items() if k in keys}) for r in d['verified_source_records']]
         for r in records:r.raw_fields['_verified_identity']=True
         candidates.append(Candidate(int(d['player_id']),list(dict.fromkeys([d['name']]+[n for r in records for n in r.names])),records))
+    byid={str(c.player_id):c for c in candidates}
+    # Official biographies not yet cross-source verified may seed DOB evidence, never stable IDs.
+    for item in source_results:
+        raw=item.get('source_record') or {};r=Record(**{k:v for k,v in raw.items() if k in keys})
+        if not r.birth_date or not r.retrieved or r.source_status!='SUCCESS' or not r.source_sha256:continue
+        ranked=ranked_candidates(r,candidates)
+        if not ranked or ranked[0]['score']<.82 or len(ranked)>1 and ranked[0]['score']-ranked[1]['score']<.03:continue
+        c=byid[ranked[0]['player_id']]
+        if c.dobs() and r.birth_date not in c.dobs():continue
+        if any((old.source_url,old.locator)==(r.source_url,r.locator) for old in c.records):continue
+        r.raw_fields['_candidate_only']=True;c.records.append(r)
+    return candidates
+
+def verify_team_identities(raw,source,team_id,dossiers,source_results=()):
+    candidates=provider_candidates(dossiers,source_results)
     return [(record,resolve(record,candidates)) for record in team_identity_records(raw,source,team_id)]

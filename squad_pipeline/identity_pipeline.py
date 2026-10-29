@@ -99,6 +99,8 @@ def verify_identity(record,candidate):
             shared_clubs=set(map(str,record.official_clubs))&set(map(str,other.official_clubs))
             name_score=max((similarity(a,b) for a in record.names for b in other.names),default=0)
             if shared_clubs and name_score>=.82 and ('OFFICIAL' in [record.authority,other.authority]):proof.append({'method':'INDEPENDENT_DOB_NAME_OFFICIAL_AFFILIATION','other_url':other.source_url,'other_sha256':other.source_sha256,'date_of_birth':record.birth_date,'clubs':sorted(shared_clubs),'name_score':name_score})
+            career_shared=set(map(str,record.raw_fields.get('career_clubs',[])))&set(map(str,other.official_clubs))
+            if not shared_clubs and record.provider=='FotMob' and record.scope=='IDENTITY_ONLY' and career_shared and name_score>=.82 and other.authority=='OFFICIAL':proof.append({'method':'INDEPENDENT_DOB_NAME_DOCUMENTED_CAREER_ASSOCIATION','other_url':other.source_url,'other_sha256':other.source_sha256,'date_of_birth':record.birth_date,'historical_clubs':sorted(career_shared),'name_score':name_score,'scope':'IDENTITY_ONLY;NO_CURRENT_MANAGEMENT_AUTHORIZATION'})
     bridge=record.raw_fields.get('documented_alias_bridge')
     if bridge and record.authority=='OFFICIAL' and len(bridge.get('common_name','').split())>=2:
         for other in candidate.records:

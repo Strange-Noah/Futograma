@@ -1,5 +1,4 @@
 """National match adapter uses verified fixture context, never citizenship or club IDs."""
-import re
 from datetime import datetime,timezone
 from zoneinfo import ZoneInfo
 from .live_parse import Tree,ParseError,Pending,uk_datetime,canon
@@ -11,6 +10,7 @@ def nominal(c,duration):
     if not c:return None
     if c['base']>duration:return None
     if c['base']==46 and not c.get('added') and c.get('raw') in ("46'",'46′'):return 45
+    if c['base']==106 and duration==120 and not c.get('added'):return 105
     return c['base']
 
 def minutes_from_events(players,events,duration):
@@ -44,6 +44,16 @@ def minutes_from_events(players,events,duration):
         p.update(participation_status=status,derived_minutes=minutes,entry=entry,exit=exit_,minute_precision='NOMINAL_EXCLUDING_ADDED_TIME' if minutes is not None else 'AMBIGUOUS_EVENT_CLOCK')
     return players
 
+def sky_duration(header,fixture):
+    # Sky emits all FT/AET/LIVE labels into hidden template spans. Never scan header text.
+    verified=fixture.get('verified_duration_minutes')
+    if verified is not None:
+        proof=fixture.get('duration_evidence') or {}
+        if verified not in (90,120) or proof.get('scope')!='EXACT_MATCH_DURATION' or not proof.get('sha256'):raise ValueError('EXTERNAL_DURATION_EVIDENCE_REQUIRED')
+        return verified
+    if header.attrs.get('data-status')=='4':return 90
+    raise Pending('SKY_MATCH_DURATION_NOT_VERIFIED')
+
 def parse_sky(raw,source,fixture):
     # Context must come from verified history/schedule evidence, not a guessed country/competition.
     required=('home','away','home_team_key','away_team_key','kickoff','competition_label','competition_key','level','evidence')
@@ -56,7 +66,7 @@ def parse_sky(raw,source,fixture):
     if datetime.fromisoformat(kickoff.replace('Z','+00:00'))!=datetime.fromisoformat(fixture['kickoff'].replace('Z','+00:00')):raise ParseError('NATIONAL_FIXTURE_KICKOFF_MISMATCH')
     label=header.one('sdc-site-match-header__detail-fixture').txt()
     if fixture['competition_label'].casefold() not in label.casefold():raise ParseError('NATIONAL_COMPETITION_UNVERIFIED')
-    duration=120 if re.search(r'\b(?:after extra time|extra-time|aet)\b',header.txt(),re.I) else 90
+    duration=sky_duration(header,fixture)
     sheets=[];both=[];cols=root.all('sdc-site-team-lineup__col')
     if len(cols)!=2:raise Pending('SKY_TWO_LINEUP_COLUMNS_REQUIRED')
     for side,col in zip(('home','away'),cols):
