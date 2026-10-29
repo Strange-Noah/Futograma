@@ -11,6 +11,7 @@ from squad_pipeline.international_discovery import profile_hints,team_fixture_hi
 from squad_pipeline.international_fotmob import parse_public_match
 from squad_pipeline.international_store import migrate,evidence,team,put_match,put_appearance,encoded,digest,import_reference_evidence_package,bridge_references
 from squad_pipeline.international_retry import observe
+from squad_pipeline.provider_identity_discovery import verify_team_identities
 from squad_pipeline.identity_pipeline import DDL,Record,persist_verified_alias,similarity
 from squad_pipeline.managed_roster import migrate as management_migrate,import_verified_history,add_event
 from squad_pipeline.cloud.all_match_export import export_all_matches
@@ -59,6 +60,20 @@ def main():
  def pending(entity,provider_id,url,error,pid=None,fixture=None,source=None):
   task=dict(entity_type=entity,provider='FotMob',provider_entity_id=provider_id,url=url,player_id=pid,date=(fixture or {}).get('kickoff','')[:10],fixture=fixture,source=source)
   result=dict(status='SOURCE_UNAVAILABLE' if str(error).startswith('SOURCE_UNAVAILABLE:') else 'PENDING',error=str(error));observe(db,task,result,os.environ['GITHUB_RUN_ID']);errors.append(dict(player_id=pid,entity=entity,provider_id=provider_id,error=str(error)))
+ provider_discovery=[]
+ for cid in sorted({c for pid in managed for c in clubs[pid]}):
+  url='https://www.fotmob.com/teams/'+str(cid)+'/squad'
+  try:
+   source,body=fetch(url,'cross_provider_identity_discovery:'+str(cid))
+   for record,result in verify_team_identities(body,source,cid,roster['players']):
+    if result['identity_status']!='VERIFIED':
+     provider_discovery.append(dict(club_id=cid,status=result['identity_status'],names=record.names,remaining_requirements=result['remaining_requirements']));continue
+    fid=record.provider_ids['FotMob'];pid=int(result['player_id'])
+    if fid in ids and ids[fid]!=pid:raise ValueError('IdentityError:PROVIDER_DISCOVERY_CANONICAL_COLLISION')
+    old={f for f,p in ids.items() if p==pid}
+    if old and fid not in old:raise ValueError('IdentityError:CANONICAL_MULTIPLE_FOTMOB_IDS')
+    ids[fid]=pid;persist_verified_alias(db,record,result,END);provider_discovery.append(dict(club_id=cid,player_id=pid,provider_player_id=fid,status='VERIFIED',proof=result['identity_proof'],source_sha256=source['sha256']))
+  except Exception as exc:pending('TEAM_PROVIDER_IDENTITY',str(cid),url,type(exc).__name__+':'+str(exc))
  for pid in sorted(managed):
   own=[fid for fid,canonical in ids.items() if canonical==pid];coverage[pid]=dict(history_status='PENDING',affiliation_status='PENDING',fixture_status='PENDING',lineup_status='PENDING',evidence=[])
   if len(own)!=1:
@@ -116,15 +131,15 @@ def main():
  for pid,c in coverage.items():
   count=db.execute('SELECT COUNT(*) FROM international_appearances WHERE player_id=?',(pid,)).fetchone()[0];unresolved=db.execute("SELECT COUNT(*) FROM international_acquisition_queue WHERE player_id=? AND state<>'RESOLVED'",(pid,)).fetchone()[0];c['lineup_status']='VERIFIED_RECORDS:'+str(count)+';PARTIAL_DISCOVERY_NO_COMPLETENESS_CLAIM';db.execute('INSERT OR REPLACE INTO player_discovery_coverage VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',(pid,START,END,'ALL_PLAYER_INTERNATIONAL_MATCHES',c['history_status'],c['affiliation_status'],c['fixture_status'],c['lineup_status'],now,encoded(dict(strategy='PERSONAL_HISTORY_THEN_EXPLICIT_NATIONAL_FIXTURES',global_unresolved_fixture_count=sum(e['entity']=='MATCH' for e in errors))),unresolved,encoded(c['evidence'])))
  assert bridge_references(db)==[];assert db.execute('SELECT COUNT(*) FROM international_reference_bridge').fetchone()[0]==21;assert not db.execute('PRAGMA foreign_key_check').fetchone();db.commit();counts=dict(db.execute('SELECT COUNT(*) AS appearances,COUNT(DISTINCT player_id) AS players,COUNT(DISTINCT match_id) AS matches FROM international_appearances').fetchone());queue=dict(Counter(r[0] for r in db.execute('SELECT state FROM international_acquisition_queue')));db.close();assert inspect(work/'working.sqlite')['tables']==before,'LEGACY_FACTS_CHANGED';snapshot(work/'working.sqlite',work/'snapshot.sqlite');pack(work/'snapshot.sqlite',work/'snapshot.sqlite.gz');code=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip();data_head,pointer=store.publish(work/'snapshot.sqlite',work/'snapshot.sqlite.gz',head,code);pointer['dataset_ref']=REF;manifest=export_all_matches(work/'snapshot.sqlite',work/'site',data_head,pointer,END,True);browser=json.loads((work/'site/data/browser.json').read_text());assert browser['version']['sqlite_sha256']==pointer['current']['database']['sha256'];assert sum(r.get('match_type')=='NATIONAL' and not r.get('pending') for rows in browser['records'].values() for r in rows)==counts['appearances']
- report=dict(kind='ISOLATED_INTERNATIONAL_DEVELOPMENT_ACCEPTANCE;NOT_PRODUCTION',code_commit=code,data_head=data_head,data_ref=REF,pointer=pointer,old_fact_tables_unchanged=True,production_pointer_unchanged=prod.head()==prod_before,managed_players=len(managed),coverage_rows=len(coverage),live_requests=client.calls,fixtures_discovered=len(fixtures),parsed_matches=parsed,new_international_rows=canonical_rows,total=counts,legacy_reference_records=21,unresolved=errors,retained_reference_disagreements=conflicts,retry_states=queue,export_manifest=manifest,national_history_complete=False,production_authority='DISABLED',website_publication='NOT_PERFORMED')
+ report=dict(kind='ISOLATED_INTERNATIONAL_DEVELOPMENT_ACCEPTANCE;NOT_PRODUCTION',code_commit=code,data_head=data_head,data_ref=REF,pointer=pointer,old_fact_tables_unchanged=True,production_pointer_unchanged=prod.head()==prod_before,managed_players=len(managed),provider_identity_discovery=provider_discovery,coverage_rows=len(coverage),live_requests=client.calls,fixtures_discovered=len(fixtures),parsed_matches=parsed,new_international_rows=canonical_rows,total=counts,legacy_reference_records=21,unresolved=errors,retained_reference_disagreements=conflicts,retry_states=queue,export_manifest=manifest,national_history_complete=False,production_authority='DISABLED',website_publication='NOT_PERFORMED')
  assert report['production_pointer_unchanged'];write(work/'result.json',report)
  release=store.api('POST',store.base+'/releases',dict(tag_name='phase3-international-'+os.environ['GITHUB_RUN_ID'],target_commitish=REF,name='Phase 3 isolated international database and export audit',body='Development snapshot only. Coverage and unresolved sources explicit; production disabled.',draft=True))
  for file in [work/'result.json',work/'site/data/browser.json',work/'site/data/manifest.json']:
   a=store.upload(release['id'],file);store.download(a['id'],work/('readback-'+file.name));assert sha(file)==sha(work/('readback-'+file.name))
  store.api('PATCH',store.base+'/releases/'+str(release['id']),dict(draft=False))
  with open(os.environ['GITHUB_OUTPUT'],'a') as out:out.write('data_head='+data_head+'\n')
- print(json.dumps({k:v for k,v in report.items() if k not in ('parsed_matches','unresolved','pointer','export_manifest')},ensure_ascii=False))
- with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as out:out.write('## Isolated international result; production DISABLED\n'+json.dumps({k:v for k,v in report.items() if k not in ('parsed_matches','unresolved','pointer','export_manifest')},ensure_ascii=False)+'\n')
+ print(json.dumps({k:v for k,v in report.items() if k not in ('parsed_matches','unresolved','pointer','export_manifest','provider_identity_discovery')},ensure_ascii=False))
+ with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as out:out.write('## Isolated international result; production DISABLED\n'+json.dumps({k:v for k,v in report.items() if k not in ('parsed_matches','unresolved','pointer','export_manifest','provider_identity_discovery')},ensure_ascii=False)+'\n')
 def recovery():
  isolated();work=ROOT/'.cloud/phase3-independent-recovery';work.mkdir(parents=True,exist_ok=False);s=GitHubStore('Strange-Noah/Futograma-data',os.environ['GITHUB_TOKEN'],REF);head,p=s.restore(work/'current.sqlite');assert head==os.environ['EXPECTED_DATA_HEAD'];previous_head,_=s.restore(work/'previous.sqlite',previous=True);assert previous_head==head;db=sqlite3.connect(work/'current.sqlite');assert db.execute('PRAGMA integrity_check').fetchone()[0]=='ok';assert db.execute('SELECT COUNT(*) FROM international_reference_bridge').fetchone()[0]==21;db.close();p['dataset_ref']=REF;m=export_all_matches(work/'current.sqlite',work/'site',head,p,END,True);assert m['version']['sqlite_sha256']==p['current']['database']['sha256'];print('INDEPENDENT_CLOUD_RECOVERY_PASS',head,m['version']['sqlite_sha256']);
  with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as out:out.write('Independent fresh-checkout cloud restore of current + previous snapshots and exact-version export: PASS. Website publication and complete international coverage are NOT implied.\n')
