@@ -37,7 +37,7 @@ def classify(result,candidate,at=None):
  try:recent=0<=(at.date()-datetime.fromisoformat(candidate['date']).date()).days<=p['max_recent_days']
  except (ValueError,KeyError):pass
  if error.startswith('Conflict:') or any(x in error for x in ['IntegrityError','DatabaseError','FOREIGN KEY','INTEGRITY','FACT_OVERWRITE','CONTRADICT','CORROBORATED_CORRECTION','NEGATIVE_PLAYING','MINUTES_OUT_OF_RANGE']):return 'DATA_INTEGRITY_FAILURE',False
- if context.get('identity_conflict') or any(x in error for x in ['IDENTITY','ROSTER_SIDE_MISMATCH','ROSTER_HEADER_TEAM_MISMATCH','PLAYER_ON_BOTH','DUPLICATE_PLAYER','AMBIGUOUS','REQUESTED_CLUB_NOT_ON']):return 'ROSTER_IDENTITY_CONFLICT',False
+ if error.startswith('IdentityError:') or context.get('identity_conflict') or any(x in error for x in ['IDENTITY','ROSTER_SIDE_MISMATCH','ROSTER_HEADER_TEAM_MISMATCH','PLAYER_ON_BOTH','DUPLICATE_PLAYER','AMBIGUOUS','REQUESTED_CLUB_NOT_ON']):return 'ROSTER_IDENTITY_CONFLICT',False
  if error.startswith(('ParseError:UNSUPPORTED_COMPETITION','UNSUPPORTED_COMPETITION')):
   if error.endswith(':None') and recent and context.get('confirmed_full_time') and context.get('catalog_competition_known') and context.get('fixture_identity_agrees') and context.get('competition_field_empty'):return 'TEMPORARY_SOURCE_INCOMPLETE',True
   return 'UNSUPPORTED_OR_UNKNOWN_COMPETITION',False
