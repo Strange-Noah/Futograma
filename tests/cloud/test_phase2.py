@@ -48,3 +48,10 @@ class Phase2Tests(unittest.TestCase):
    result=apply_sheet(self.db,f,s,'controlled-test','2026-10-29');observe(self.db,c,result,token,self.now);self.db.commit()
   self.assertEqual(self.db.execute('SELECT COUNT(*) FROM player_match_minutes').fetchone()[0],before);self.assertEqual(self.db.execute('SELECT COUNT(*) FROM matches').fetchone()[0],1);self.assertEqual(self.db.execute('SELECT state FROM match_retry_queue').fetchone()[0],'RESOLVED');self.assertEqual(self.db.execute('SELECT COUNT(*) FROM match_retry_history').fetchone()[0],3)
  def test_refuses_access_denied_normal_retry(self):self.assertEqual(classify(dict(status='SOURCE_UNAVAILABLE',error='HTTP_403'),self.c,self.now),('TEMPORARY_SOURCE_UNAVAILABLE',False))
+
+ def test_expired_loan_out_never_revives_old_snapshot(self):
+  self.add('FIRST_TEAM');self.add('LOAN_OUT','2026-08-27',end_exclusive='2026-10-01');self.assertEqual(decision(self.db,8456,1,'2026-10-29')['state'],'UNKNOWN')
+ def test_browser_handles_null_source_url_and_hides_clock_probe(self):
+  from squad_pipeline.cloud.browser_export import export_browser
+  from squad_pipeline.cloud.quality import sha
+  self.add('FIRST_TEAM');self.db.execute("UPDATE matches SET metadata_json=?",(json.dumps(dict(home_team='manchestercity',away_team='arsenal',source_evidence=[dict(url=None)])),));observe(self.db,self.c|dict(acceptance_test_only=True),dict(status='SOURCE_UNAVAILABLE',error='HTTP_503'),'probe',self.now);self.db.commit();pointer=dict(current=dict(database=dict(sha256=sha(self.path)),version='TEST_ONLY',code_commit='0'*40),dataset_ref='acceptance/controlled');out=Path(self.tmp.name)/'browser';export_browser(self.path,out,'a'*40,pointer,'2026-10-29');data=json.loads((out/'data/browser.json').read_text());self.assertEqual(data['pending'],[]);self.assertTrue(data['records'])

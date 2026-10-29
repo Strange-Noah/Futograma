@@ -113,7 +113,12 @@ def main():
   for name,url in urls.items():
    try:r,b=client.fetch(url,'phase2_'+name);captures[name]=r
    except Exception as exc:captures[name]=dict(url=url,status='SOURCE_UNAVAILABLE',error=type(exc).__name__+':'+str(exc))
-  report['roster_capture']=add_current_memberships(db,captures,on);report['disputed']=[]
+  report['roster_capture']=add_current_memberships(db,captures,on);report['reviewed_roster_imports']=[]
+  for item in config.get('reviewed_rosters',[]):
+   mapped,ambiguous=link_rows(identities(db,item['club_id']),[dict(name=n,profile='') for n in item['names']]);proof=item|dict(assertion_sha256=hashlib.sha256(json.dumps(item,ensure_ascii=False,sort_keys=True).encode()).hexdigest())
+   for pid,row in mapped.items():add_event(db,item['club_id'],pid,'FIRST_TEAM',None,on,[proof|dict(matched_name=row['name'])],'Manually reviewed current official first-team player section; staff excluded',precision='OBSERVED_CURRENT_SNAPSHOT')
+   report['reviewed_roster_imports'].append(dict(club_id=item['club_id'],source_url=item['source_url'],source_count=len(item['names']),linked=len(mapped),ambiguous=ambiguous,unmapped=[n for n in item['names'] if n not in [r['name'] for r in mapped.values()]]))
+  report['disputed']=[]
   for i,item in enumerate(config['assertions']):
    player=db.execute('SELECT display_name FROM players WHERE player_id=?',(item['player_id'],)).fetchone()
    if not player or norm(player[0])!=norm(item['name']):raise RuntimeError('AUDIT_CANONICAL_PLAYER_ID_NAME_MISMATCH')
