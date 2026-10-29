@@ -30,6 +30,13 @@ class IdentityError(ParseError):pass
 class Conflict(ParseError):pass
 
 def resolve_player(db,tid,p):
+ # Migrated databases must use the unified verified registry. The legacy path exists only for old-schema replay compatibility.
+ if db.execute("SELECT 1 FROM sqlite_master WHERE name='verified_identity_links'").fetchone():
+  from .identity_registry import lookup
+  try:verified=lookup(db,tid,p)
+  except ValueError as exc:raise IdentityError(str(exc)) from exc
+  if verified is None:raise IdentityError('VERIFIED_REGISTRY_IDENTITY_REQUIRED:'+p['name'])
+  return verified
  key=p['provider_key'];alias=db.execute('SELECT player_id FROM validation_player_aliases WHERE provider_key=?',(key,)).fetchone()
  if alias:return alias[0]
  # Exact identity names from retained provider/official aliases, restricted to this club's prior observations.

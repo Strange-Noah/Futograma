@@ -154,7 +154,10 @@ CREATE TABLE IF NOT EXISTS roster_verification_dossiers(dossier_id TEXT PRIMARY 
 
 def persist_verified_alias(db,record,result,on):
     if result['identity_status']!='VERIFIED' or not result.get('identity_proof'):raise ValueError('UNVERIFIED_ALIAS_REJECTED')
-    pid=int(result['player_id']);evidence=json.dumps(result,ensure_ascii=False,sort_keys=True)
+    pid=int(result['player_id']);compact=dict(result)
+    # Runtime facts/history are not duplicated in every permanent alias certificate.
+    source=dict(compact.get('source_record',{}));raw=source.pop('raw_fields',{});source['documented_alias_bridge']=raw.get('documented_alias_bridge');compact['source_record']=source;compact.pop('candidates',None)
+    evidence=json.dumps(compact,ensure_ascii=False,sort_keys=True)
     for provider,value in record.provider_ids.items():
         old=db.execute('SELECT player_id FROM verified_identity_links WHERE provider=? AND provider_player_id=?',(provider,str(value))).fetchone()
         if old and old[0]!=pid:raise ValueError('STABLE_PROVIDER_ID_COLLISION')

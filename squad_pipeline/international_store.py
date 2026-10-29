@@ -95,6 +95,7 @@ def bridge_references(db):
             for rid in payload.get('source_refs',[]):
                 s=db.execute('SELECT payload_json FROM validation_source_evidence WHERE evidence_id=?',(rid,)).fetchone()
                 if s:refs.append(evidence(db,dict(json.loads(s[0]),evidence_id=rid)))
+                elif db.execute('SELECT 1 FROM persistent_source_evidence WHERE evidence_id=?',(rid,)).fetchone():refs.append(rid)
             if not refs:raise ValueError('PERSISTENT_REFERENCE_EVIDENCE_MISSING')
             # Do not invent a youth age band when the legacy evidence lacks it.
             level='SENIOR' if payload['team_type']=='NATIONAL' else payload.get('team_level')
@@ -114,3 +115,19 @@ def bridge_references(db):
         except (ValueError,KeyError,sqlite3.IntegrityError) as exc:
             db.execute('ROLLBACK TO national_reference');db.execute('RELEASE national_reference');db.execute('INSERT INTO international_reference_bridge VALUES(?,?,?,?,?,?,?)',(pid,legacy,None,sha,'PENDING:'+str(exc),'UNRESOLVED_LEGACY_REFERENCE',1));summary.append(dict(player_id=str(pid),legacy_match_id=legacy,state='PENDING',error=str(exc)))
     return summary
+
+
+def import_reference_evidence_package(db,manifest,asset_ref):
+    """Repair portable evidence links, leaving original legacy records/index unchanged."""
+    if manifest.get('kind')!='LEGACY_NATIONAL_REFERENCE_EVIDENCE_PORTABILITY_REPAIR' or manifest.get('missing_source_ids'):raise ValueError('INVALID_LEGACY_EVIDENCE_PACKAGE')
+    expected={(int(r['player_id']),r['match_id']):r['payload_sha256'] for r in manifest['references']}
+    actual={(r['player_id'],r['match_id']):digest(r['payload_json']) for r in db.execute('SELECT * FROM validation_national_reference')}
+    if expected!=actual:raise ValueError('REFERENCE_EVIDENCE_PACKAGE_BASELINE_MISMATCH')
+    needed={rid for r in db.execute('SELECT payload_json FROM validation_national_reference') for rid in json.loads(r[0]).get('source_refs',[])}
+    supplied={r['source_id'] for r in manifest['source_records']}
+    if not needed<=supplied:raise ValueError('LEGACY_EVIDENCE_CLOSURE_INCOMPLETE')
+    for row in manifest['source_records']:
+        if row.get('verification_warning'):raise ValueError('LEGACY_EVIDENCE_BODY_REQUIRES_REVIEW')
+        source=dict(row['original_evidence'],evidence_id=row['source_id'],retained_asset_ref=asset_ref+'#'+row['retained_body_path'],body_sha256=row['retained_body_sha256'])
+        evidence(db,source,'ORIGINAL_TARGET_SPECIFIC_SCOPE_AND_REVIEWED_EXTRACT_QUALIFICATIONS','ORIGINAL_SOURCE_OR_REVIEWED_EXTRACT_AS_LABELLED',hold=1)
+    return {'source_records':len(supplied),'legacy_payloads_unchanged':True,'asset_ref':asset_ref}

@@ -30,7 +30,7 @@ def fotmob(raw,capture):
     d=next_data(raw)['data'];pid=re.search(r'/players/(\d+)',capture['url'])
     if not pid or str(d['id'])!=pid[1] or d.get('isCoach') or d.get('gender')!='male':raise ValueError('FOTMOB_PROFILE_ID_OR_SCOPE_MISMATCH')
     team=d.get('primaryTeam') or {};career=d.get('careerHistory',{}).get('careerItems',{});person=d.get('meta',{}).get('personJSONLD',{});names=list(dict.fromkeys(x for x in [d.get('name'),person.get('name'),person.get('alternateName')] if isinstance(x,str) and x))
-    record=base(capture,'$.props.pageProps.data','FotMob',names,provider_ids={'FotMob':str(d['id'])},birth_date=(d.get('birthDate') or {}).get('utcTime','')[:10] or None,official_clubs=[str(team['teamId'])] if team.get('teamId') else [],raw_fields={'primary_team':team,'career':career,'history':d.get('initialMatchesPage'),'recent_matches':d.get('recentMatches'),'matches_url':d.get('matchesUrl'),'match_filters':d.get('matchFilters'),'career_clubs':[str(t['teamId']) for t in career.get('senior',{}).get('teamEntries',[]) if t.get('teamId')]})
+    record=base(capture,'$.props.pageProps.data','FotMob',names,provider_ids={'FotMob':str(d['id'])},birth_date=(d.get('birthDate') or {}).get('utcTime','')[:10] or None,official_clubs=[str(team['teamId'])] if team.get('teamId') else [],raw_fields={'primary_team':team,'career':career,'history':d.get('initialMatchesPage'),'recent_matches':d.get('recentMatches'),'matches_url':d.get('matchesUrl'),'match_filters':d.get('matchFilters'),'related_links':d.get('relatedLinksData') or {},'career_clubs':[str(t['teamId']) for t in career.get('senior',{}).get('teamEntries',[]) if t.get('teamId')]})
     return [record]
 
 def uefa_profile(raw,capture):
@@ -170,4 +170,48 @@ def departure_articles(raw,capture,candidates,club_ids):
                     normalized=key(' '.join([claim,publisher]))
                     if not ((key(team_name) and key(team_name).replace('fc','') in normalized) or (key(old_name) and key(old_name) in normalized)):continue
                     result.append(base(capture,'JSONLD.NewsArticle headline/description/datePublished + acquired provider career','OfficialArticle',[subject],official_clubs=[str(oldclub)],authority='OFFICIAL',assertion='LOAN_OUT' if loan else 'TRANSFERRED_OUT',effective_from=published,date_precision='ANNOUNCED_COMPLETED_BY_DAY_NOT_REGULATORY_START',raw_fields={'announcement':{'headline':headline,'description':intro,'published_at':d.get('datePublished'),'publisher':publisher},'career_bridge':{'fotmob_id':profile.provider_ids.get('FotMob'),'profile_url':profile.source_url,'profile_sha256':profile.source_sha256,'old_team':history[0],'current_team':current}}))
+    return result
+
+
+def torly_profile(raw,capture):
+    from .live_sources import CLUB_FEEDS
+    known={slug:str(cid) for cid,(slug,_) in CLUB_FEEDS.items()};records=[]
+    for i,d in enumerate(jsonld(raw)):
+        if d.get('@type')!='Person' or not d.get('name') or not d.get('birthDate'):continue
+        url=d.get('url','').rstrip('/')
+        if url!=capture['url'].rstrip('/'):raise ValueError('TORLY_PERSON_PROFILE_URL_MISMATCH')
+        membership=d.get('memberOf') or {};slug=membership.get('url','').rstrip('/').rsplit('/',1)[-1];club=known.get(slug)
+        records.append(base(capture,f'JSONLD.Person[{i}]','Torlytics',[d['name']],provider_ids={'Torlytics':url},birth_date=d['birthDate'][:10],official_clubs=[club] if club else [],raw_fields={'membership':membership,'profile_url':url}))
+    if not records:raise ValueError('TORLY_PERSON_BIRTHDATE_SCHEMA_UNAVAILABLE')
+    return records
+
+
+def current_official_profile(raw,capture,club_id):
+    rows=person_profile(raw,capture,club_id)
+    if rows:
+        for r in rows:r.scope='FIRST_TEAM_CARD'
+        return rows
+    # Only an acquired dedicated men's player profile, not an academy news/camp or a name in page navigation.
+    if club_id!=9825 or not re.fullmatch(r'https://www\.arsenal\.com/fixtures/men/players/[^/?#]+',capture['url']):return []
+    root=Tree(raw).root;headings=[n.txt().strip() for n in root.all(tag='h1') if n.txt().strip()];m=meta(raw)
+    names=[n for n in headings if len(n.split()) in range(2,6) and not re.search(r'(?i)players|fixtures|arsenal|news|tickets',n)]
+    if not names:
+        title=(m.get('og:title') or '').split('|')[0].strip()
+        if len(title.split()) in range(2,6) and not re.search(r'(?i)players|fixtures|arsenal|news|tickets',title):names=[title]
+    if not names:return []
+    return [base(capture,'Dedicated men/player profile h1 or og:title','OfficialClub',names,provider_ids={'ArsenalProfile':capture['url']},official_clubs=[str(club_id)],scope='FIRST_TEAM_CARD',authority='OFFICIAL',raw_fields={'profile_url':capture['url'],'current_mens_player_profile':True})]
+
+
+def dfb_roster(raw,capture,club_id):
+    result=[]
+    if '2026/27' not in Tree(raw).root.txt() and '2026/2027' not in Tree(raw).root.txt() and '2026-2027' not in capture['url']:raise ValueError('CURRENT_DFB_COMPETITION_SCOPE_REQUIRED')
+    for i,row in enumerate(Tree(raw).root.all(tag='tr')):
+        links=[a for a in row.all(tag='a') if re.search(r'/(?:personen|persons)/[^/]+-\d+/spieler',a.attrs.get('href',''))]
+        if not links:continue
+        dobs=re.findall(r'\b(\d{2})\.(\d{2})\.(\d{4})\b',row.txt())
+        if not dobs:continue
+        birthday=dobs[-1];a=links[0];name=a.txt().strip();pid=re.search(r'-(\d+)/spieler',a.attrs['href'])[1]
+        if not name:continue
+        result.append(base(capture,f'DFB squad table tr[{i}]','DFB',[name],provider_ids={'DFB':pid},birth_date=f'{birthday[2]}-{birthday[1]}-{birthday[0]}',official_clubs=[str(club_id)],scope='COMPETITION_REGISTRATION',authority='OFFICIAL',raw_fields={'profile_url':urljoin(capture['url'],a.attrs['href'])}))
+    if not result:raise ValueError('DFB_REGISTERED_PLAYER_DOB_ROWS_UNAVAILABLE')
     return result
