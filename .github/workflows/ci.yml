@@ -44,7 +44,7 @@
         },
         {
           "name": "Check hosted browser and frontend module syntax",
-          "run": "set -euo pipefail\nnode --check ops/cloud/official_browser_capture.mjs\nnode --input-type=module --check < web/app.js"
+          "run": "set -euo pipefail\nnode --check ops/cloud/official_browser_capture.mjs\nnode --input-type=module --check < web/app.js\nnode --input-type=module - <<'JS'\nimport {expressions} from \"./ops/cloud/browser_expressions.mjs\";\nfor (const expression of Object.values(expressions)) new Function(\"return (\"+expression+\")\");\nJS"
         },
         {
           "name": "Report software result (not source acceptance)",

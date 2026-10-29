@@ -9,6 +9,7 @@ def seed_candidates(players,aliases):
         pid=int(alias['player_id']);c=candidates[pid];data=json.loads(alias['identity_json']);c.names=list(dict.fromkeys(c.names+(data.get('names') or [])));key=alias['provider_key'];ids={}
         if key.startswith('fotmob:') and key.split(':',1)[1].isdigit():ids={'FotMob':key.split(':',1)[1]}
         elif key.startswith('https://torlytics.de/spieler/'):ids={'Torlytics':key}
+        if data.get('fotmob_id') is not None:ids['FotMob']=str(data['fotmob_id'])
         if ids:c.records.append(Record('registry://retained-canonical-provider-link',hashlib.sha256(alias['identity_json'].encode()).hexdigest(),'validation_player_aliases/provider_key','CanonicalRegistry',c.names,provider_ids=ids,retrieved=False,raw_fields={'retained_identity_anchor':True}))
     return list(candidates.values())
 

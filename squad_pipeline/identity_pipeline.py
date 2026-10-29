@@ -134,6 +134,10 @@ def management_state(records,on,prior=None):
     good=[r for r in records if r.retrieved and r.source_status=='SUCCESS' and r.authority=='OFFICIAL' and (r.effective_from or r.observed_on or '9999')<=on]
     affiliation=[r.evidence() for r in good if r.scope in ('ACADEMY_AFFILIATION','U21_REGISTRATION','UEFA_LIST_B')]
     registration=[r.evidence() for r in good if r.scope in ('SENIOR_REGISTRATION','U21_REGISTRATION','UEFA_LIST_B','UEFA_SENIOR')]
+    if prior and (prior.get('state')=='EXCLUDED' or prior.get('status')=='RETURN_UNVERIFIED'):
+        returned=[r for r in good if r.scope in ('EXPLICIT_RETURN','EXPLICIT_SIGNING') and r.effective_from and r.effective_from>(prior.get('effective_from') or '')]
+        fresh_departure=[r for r in good if r.assertion in ('LOAN_OUT','TRANSFERRED_OUT','MANAGEMENT_ENDED')]
+        if not returned and not fresh_departure:return dict(prior,source_health='RETAINED_VERIFIED_DEPARTURE',academy_affiliation=affiliation,registration=registration,retention_reason='Ownership/profile/source loss cannot undo a verified departure; explicit return required')
     positive=[r for r in good if r.scope in ('FIRST_TEAM_CARD','SENIOR_REGISTRATION','UEFA_SENIOR','EXPLICIT_MANAGED_DEVELOPMENT','LOAN_IN','EXPLICIT_RETURN','EXPLICIT_SIGNING') and (not r.end_exclusive or on<r.end_exclusive)]
     negative=[r for r in good if r.assertion in ('LOAN_OUT','TRANSFERRED_OUT','MANAGEMENT_ENDED')]
     last=max(negative,key=lambda r:(r.observed_on or '',r.effective_from or ''),default=None)

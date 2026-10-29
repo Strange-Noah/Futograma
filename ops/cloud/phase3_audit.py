@@ -35,6 +35,14 @@ def main():
             capture=dict(capture,source_asset_id=aid);source_health.append({k:capture.get(k) for k in ['url','status','http_status','error','source_asset_id']})
             if capture['status']!='SUCCESS' or not capture.get('path'):continue
             body=tar.extractfile(capture['path']).read();assert hashlib.sha256(body).hexdigest()==capture['sha256'],'RAW_BODY_HASH_MISMATCH';original.append((capture,body.decode('utf-8','replace')))
+    samples=[]
+    for r,b in original:
+        if r.get('purpose')=='national_match_detail' and (len(samples)<2 or not any('u21' in x['capture']['url'].lower() for x in samples) and 'u21' in r['url'].lower()):
+            samples.append(dict(capture=r,body=b))
+            if len(samples)>=3:break
+    preview=work/'international-parser-inputs.json.gz'
+    with preview.open('xb') as f:f.write(gzip.compress(json.dumps(dict(raw_match_samples=samples,national_discovery=national_report),ensure_ascii=False).encode(),mtime=0))
+    release=store.api('POST',store.base+'/releases',dict(tag_name='phase3-parser-inputs-'+os.environ['GITHUB_RUN_ID'],target_commitish='acceptance/phase3-unified',name='Original international parser development inputs',body='Original raw match responses with source hashes plus discovered fixture context. Not final acceptance.',draft=True));asset=store.upload(release['id'],preview);store.download(asset['id'],work/'parser-inputs-readback.gz');assert sha(preview)==sha(work/'parser-inputs-readback.gz');store.api('PATCH',store.base+'/releases/'+str(release['id']),dict(draft=False));print('PARSER_INPUT_ASSET',asset['id'],flush=True)
     def parse(capture,raw):
         purpose=capture.get('purpose','');rows=[]
         if purpose=='fotmob-profile':rows=parsers.fotmob(raw,capture)
@@ -67,6 +75,30 @@ def main():
         r,b=client.fetch(dfb_url,'official_federation_competition_roster',conditional=False);captures.append(r)
         if r['status']=='SUCCESS':records.extend(parsers.dfb_roster(b.decode('utf-8','replace'),r,9823))
     except Exception as exc:parse_errors.append(dict(url=dfb_url,error=type(exc).__name__+':'+str(exc)))
+    clubs_by_hint={}
+    for cid,pids in club_players.items():
+        for pid in pids:clubs_by_hint.setdefault(pid,[]).append(cid)
+    seen_profile_ids={r.provider_ids.get('FotMob') for r in records if r.provider=='FotMob'}
+    explicit_ids={str(json.loads(a['identity_json']).get('fotmob_id')) for a in aliases if json.loads(a['identity_json']).get('fotmob_id') is not None}
+    for fid in sorted(explicit_ids-seen_profile_ids):
+        try:
+            r,b=client.fetch('https://www.fotmob.com/players/'+fid,'fotmob-profile',conditional=False);captures.append(r)
+            if r['status']=='SUCCESS':records.extend(parsers.fotmob(b.decode('utf-8','replace'),r))
+        except Exception as exc:parse_errors.append(dict(provider_player_id=fid,stage='EXPLICIT_PROVIDER_ID_ENRICHMENT',error=type(exc).__name__+':'+str(exc)))
+    # Follow the public app's first-team sibling routes discovered from its successful current profile, never a denied host.
+    app_bases={r.source_url.rsplit('/',1)[0] for r in records if r.provider=='OfficialClub' and urlsplit(r.source_url).hostname=='app.fcbayern.com' and r.birth_date}
+    for p in candidates:
+        if 9823 not in clubs_by_hint.get(p.player_id,[]):continue
+        own=[r for r in records if r.provider=='UEFA' and r.birth_date and '9823' in r.official_clubs and max((similarity(a,b) for a in r.names for b in p.names),default=0)>=.82]
+        for profile in own[:1]:
+            slug=profile.source_url.rstrip('/').rsplit('--',1)[-1]
+            for base in app_bases:
+                url=base+'/'+slug
+                if any(r.source_url==url for r in records):continue
+                try:
+                    r,b=client.fetch(url,'official_profile_from_verified_team_context',conditional=False);captures.append(r)
+                    if r['status']=='SUCCESS':records.extend(parsers.current_official_profile(b.decode('utf-8','replace'),r,9823))
+                except Exception as exc:parse_errors.append(dict(url=url,error=type(exc).__name__+':'+str(exc)))
     stage1=verify_records(candidates,records,'2026-10-29',club_players);clubs_by_player={}
     for cid,pids in club_players.items():
         for pid in pids:clubs_by_player.setdefault(pid,[]).append(cid)
@@ -78,7 +110,7 @@ def main():
     for dossier in unresolved:
         p=next(c for c in candidates if str(c.player_id)==dossier['player_id']);leads=[]
         for url in catalog:
-            if any(parsers.key(n) in parsers.key(url) for n in p.names if len(n.split())>=2):leads.append(url)
+            if any(parsers.key(n) in parsers.key(url) or similarity(n,urlsplit(url).path.rstrip('/').rsplit('/',1)[-1].replace('-',' '))>=.75 for n in p.names if len(n.split())>=2):leads.append(url)
         for old in db.execute('SELECT source_json FROM player_eligibility WHERE player_id=?',(p.player_id,)):
             for source in json.loads(old[0] or '[]'):
                 if isinstance(source,dict) and str(source.get('url','')).startswith('https://'):leads.append(source['url'])
@@ -93,9 +125,23 @@ def main():
                     rr,rendered=render(url,len(captures))
                     if rendered:rows=parsers.current_official_profile(rendered,rr,dossier['club_id'])
                 if not rows and urlsplit(url).hostname=='datencenter.dfb.de':rows=parsers.dfb_profile(raw,r)
+                if not rows and urlsplit(url).hostname=='www.laliga.com':rows=parsers.laliga_profile(raw,r,p.names)
                 if not rows:rows=parsers.person_profile(raw,r,dossier['club_id'])
                 records.extend(rows)
             except Exception as exc:attempted.append(dict(player_id=str(p.player_id),url=url,status='AUTO_PATH_FAILED',error=type(exc).__name__+':'+str(exc)))
+    for r in list(records):
+        if r.provider!='FotMob' or not r.raw_fields.get('seo_path') or not set(r.official_clubs)&{'8456','9825'}:continue
+        canonical=next((c for c in candidates if str(r.provider_ids.get('FotMob')) in c.ids().get('FotMob',set())),None)
+        if not canonical:continue
+        unresolved_alias=any(s['source_record']['provider']=='PremierLeague' and s['identity_status']!='VERIFIED' and any(c['player_id']==str(canonical.player_id) for c in s.get('candidates',[])[:2]) for s in stage2['source_results'])
+        if not unresolved_alias:continue
+        url='https://www.laliga.com/en-ES/player/'+r.raw_fields['seo_path']
+        if url in seen:continue
+        seen.add(url)
+        try:
+            cap,body=client.fetch(url,'official_legal_name_cross_source',conditional=False);captures.append(cap)
+            if cap['status']=='SUCCESS':records.extend(parsers.laliga_profile(body.decode('utf-8','replace'),cap,canonical.names))
+        except Exception as exc:attempted.append(dict(player_id=str(canonical.player_id),url=url,status='AUTO_PATH_FAILED',error=type(exc).__name__+':'+str(exc)))
     management_migrate(db);import_verified_history(db);db.commit();prior={(cid,pid):decision(db,cid,pid,'2026-10-29') for cid,pids in club_players.items() for pid in pids}
     result=verify_records(candidates,records,'2026-10-29',club_players,prior=prior);db.executescript(DDL)
     for r in result['source_results']:
@@ -135,7 +181,15 @@ def main():
         if r.get('purpose')=='national_match_detail' and (len(samples)<2 or not any('u21' in x['capture']['url'].lower() for x in samples) and 'u21' in r['url'].lower()):
             samples.append(dict(capture=r,body=b))
             if len(samples)>=3:break
-    peek=dict(cup_validation=cup_result,national_report={k:v for k,v in national_report.items() if k!='captures'},raw_match_samples=samples,source_health=source_health,parse_errors=parse_errors,roster=result,legacy_reference_bridge=count,repaired_evidence=repaired,browser_captures=captures)
+    compact_result=copy.deepcopy(result)
+    for sr in compact_result['source_results']:
+        record=sr.get('source_record',{});raw=record.pop('raw_fields',{});record['source_detail']={k:v for k,v in raw.items() if k in ('retained_raw_asset','documented_alias_bridge','announcement','list_b_marker','current_mens_player_profile')}
+        for candidate in sr.get('candidates',[]):candidate.pop('variants',None)
+    compact_result['unresolved_source_records']=[i for i,s in enumerate(compact_result['source_results']) if s['identity_status']!='VERIFIED']
+    for d in compact_result['players']:
+        d.pop('candidate_source_records',None)
+        for record in d['verified_source_records']:record.pop('raw_fields',None)
+    peek=dict(cup_validation=cup_result,national_report={k:v for k,v in national_report.items() if k!='captures'},raw_match_samples=samples,source_health=source_health,parse_errors=parse_errors,roster=compact_result,legacy_reference_bridge=count,repaired_evidence=repaired,browser_captures=captures)
     report=dict(cup_validation={k:v for k,v in cup_result.items() if k not in ('players','fixture','canonical_player_ids')},kind='DEVELOPMENT_RAW_AUDIT_NOT_FINAL_ACCEPTANCE',code_commit=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),club_counts={str(cid):dict(Counter(d['management']['state'] for d in result['players'] if d['club_id']==cid)) for cid in club_players},legacy_reference_bridge=count,legacy_fact_tables_unchanged=True,production_pointer_unchanged=store.head()==production,production_database_modified=False,source_parse_errors=parse_errors,automatic_paths_attempted=attempted,status=status_matrix(dict(software='PASS',live_sources='DEGRADED',roster_completeness='PENDING',international_coverage='PENDING',data_publication='DISABLED',website='PENDING',production_authority='DISABLED')))
     assert report['production_pointer_unchanged'];write(work/'result.json',report)
     with (work/'development-audit.json.gz').open('xb') as f:f.write(gzip.compress(json.dumps(peek,ensure_ascii=False).encode(),mtime=0))
