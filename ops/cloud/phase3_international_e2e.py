@@ -58,6 +58,7 @@ def main():
    if any(old[k]!=f[k] for k in ('home','away','competition_key','level')) or instant(old['kickoff'])!=instant(f['kickoff']):raise ValueError('DISCOVERED_FIXTURE_CONFLICT')
   fixtures[key]=f
  def pending(entity,provider_id,url,error,pid=None,fixture=None,source=None):
+  if source and source.get('sha256'):evidence(db,dict(source,retained_asset_ref='phase3-international-evidence-'+os.environ['GITHUB_RUN_ID']),'UNRESOLVED_DISCOVERY_EVIDENCE','UNACCEPTED_SOURCE_CLAIM',1)
   task=dict(entity_type=entity,provider='FotMob',provider_entity_id=provider_id,url=url,player_id=pid,date=(fixture or {}).get('kickoff','')[:10],fixture=fixture,source=source)
   result=dict(status='SOURCE_UNAVAILABLE' if str(error).startswith('SOURCE_UNAVAILABLE:') else 'PENDING',error=str(error));observe(db,task,result,os.environ['GITHUB_RUN_ID']);errors.append(dict(player_id=pid,entity=entity,provider_id=provider_id,error=str(error)))
  provider_discovery=[]
@@ -99,7 +100,7 @@ def main():
    for pid,a in entries:coverage[pid]['fixture_status']='FALLBACK_FAILED'
  print('FIXTURES_DISCOVERED',len(fixtures),flush=True)
  for mid,f in sorted(fixtures.items()):
-  row_count_before=canonical_rows;db.execute('SAVEPOINT acquired_international_match')
+  row_count_before=canonical_rows;source=None;db.execute('SAVEPOINT acquired_international_match')
   try:
    source,body=fetch(f['url'],'international_match_lineup:'+mid);sheet=parse_public_match(body,source,f,claims[mid]);eid=evidence(db,dict(source,retained_asset_ref='phase3-international-evidence-'+os.environ['GITHUB_RUN_ID']),'EXACT_MATCH_IDS_SIDES_DATE_AND_LINEUP','RAW_RESPONSE_VERIFIED',1);teams={s['side']:team(db,s['name'],sheet['level'],eid,'FotMob',s['provider_team_id']) for s in sheet['sheets']};match=dict(match_id='nt_fotmob_'+mid,home_team_key=teams['home'],away_team_key=teams['away'],kickoff_utc=sheet['kickoff_utc'],madrid_date=sheet['madrid_date'],competition_key=sheet['competition_key'],stage=None,match_state='FINISHED',score=sheet['score'],duration_minutes=sheet['duration_minutes'],extra_time_status=sheet['extra_time_status'],identity_status='PROVIDER_ID_SIDES_DATE_VERIFIED',metadata_json=encoded(dict(competition=sheet['competition_label'],full_squad_identity_status=sheet['full_squad_identity_status'],identity_issues=sheet['identity_issues'])));accepted=put_match(db,match,'FotMob',mid,eid);accepted_players=[]
    for side in sheet['sheets']:
@@ -122,10 +123,10 @@ def main():
    parsed.append(dict(provider_match_id=mid,canonical_match_id=accepted,players=accepted_players,structural_identity=sheet['full_squad_identity_status'],identity_issues=sheet['identity_issues']));observe(db,dict(entity_type='MATCH',provider='FotMob',provider_entity_id=mid,url=f['url'],fixture=f),dict(status='DISCOVERED',match_id=accepted),os.environ['GITHUB_RUN_ID'])
   except Exception as exc:
    db.execute('ROLLBACK TO acquired_international_match');canonical_rows=row_count_before
-   pending('MATCH',mid,f['url'],type(exc).__name__+':'+str(exc),fixture=f)
+   pending('MATCH',mid,f['url'],type(exc).__name__+':'+str(exc),fixture=f,source=source)
    for c in claims[mid]:
     pid=ids.get(c['player_provider_id'])
-    if pid in managed:pending('PLAYER_MATCH',mid+':'+str(pid),f['url'],type(exc).__name__+':'+str(exc),pid,dict(f,represented_team_provider_id=c['represented_team_provider_id'],discovery_claim=c['discovery_claim']))
+    if pid in managed:pending('PLAYER_MATCH',mid+':'+str(pid),f['url'],type(exc).__name__+':'+str(exc),pid,dict(f,represented_team_provider_id=c['represented_team_provider_id'],discovery_claim=c['discovery_claim']),source=source)
   db.execute('RELEASE acquired_international_match')
   print('MATCH_DISCOVERY',mid,'parsed' if parsed and parsed[-1]['provider_match_id']==mid else 'held',flush=True)
  for pid,c in coverage.items():
