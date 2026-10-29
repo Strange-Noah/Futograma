@@ -70,3 +70,6 @@ class Phase2Tests(unittest.TestCase):
 
  def test_real_new_player_identity_error_is_quarantined_as_identity(self):
   r=dict(status='VALIDATION_FAILED',error='IdentityError:NEW_PLAYER_WITHOUT_STABLE_PROVIDER_ID:Ismael Saibari Ben El Basra');self.assertEqual(classify(r,self.c,self.now),('ROSTER_IDENTITY_CONFLICT',False))
+
+ def test_resolved_queue_does_not_block_normal_catalog_correction_recheck(self):
+  observe(self.db,self.c,dict(status='SOURCE_UNAVAILABLE',error='HTTP_503'),'failure',self.now);observe(self.db,self.c,dict(status='UNCHANGED'),'fixed',self.now);self.assertTrue(should_attempt(self.db,self.c,self.now));self.assertEqual(due_candidates(self.db,self.now+timedelta(days=1)),[])

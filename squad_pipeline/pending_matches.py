@@ -67,7 +67,7 @@ def observe(db,candidate,result,attempt_token,at=None):
 
 def should_attempt(db,candidate,at=None):
  r=db.execute('SELECT state,next_retry_at FROM match_retry_queue WHERE match_key=?',(key(candidate),)).fetchone()
- return not r or (r['state']=='PENDING' and r['next_retry_at'] and dt(r['next_retry_at'])<=(at or clock()))
+ return not r or r['state']=='RESOLVED' or (r['state']=='PENDING' and r['next_retry_at'] and dt(r['next_retry_at'])<=(at or clock()))
 def due_candidates(db,at=None):
  at=at or clock();p=policy();out=[]
  for row in db.execute("SELECT * FROM match_retry_queue WHERE state='PENDING' ORDER BY next_retry_at,first_observed_at").fetchall():
