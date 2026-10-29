@@ -15,3 +15,9 @@ Private data Actions check out pinned public code using their own repository-sco
 - tests/cloud/: synthetic regression, fixture cleanup restricted to hosted runners.
 
 See docs/DEPLOYMENT.md and docs/RECOVERY.md. Website statistics are recorded club minutes, not complete personal workload. Unverified membership remains unknown. All runners are GitHub-hosted Linux. No Mac mount, tunnel, server or local file is used. Runner files expire with jobs; filesystem cleanup is disabled. Release cleanup is dry-run only during deployment. No local original is deleted by deployment.
+
+## Raw browser acceptance preview
+
+The current Pages MVP uses Team → Player → Match records, with no rolling analytics. Current management is evidence based; sold and loaned-out players are excluded from the default roster, while unresolved membership stays UNKNOWN and is available only through the historical/unknown toggle. Proposed corrections live exclusively in `acceptance/phase2-data`; production facts and legacy membership remain unchanged. See [managed roster and retry semantics](docs/MANAGED_ROSTER_AND_RETRY.md).
+
+Pages transport is selected by `FUTOGRAMA_SITE_BRANCH=site-mvp` and `FUTOGRAMA_SITE_DATA_REF=acceptance/phase2-data` during acceptance. Switching to production needs separate membership approval, workflow source pin review and verified transport regeneration. Production ingestion must remain disabled and authority handover unconfirmed until separately authorized.

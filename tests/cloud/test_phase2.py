@@ -67,3 +67,6 @@ class Phase2Tests(unittest.TestCase):
  def test_explicit_german_cup_label_is_supported_without_none_fallback(self):
   from squad_pipeline.live_parse import fixture
   f=fixture('German DFB Cup','2026-09-02T18:45:00+00:00','VfL Osnabrück','Bayern Munich','1-4',dict(test_only=True));self.assertEqual(f['competition_id'],209)
+
+ def test_real_new_player_identity_error_is_quarantined_as_identity(self):
+  r=dict(status='VALIDATION_FAILED',error='IdentityError:NEW_PLAYER_WITHOUT_STABLE_PROVIDER_ID:Ismael Saibari Ben El Basra');self.assertEqual(classify(r,self.c,self.now),('ROSTER_IDENTITY_CONFLICT',False))
