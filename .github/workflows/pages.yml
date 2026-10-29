@@ -86,6 +86,38 @@
             "SQLITE_SHA": "${{ steps.build.outputs.sqlite_sha256 }}"
           }
         }
+      ],
+      "outputs": {
+        "data_commit": "${{ steps.build.outputs.data_commit }}",
+        "sqlite_sha256": "${{ steps.build.outputs.sqlite_sha256 }}"
+      }
+    },
+    "health": {
+      "name": "Monthly lightweight health receipt after explicit handover",
+      "if": "${{ needs.publish.result == 'success' && vars.FUTBOL_CLOUD_ENABLED == 'true' && vars.FUTBOL_AUTHORITY_HANDOVER == 'CONFIRMED' }}",
+      "needs": "publish",
+      "runs-on": "ubuntu-latest",
+      "permissions": {
+        "contents": "write"
+      },
+      "env": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "FUTBOL_CLOUD_ENABLED": "${{ vars.FUTBOL_CLOUD_ENABLED }}",
+        "FUTBOL_AUTHORITY_HANDOVER": "${{ vars.FUTBOL_AUTHORITY_HANDOVER }}",
+        "FUTBOL_CODE_TOKEN": "${{ github.token }}",
+        "EXPECTED_DATA_COMMIT": "${{ needs.publish.outputs.data_commit }}",
+        "EXPECTED_SQLITE_SHA": "${{ needs.publish.outputs.sqlite_sha256 }}"
+      },
+      "steps": [
+        {
+          "uses": "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "with": {
+            "persist-credentials": false
+          }
+        },
+        {
+          "run": "python3 -m ops.cloud.health_receipt"
+        }
       ]
     }
   }
