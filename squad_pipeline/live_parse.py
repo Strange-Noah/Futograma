@@ -33,7 +33,7 @@ class Tree(HTMLParser):
   for i in range(len(self.stack)-1,0,-1):
    if self.stack[i].tag==t:self.stack=self.stack[:i];break
  def handle_data(self,d):self.stack[-1].children.append(d)
-def src(r):return dict(provider='Sky' if 'skysports' in r['url'] else 'Torlytics',url=r['url'],path=r.get('reused_body_path',r['path']),sha256=r.get('reused_body_sha256',r['sha256']),acquired_at=r['response_timestamp'],http_status=r['http_status'],location='HTML own-side XI/bench and explicitly typed substitution/red-card clocks')
+def src(r):return dict(provider='Sky' if 'skysports' in r['url'] or 'sport.sky.de' in r['url'] else 'Torlytics',url=r['url'],path=r.get('reused_body_path',r['path']),sha256=r.get('reused_body_sha256',r['sha256']),acquired_at=r['response_timestamp'],http_status=r['http_status'],location='HTML own-side XI/bench and explicitly typed substitution/red-card clocks')
 def fixture(comp,kick,home,away,score,source):
  if comp not in COMP:raise ParseError('UNSUPPORTED_COMPETITION:'+str(comp))
  home,away=canon(home),canon(away);cid=COMP[comp]
@@ -118,7 +118,10 @@ def sky_detail(raw,r):
  label=h.one('sdc-site-match-header__detail-fixture').txt();comp=next((k for k in sorted(COMP,key=len,reverse=True) if re.search(r'\.\s*'+re.escape(k)+r'\b',label)),None)
  names=h.all('sdc-site-match-header__team-name-block-target');kick=uk_datetime(h.one('sdc-site-match-header__detail-time').txt());scores=[n.txt() for n in h.all('sdc-site-match-header__team-score-block')]
  if len(names)!=2 or len(scores)!=2:raise ParseError('SKY_TEAM_SCORE_MISSING')
- f=fixture(comp,kick,names[0].txt(),names[1].txt(),'-'.join(scores),src(r));cols=root.all('sdc-site-team-lineup__col');sheets=[];all_names=[]
+ f=fixture(comp,kick,names[0].txt(),names[1].txt(),'-'.join(scores),src(r));return _sky_lineups(root,f,r)
+
+def _sky_lineups(root,f,r):
+ cols=root.all('sdc-site-team-lineup__col');sheets=[];all_names=[]
  if len(cols)!=2:raise Pending('SKY_TWO_LINEUP_COLUMNS_REQUIRED')
  for side,col in zip(['home','away'],cols):
   own=col.one('sdc-site-team-lineup__team-name').txt()

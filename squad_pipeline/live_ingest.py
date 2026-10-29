@@ -4,6 +4,7 @@ from pathlib import Path
 from datetime import datetime,date,timedelta,timezone
 from zoneinfo import ZoneInfo
 from collections import Counter,defaultdict
+from . import pending_matches as pending
 from .core import ROOT,BASE,now,write,read,digest
 from .live_sources import Client,CLUB_FEEDS,OUT
 from .live_parse import catalogs,torly_detail,sky_detail,ParseError,Pending,canon,norm
@@ -24,7 +25,7 @@ CREATE TABLE IF NOT EXISTS live_rollups(club_id INTEGER,player_id INTEGER,as_of 
 '''
 def connect(path=None):
  if path is None:path=Path(os.environ.get('FUTBOL_DATABASE_PATH',str(DB)))
- c=sqlite3.connect(path,timeout=20);c.row_factory=sqlite3.Row;c.execute('PRAGMA foreign_keys=ON');c.executescript(DDL);c.commit();return c
+ c=sqlite3.connect(path,timeout=20);c.row_factory=sqlite3.Row;c.execute('PRAGMA foreign_keys=ON');c.executescript(DDL);pending.migrate(c);c.commit();return c
 class IdentityError(ParseError):pass
 class Conflict(ParseError):pass
 
@@ -121,7 +122,7 @@ def apply_sheet(db,f,s,runid,asof,dry=False):
    votes=[incremental_row(tid,pid,f,[v]) for v in fresh]
    if len({v['provider'] for v in fresh})<2 or any((v['status'],v['minutes'])!=(row['status'],row['minutes']) for v in votes):raise Conflict('ACCEPTED_FACT_CHANGE_REQUIRES_CURRENT_CORROBORATION:'+str(pid))
   rows.append((row,old))
- if dry:return dict(status='UNCHANGED' if not new else 'PENDING',match_id=mid,club_id=tid,players=len(s['players']),dry_run=True)
+ if dry:return dict(status='UNCHANGED' if not new else 'VALIDATED_DRY_RUN',match_id=mid,club_id=tid,players=len(s['players']),dry_run=True)
  existing=db.execute('SELECT * FROM matches WHERE match_id=?',(mid,)).fetchone()
  if existing and existing['match_state']=='COMPLETED' and existing['result'] and existing['result']!=f['score']:raise Conflict('ACCEPTED_RESULT_DIFFERS_NEW_SOURCE')
  isnew=match(db,f) if not existing or existing['match_state']!='COMPLETED' else False;changed=0;inserted=0
@@ -142,7 +143,12 @@ def apply_sheet(db,f,s,runid,asof,dry=False):
  return dict(status='NEW_MATCH' if isnew else 'UPDATED_MATCH' if changed or inserted else 'UNCHANGED',club_id=tid,match_id=mid,inserted_rows=inserted,updated_rows=changed,players=len(s['players']),source=s['source'])
 
 def task(db,c,result,runid):
- status=result['status'];attempts=(db.execute('SELECT attempts FROM live_tasks WHERE url=?',(c['url'],)).fetchone() or [0])[0]+1;retry=(datetime.now(timezone.utc)+timedelta(hours=min(24,2**min(attempts,4)))).isoformat()
+ pending.observe(db,c,result,runid)
+ queued=db.execute('SELECT * FROM match_retry_queue WHERE match_key=?',(pending.key(c),)).fetchone()
+ if queued:
+  result['failure_classification']=queued['failure_classification'];result['retry_state']=queued['state']
+  if queued['state']=='PENDING' and result['status']=='VALIDATION_FAILED':result['status']='PENDING'
+ status=result['status'];attempts=queued['attempt_count'] if queued else (db.execute('SELECT attempts FROM live_tasks WHERE url=?',(c['url'],)).fetchone() or [0])[0]+1;retry=queued['next_retry_at'] if queued else None
  db.execute('INSERT INTO live_tasks VALUES(?,?,?,?,?,?,?,?,?,?) ON CONFLICT(url) DO UPDATE SET status=excluded.status,attempts=excluded.attempts,next_retry=excluded.next_retry,last_error=excluded.last_error,last_run=excluded.last_run,payload_json=excluded.payload_json',(c['url'],c['club_id'],c['date'],c['provider'],status,attempts,retry,result.get('error'),runid,encoded(c)));db.commit()
 def weekend_report(db):
  runs=[dict(x) for x in db.execute("SELECT * FROM live_runs ORDER BY started_at")];after=[]
@@ -194,13 +200,13 @@ def run(args):
      c['window_start_utc']=scan_start.isoformat()
      doc=db.execute('SELECT * FROM live_documents WHERE url=?',(c['url'],)).fetchone();oldtask=db.execute('SELECT * FROM live_tasks WHERE url=?',(c['url'],)).fetchone()
      needs=not doc or args.recheck or c['date']>=(date.fromisoformat(asof)-timedelta(days=3)).isoformat()
-     if oldtask and oldtask['status'] not in ['NEW_MATCH','UPDATED_MATCH','UNCHANGED'] and oldtask['next_retry']<=now():needs=True
-     if needs:candidates.append(c)
+     if oldtask and oldtask['status'] not in ['NEW_MATCH','UPDATED_MATCH','UNCHANGED'] and oldtask['next_retry'] and oldtask['next_retry']<=now():needs=True
+     if needs and pending.should_attempt(db,c):candidates.append(c)
     if not any(x['club_id']==tid and x['provider']==provider for x in report['coverage_limitations']):db.execute('INSERT OR REPLACE INTO live_scan_windows VALUES(?,?,?)',(tid,provider,current.isoformat()));db.commit()
    except Exception as e:
     report['catalogs'].append(dict(club_id=tid,provider=provider,status='SOURCE_UNAVAILABLE',error=type(e).__name__+':'+str(e)))
  # Durable outstanding work survives catalog truncation, but runs are bounded and retry times respected.
- for t in db.execute("SELECT payload_json FROM live_tasks WHERE status NOT IN ('NEW_MATCH','UPDATED_MATCH','UNCHANGED') AND next_retry<=? ORDER BY date",(now(),)):candidates.append(json.loads(t[0]))
+ candidates.extend(pending.due_candidates(db));db.commit()
  seen=set();selected=[]
  for c in sorted(candidates,key=lambda x:(x['date'],x['provider']!='Torlytics'),reverse=True):
   if c['url'] not in seen:seen.add(c['url']);selected.append(c)
@@ -212,12 +218,12 @@ def run(args):
  for c in selected[:args.max_details]:
   result=dict(club_id=c['club_id'],url=c['url'],match_date=c['date'])
   try:
-   r,b=client.fetch(c['url'],'match_detail')
+   r,b=client.fetch(c['url'],'match_detail');result['source']=r;result['source_context']=pending.sky_context(b.decode('utf-8','replace'),c) if c['provider']=='Sky' and r['status']=='SUCCESS' else {}
    if r['status']!='SUCCESS':result.update(status='SOURCE_UNAVAILABLE',error=r.get('error') or 'HTTP_'+str(r.get('http_status')),source=r)
    else:
     f,sheets=(torly_detail if c['provider']=='Torlytics' else sky_detail)(b.decode('utf-8','replace'),r);result['match_date']=f['match_date']
     if datetime.fromisoformat(f['kickoff'].replace('Z','+00:00'))>current:raise Pending('FUTURE_KICKOFF')
-    if not args.preflight and c.get('window_start_utc') and datetime.fromisoformat(f['kickoff'].replace('Z','+00:00'))<datetime.fromisoformat(c['window_start_utc']):
+    if not args.preflight and not c.get('durable_pending_retry') and c.get('window_start_utc') and datetime.fromisoformat(f['kickoff'].replace('Z','+00:00'))<datetime.fromisoformat(c['window_start_utc']):
      result.update(status='UNCHANGED',reason='BEFORE_EXACT_72H_OR_CATCHUP_BOUND;NO_FACT_WRITE');report['results'].append(result);task(db,c,result,runid);continue
     own=next((s for s in sheets if s['club_id']==c['club_id']),None)
     if not own:raise IdentityError('REQUESTED_CLUB_NOT_ON_PARSED_SIDE')
