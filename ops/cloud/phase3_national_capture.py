@@ -1,5 +1,5 @@
 """International raw acquisition diagnostic: player history -> evidenced national teams -> details."""
-import os,json,tarfile,re,time
+import os,json,tarfile,re,time,gzip,hashlib
 from urllib.parse import urlsplit
 from squad_pipeline.core import ROOT
 from squad_pipeline.cloud.hosted_guard import require_hosted
@@ -10,16 +10,31 @@ from squad_pipeline.international_discovery import profile_hints,team_fixture_hi
 def main():
     require_hosted()
     if os.environ.get('FUTBOL_CLOUD_ENABLED')!='false' or os.environ.get('FUTBOL_AUTHORITY_HANDOVER')!='UNCONFIRMED':raise RuntimeError('ISOLATION_REQUIRED')
-    out=ROOT/'.cloud/phase3-national';out.mkdir(parents=True,exist_ok=False);s=GitHubStore('Strange-Noah/Futograma-data',os.environ['GITHUB_TOKEN'],'main');production=s.head();captures=[];hints=[];errors=[];affiliations={};bodies={}
+    out=ROOT/'.cloud/phase3-national';out.mkdir(parents=True,exist_ok=False);s=GitHubStore('Strange-Noah/Futograma-data',os.environ['GITHUB_TOKEN'],'main');production=s.head();captures=[];hints=[];errors=[];affiliations={};bodies={};peek={'profile_views':[],'raw_samples':[]};torly_samples=0
     for aid,label,manifest in [(688571125,'first','.cloud/phase3-raw/captures.json'),(688619422,'enrich','.cloud/phase3-enrich/captures.json')]:
         s.download(aid,out/(label+'.tar.gz'));tar=tarfile.open(out/(label+'.tar.gz'));rs=json.load(tar.extractfile(manifest))['captures']
         for r in rs:
+            if r['status']=='SUCCESS' and (r['purpose'].startswith('recovered_roster:') or r['purpose']=='torly-profile' and torly_samples<2):
+                peek['raw_samples'].append({'capture':r,'body':tar.extractfile(r['path']).read().decode('utf-8','replace')})
+                if r['purpose']=='torly-profile':torly_samples+=1
             if r['purpose']!='fotmob-profile' or r['status']!='SUCCESS':continue
             try:
-                h=profile_hints(tar.extractfile(r['path']).read().decode(),r,'2026-09-01','2026-10-29');hints.append(h)
+                raw=tar.extractfile(r['path']).read().decode();h=profile_hints(raw,r,'2026-07-01','2026-10-29');hints.append(h)
+                from squad_pipeline.international_discovery import payload
+                d=payload(raw);keep=['id','name','birthDate','primaryTeam','careerHistory','recentMatches','initialMatchesPage','matchFilters','relatedLinksData','meta','isCoach','gender']
+                peek['profile_views'].append({'capture':r,'fixture_type':'FIELD_PROJECTION_NOT_ORIGINAL_RESPONSE','data':{k:d[k] for k in keep if k in d}})
                 for a in h['affiliations']:affiliations[a['provider_team_id']]=a
             except Exception as e:errors.append(dict(url=r['url'],error=type(e).__name__+':'+str(e)))
         if label=='enrich':seed=json.load(tar.extractfile('.cloud/phase3-enrich/canonical_discovery_hints.json'))
+    refs={rid for row in seed['validation_national_reference'] for rid in json.loads(row['payload_json']).get('source_refs',[])}
+    peek['seed']={k:seed[k] for k in ['clubs','players','validation_player_aliases','validation_roster_membership','player_eligibility','validation_national_reference']}
+    peek['seed']['validation_source_evidence']=[e for e in seed['validation_source_evidence'] if e['evidence_id'] in refs]
+    peek_path=out/'development-peek.json.gz'
+    with peek_path.open('xb') as f:f.write(gzip.compress(json.dumps(peek,ensure_ascii=False).encode(),mtime=0))
+    release=s.api('POST',s.base+'/releases',dict(tag_name='phase3-development-extract-'+os.environ['GITHUB_RUN_ID'],target_commitish='acceptance/phase3-unified',name='Phase 3 development field projection and raw parser samples',body='Debug projections are not original responses and are not acceptance inputs. Full raw archives remain immutable private assets.',draft=True))
+    asset=s.upload(release['id'],peek_path);s.download(asset['id'],out/'peek-readback.gz')
+    assert hashlib.sha256(peek_path.read_bytes()).digest()==hashlib.sha256((out/'peek-readback.gz').read_bytes()).digest()
+    s.api('PATCH',s.base+'/releases/'+str(release['id']),dict(draft=False));print('DEVELOPMENT_PEEK_ASSET',asset['id'],flush=True)
     HOSTS.update({'www.fotmob.com','www.uefa.com','www.englandfootball.com','www.thefa.com','www.arsenal.com','app.fcbayern.com','www.psv.nl','www.newcastleunited.com','next.avfc.co.uk'})
     client=Client('phase3-national-'+os.environ['GITHUB_RUN_ID'],budget=600);start=time.monotonic();seen=set();fixtures={}
     for h in hints:
@@ -30,7 +45,7 @@ def main():
         try:
             r,b=client.fetch(url,'national_team_fixtures',conditional=False);captures.append(r)
             if r['status']=='SUCCESS':
-                for m in team_fixture_hints(b.decode('utf-8','replace'),r,a,'2026-09-01','2026-10-29'):fixtures.setdefault(m['provider_match_id'],m)
+                for m in team_fixture_hints(b.decode('utf-8','replace'),r,a,'2026-07-01','2026-10-29'):fixtures.setdefault(m['provider_match_id'],m)
         except Exception as e:errors.append(dict(url=url,error=type(e).__name__+':'+str(e)))
     for mid,m in fixtures.items():
         url=m['url']

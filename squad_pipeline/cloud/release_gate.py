@@ -15,11 +15,11 @@ def verify_frontend(manifest,pointer,data_head,frontend_commit,browser_bytes=Non
         if v.get(k)!=value:raise ValueError('VERSION_MISMATCH:'+k)
     # Exact pin is deliberately conservative until a tested compatibility contract exists.
     if frontend_commit!=v['code_commit']:raise ValueError('FRONTEND_DATA_CODE_COMMIT_MISMATCH')
-    if manifest.get('schema_version')!=2:raise ValueError('UNSUPPORTED_BROWSER_SCHEMA')
+    if manifest.get('schema_version') not in (2,3):raise ValueError('UNSUPPORTED_BROWSER_SCHEMA')
     if browser_bytes is None:raise ValueError('BROWSER_PAYLOAD_REQUIRED')
     if hashlib.sha256(browser_bytes).hexdigest()!=manifest.get('browser_sha256'):raise ValueError('BROWSER_HASH_MISMATCH')
     browser=json.loads(browser_bytes)
-    if browser.get('schema_version')!=2 or browser.get('version')!=v:raise ValueError('BROWSER_VERSION_MISMATCH')
+    if browser.get('schema_version')!=manifest['schema_version'] or browser.get('version')!=v:raise ValueError('BROWSER_VERSION_MISMATCH')
     return dict(frontend_commit=frontend_commit,export_code_commit=v['code_commit'],data_commit=data_head,sqlite_sha256=v['sqlite_sha256'],browser_sha256=manifest['browser_sha256'])
 
 def status_matrix(results):
