@@ -51,3 +51,7 @@ class InternationalStoreTests(unittest.TestCase):
     def test_fill_never_revises_legacy_target(self):
         f=self.fact();f.update(minutes=None,reported_minutes=None);put_appearance(self.db,f);self.db.execute('INSERT INTO validation_national_reference VALUES(?,?,?)',(1,'legacy','{}'));self.db.execute('INSERT INTO international_reference_bridge VALUES(?,?,?,?,?,?,?)',(1,'legacy',self.mid,'original','INTEGRATED','TARGET',1));new=dict(f,minutes=90,verification_status='PROVIDER_ID_AND_MATCH_VERIFIED')
         with self.assertRaisesRegex(ValueError,'KNOWN_OR_LEGACY'):complete_missing_minutes(self.db,new,self.eid)
+    def test_exact_country_spacing_variant_preserves_team_key(self):
+        original=team(self.db,'burkinafaso','SENIOR',self.eid);fresh=team(self.db,'Burkina Faso','SENIOR',self.eid,'FotMob','test-country');self.assertEqual(original,fresh)
+    def test_country_and_youth_identities_do_not_collapse(self):
+        congo=team(self.db,'Congo','SENIOR',self.eid);dr=team(self.db,'DR Congo','SENIOR',self.eid);youth=team(self.db,'Congo','U21',self.eid);self.assertEqual(len({congo,dr,youth}),3)

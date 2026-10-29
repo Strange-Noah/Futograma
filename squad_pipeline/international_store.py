@@ -57,6 +57,11 @@ def team(db,name,level,eid,provider=None,provider_id=None):
             check=db.execute('SELECT level FROM football_teams WHERE team_key=?',(old[0],)).fetchone()
             if check[0]!=level:raise ValueError('NATIONAL_TEAM_LEVEL_CONFLICT')
             return old[0]
+    from .identity_pipeline import variants
+    normalized=variants(name)['forms'].get('LATIN_TRANSLITERATION_JOINED')
+    equivalents=[r[0] for r in db.execute("SELECT team_key,display_name FROM football_teams WHERE team_type='NATIONAL' AND level=?",(level,)) if normalized and variants(r[1])['forms'].get('LATIN_TRANSLITERATION_JOINED')==normalized]
+    if len(set(equivalents))>1:raise ValueError('AMBIGUOUS_EXISTING_NATIONAL_TEAM_NAME')
+    if equivalents:key=equivalents[0]
     db.execute('INSERT OR IGNORE INTO football_teams VALUES(?,?,?,?,?,?,?)',(key,'NATIONAL',level,name,None,None,'EVIDENCED_MATCH_PARTICIPANT'))
     if provider and provider_id is not None:db.execute('INSERT OR IGNORE INTO football_team_provider_ids VALUES(?,?,?,?,?,?)',(provider,str(provider_id),key,eid,None,None))
     return key
