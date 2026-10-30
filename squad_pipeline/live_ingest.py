@@ -97,7 +97,13 @@ def stage_sheet(db,f,s):
 
 def apply_sheet(db,f,s,runid,asof,dry=False):
  tid=s['club_id'];f=bind_fixture(db,copy.deepcopy(f),s['source']['url']);mid=f['match_id'];s=copy.deepcopy(s);s['match_id']=mid
- for p in s['players']:p['player_id']=resolve_player(db,tid,p)
+ for p in s['players']:
+  try:p['player_id']=resolve_player(db,tid,p)
+  except IdentityError as exc:
+   if str(exc).startswith('VERIFIED_REGISTRY_IDENTITY_REQUIRED:'):
+    from .source_player_registration import register
+    p['player_id']=register(db,tid,p,s['source'])
+   else:raise
  if len({p['player_id'] for p in s['players']})!=len(s['players']):raise IdentityError('POST_MAPPING_DUPLICATE_ID')
  # Store latest provider snapshots separately, preserving every source version.
  prior=[json.loads(x[0]) for x in db.execute('SELECT payload_json FROM validation_match_sheets WHERE club_id=? AND match_id=?',(tid,mid)) if json.loads(x[0])['provider']!=s['provider']]
@@ -182,6 +188,10 @@ def run(args):
  runid=datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%fZ');origin=os.environ.get('FUTBOL_RUN_ORIGIN','manual');settings=json.loads(Path(os.environ.get('FUTBOL_SETTINGS_PATH',str(ROOT/'ops/live/settings.json'))).read_text());current=datetime.now(timezone.utc);first=datetime.fromisoformat(settings['first_formal_run']);window_start=current-timedelta(hours=settings['lookback_hours']);asof=current.astimezone(ZoneInfo('Europe/Madrid')).date().isoformat()
  if not args.preflight and current<first and not getattr(args,'isolated_prelaunch',False):
   result=dict(run_id=runid,origin=origin,status='WAITING_FOR_FIRST_FORMAL_RUN',first_formal_run=settings['first_formal_run'],timezone=settings['timezone'],lookback_hours=settings['lookback_hours'],requests=0,observed_at=now());folder=ROOT/'logs/live';folder.mkdir(exist_ok=True,parents=True);(folder/(runid+'.json')).write_text(json.dumps(result,ensure_ascii=False,indent=2));print(encoded(result),flush=True);return 0
+ if getattr(args,'isolated_prelaunch',False):
+  from .cloud.hosted_guard import require_hosted
+  require_hosted()
+  if os.environ.get('FUTBOL_CLOUD_ENABLED')!='false' or os.environ.get('FUTBOL_AUTHORITY_HANDOVER')!='UNCONFIRMED' or not os.environ.get('FUTBOL_DATA_REF','').startswith('acceptance/'):raise ValueError('PRELAUNCH_ISOLATION_REQUIRED')
  db=connect()
  if not args.preflight and origin=='launchd_automatic':
   local=current.astimezone(ZoneInfo(settings['timezone']));slot=local.replace(hour=16,minute=0,second=0,microsecond=0)

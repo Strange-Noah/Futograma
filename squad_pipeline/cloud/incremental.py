@@ -26,19 +26,33 @@ def run(database,work,isolated=False,at=None):
     db.execute('CREATE TABLE IF NOT EXISTS pipeline_checkpoints(scope TEXT PRIMARY KEY,completed_at TEXT)')
     old=db.execute("SELECT completed_at FROM pipeline_checkpoints WHERE scope='international'").fetchone();start,end=bounds(old[0] if old else None,at,settings['lookback_hours']);db.commit();db.close()
     os.environ.update(FUTBOL_DATABASE_PATH=str(database),FUTBOL_SETTINGS_PATH=str(ROOT/'ops/cloud/runtime.json'),FUTBOL_RUN_ORIGIN='github_actions_isolated_prelaunch' if isolated else 'github_actions_automatic')
+    client=Client('daily-national-'+os.environ['GITHUB_RUN_ID'],budget=750);captures=[]
+    HOSTS.update({'www.mancity.com','www.arsenal.com','fcbayern.com','www.psg.fr','www.fcbarcelona.com','www.inter.it','www.fotmob.com'})
+    def fetch(url,purpose):
+        r,b=fetch_public_redirects(client,url,purpose);r=dict(r,provider='Sky' if 'www.skysports.com/' in url else 'FotMob');captures.append(r)
+        if r['status']!='SUCCESS':raise ValueError('SOURCE_UNAVAILABLE:'+str(r.get('error') or 'HTTP_'+str(r.get('http_status'))))
+        return r,b.decode('utf-8','replace')
+    from ..roster_refresh import refresh
+    from ..international_store import migrate
+    from ..managed_roster import migrate as management_migrate,import_verified_history
+    from ..pending_matches import migrate as retry_migrate
+    db=sqlite3.connect(database);db.row_factory=sqlite3.Row;migrate(db);management_migrate(db);import_verified_history(db);retry_migrate(db)
+    roster=refresh(db,fetch,end.date().isoformat(),'daily-evidence-'+os.environ['GITHUB_RUN_ID']);db.close()
     from .. import live_ingest
     previous=live_ingest.DB;live_ingest.DB=Path(database)
     try:club_code=live_ingest.run(types.SimpleNamespace(preflight=False,recheck=False,budget=160,max_details=36,isolated_prelaunch=isolated))
     finally:live_ingest.DB=previous
     db=sqlite3.connect(database);db.row_factory=sqlite3.Row;db.execute('PRAGMA foreign_keys=ON')
-    client=Client('daily-national-'+os.environ['GITHUB_RUN_ID'],budget=750);captures=[]
-    def fetch(url,purpose):
-        r,b=fetch_public_redirects(client,url,purpose);r=dict(r,provider='Sky' if 'www.skysports.com/' in url else 'FotMob');captures.append(r)
-        if r['status']!='SUCCESS':raise ValueError('SOURCE_UNAVAILABLE:'+str(r.get('error') or 'HTTP_'+str(r.get('http_status'))))
-        return r,b.decode('utf-8','replace')
     asset_ref='daily-evidence-'+os.environ['GITHUB_RUN_ID'];national=acquire(db,fetch,client,start.date().isoformat(),end.date().isoformat(),os.environ['GITHUB_RUN_ID'],asset_ref)
     # Actual failed discoveries are durable tasks, so the scan checkpoint can advance without losing them.
     db.execute('INSERT OR REPLACE INTO pipeline_checkpoints VALUES(?,?)',('international',end.isoformat()));db.commit();db.close()
+    if client.records:
+        from ..live_sources import OUT
+        log=OUT/'http_requests.jsonl'
+        if log.is_file():
+            for line in log.read_text().splitlines():
+                item=json.loads(line)
+                if item.get('path') and item.get('sha256') and str(item.get('request_timestamp',''))>=str(at.date()):captures.append(item)
     archive=work/'daily-evidence.tar.gz'
     with tarfile.open(archive,'w:gz') as t:
         for item in captures:
@@ -51,4 +65,4 @@ def run(database,work,isolated=False,at=None):
                 if not metadata.exists():
                     with metadata.open('x') as f:json.dump(item,f)
                     t.add(metadata,arcname='metadata/'+metadata.name)
-    return dict(club_exit=club_code,national=national,evidence_archive=str(archive),evidence_tag=asset_ref,isolated=isolated,formal_ingestion=not isolated)
+    return dict(roster=roster,club_exit=club_code,national=national,evidence_archive=str(archive),evidence_tag=asset_ref,isolated=isolated,formal_ingestion=not isolated)

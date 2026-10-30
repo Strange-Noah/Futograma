@@ -23,3 +23,11 @@ class ReleasePolicyTests(unittest.TestCase):
   now=datetime(2027,2,2,tzinfo=timezone.utc);last=now-timedelta(days=10);start,end=bounds(last.isoformat(),now);self.assertEqual(start,last);self.assertEqual(end,now)
  def test_normal_window_72_hours(self):
   now=datetime.now(timezone.utc);self.assertEqual(bounds(None,now)[0],now-timedelta(hours=72))
+
+class StatusContradictionTests(unittest.TestCase):
+ def test_sky_explicit_unused_cannot_override_entry_even_equal_minutes(self):
+  from squad_pipeline.international_sky_fallback import target_minutes
+  f=dict(provider_match_id='1',home=dict(id='2'),away=dict(id='3'),kickoff='2026-10-01T12:00:00Z')
+  c=dict(discovery_claim=dict(id=1,teamId=2,opponentTeamId=3,isHomeTeam=True,matchDate=dict(utcTime=f['kickoff']),minutesPlayed=0,playedInMatch=False,onBench=True))
+  r=target_minutes(dict(role='bench',participation_status='SUBSTITUTE_USED',derived_minutes=0,entry=dict(base=90)),c,f,'home',90)
+  self.assertIsNone(r['minutes']);self.assertIn('APPEARANCE_STATUS_CONTRADICTION',r['evidence_scope'])

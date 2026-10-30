@@ -3,6 +3,7 @@ from datetime import datetime,timezone
 from zoneinfo import ZoneInfo
 from .international_discovery import payload,level
 from .identity_pipeline import similarity
+from .minute_policy import select
 
 def instant(value):return datetime.fromisoformat(value.replace('Z','+00:00')).astimezone(timezone.utc)
 def numeric(value,duration=None):
@@ -55,8 +56,17 @@ def parse_public_match(raw,source,fixture,history_claims=None):
                     if (str(c['teamId']),str(c['opponentTeamId']))!=(tid,str(fixture['away' if side=='home' else 'home']['id'])):raise ValueError('PERSONAL_HISTORY_OPPONENT_MISMATCH')
                     if bool(c.get('isHomeTeam'))!=(side=='home'):raise ValueError('PERSONAL_HISTORY_SIDE_MISMATCH')
                     if c.get('minutesPlayed') is not None:explicit.append((numeric(c['minutesPlayed'],duration),c,h))
-                if len({x[0] for x in explicit})>1:raise ValueError('CONFLICTING_PERSONAL_HISTORY_MINUTES')
-                if explicit and reported is not None and explicit[0][0]!=reported:raise ValueError('MATCH_STAT_HISTORY_MINUTES_CONFLICT')
+                minute_observations=[]
+                for value,c,h in explicit:
+                    cs='STARTER' if role=='starters' else 'SUBSTITUTE_USED' if c.get('playedInMatch') is True or value>0 else 'UNUSED_SUBSTITUTE' if c.get('playedInMatch') is False and c.get('onBench') else 'BENCH_PARTICIPATION_UNKNOWN'
+                    if role=='starters' and c.get('playedInMatch') is False:cs='UNUSED_SUBSTITUTE'
+                    minute_observations.append(dict(minutes=value,status=cs,provider='FotMob',source_url=h['source']['url']))
+                if reported is not None:minute_observations.append(dict(minutes=reported,status='STARTER' if role=='starters' else 'SUBSTITUTE_USED' if reported>0 else 'BENCH_PARTICIPATION_UNKNOWN',provider='FotMob',source_url=source['url']))
+                if any(o['status'] in ('STARTER','SUBSTITUTE_USED','UNUSED_SUBSTITUTE','NOT_IN_MATCHDAY_SQUAD') for o in minute_observations):
+                    selected=select(minute_observations)
+                    if not selected['accepted']:raise ValueError('MATCH_STAT_HISTORY_MINUTES_CONFLICT:'+selected['reason'])
+                    if len({x['minutes'] for x in minute_observations})>1:reported=selected['minutes'];scope=selected['reason'];verification='TARGET_HISTORY_AND_LINEUP_ID_VERIFIED'
+
                 if explicit and reported is None:
                     reported,c,claim_ref=explicit[0];scope='SOURCE_REPORTED_TARGET;LINEUP_ID_VERIFIED;NOT_INDEPENDENT_MINUTE_CORROBORATION';verification='TARGET_HISTORY_AND_LINEUP_ID_VERIFIED'
                 participation='STARTER' if role=='starters' else 'SUBSTITUTE_USED' if reported is not None and reported>0 else 'BENCH_PARTICIPATION_UNKNOWN'
@@ -65,6 +75,6 @@ def parse_public_match(raw,source,fixture,history_claims=None):
                     if c.get('playedInMatch') is True:participation='SUBSTITUTE_USED'
                     elif c.get('playedInMatch') is False and c.get('onBench') is True and reported==0:participation='UNUSED_SUBSTITUTE'
                 # Missing event/stat coverage never turns a listed substitute into a confirmed zero.
-                players.append(dict(provider_player_id=pid,name=p['name'],shirt=p.get('shirtNumber'),role=role,represented_team_provider_id=tid,participation_status=participation,minutes=reported,reported_minutes=reported,derived_minutes=None,minutes_precision='SOURCE_REPORTED_INTEGER' if reported is not None else 'UNKNOWN',verification_status=verification,evidence_scope=scope,source=source,history_source=claim_ref.get('source') if claim_ref else None,source_path=f'$.props.pageProps.content.lineup.{side}Team.{key}[{i}]'))
+                players.append(dict(provider_player_id=pid,name=p['name'],shirt=p.get('shirtNumber'),role=role,represented_team_provider_id=tid,participation_status=participation,minutes=reported,reported_minutes=reported,derived_minutes=None,minutes_precision='SOURCE_REPORTED_INTEGER' if reported is not None else 'UNKNOWN',verification_status=verification,evidence_scope=scope,source=source,history_source=claim_ref.get('source') if claim_ref else None,minute_observations=minute_observations,source_path=f'$.props.pageProps.content.lineup.{side}Team.{key}[{i}]'))
         sheets.append(dict(side=side,provider_team_id=tid,name=t['name'],players=players,complete_squad=not any(x['side']==side for x in identity_issues)))
     return dict(provider='FotMob',provider_match_id=expected,kickoff_utc=kick.isoformat(),madrid_date=kick.astimezone(ZoneInfo('Europe/Madrid')).date().isoformat(),competition_key=comp,competition_label=g.get('leagueName'),level=fixture['level'],duration_minutes=duration,extra_time_status='VERIFIED_120' if duration==120 else 'VERIFIED_90' if duration==90 else 'UNKNOWN',score=status.get('scoreStr'),identity_issues=identity_issues,full_squad_identity_status='INCOMPLETE' if identity_issues else 'UNIQUE_PROVIDER_IDS',shootout_minutes=0,sheets=sheets,source=source)
