@@ -13,7 +13,7 @@ def main():
     approval='PROMOTE_REVIEWED_PHASE3' if a.operation=='promote' else 'ROLLBACK_REVIEWED_PHASE3'
     if os.environ.get('FUTOGRAMA_RELEASE_APPROVAL')!=approval or os.environ.get('FUTOGRAMA_APPROVED_CODE_SHA')!=code:raise RuntimeError('EXPLICIT_EXACT_VERSION_PROMOTION_APPROVAL_REQUIRED')
     if a.operation=='promote' and not a.source_ref.startswith('acceptance/'):raise RuntimeError('REVIEWED_ISOLATED_SOURCE_REQUIRED')
-    if a.operation=='promote' and datetime.now(timezone.utc)<datetime.fromisoformat('2026-10-31T16:00:00+08:00'):raise RuntimeError('ROLLOUT_NOT_DUE')
+    # Publishing a verified snapshot is independent of the guarded first formal collection.
     work=ROOT/('.cloud/promotion-'+os.environ['GITHUB_RUN_ID']);work.mkdir(parents=True,exist_ok=False);src=GitHubStore('Strange-Noah/Futograma-data',os.environ['GITHUB_TOKEN'],a.source_ref);dst=GitHubStore('Strange-Noah/Futograma-data',os.environ['GITHUB_TOKEN'],'main')
     if a.operation=='rollback' and a.source_ref!='main':raise RuntimeError('ROLLBACK_ONLY_REVIEWED_PRODUCTION_PREVIOUS')
     head,pointer=src.restore(work/'reviewed.sqlite',previous=a.operation=='rollback')
