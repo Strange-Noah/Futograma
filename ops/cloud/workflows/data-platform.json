@@ -49,7 +49,8 @@
         "FUTBOL_CLOUD_ENABLED": "${{ vars.FUTBOL_CLOUD_ENABLED }}",
         "FUTBOL_AUTHORITY_HANDOVER": "${{ vars.FUTBOL_AUTHORITY_HANDOVER }}",
         "FUTBOL_REMOTE_ACCEPTANCE_ENABLED": "${{ vars.FUTBOL_REMOTE_ACCEPTANCE_ENABLED }}",
-        "ACCEPTANCE_RUN_ID": "${{ inputs.acceptance_run_id }}"
+        "ACCEPTANCE_RUN_ID": "${{ inputs.acceptance_run_id }}",
+        "EXPECTED_CODE_SHA": "CODE_SHA_PLACEHOLDER"
       },
       "outputs": {
         "acceptance_run_id": "${{ steps.run.outputs.acceptance_run_id }}"
@@ -70,12 +71,21 @@
           }
         },
         {
+          "name": "Require successful exact-source CI",
+          "run": "python -m ops.cloud.phase3_ci_gate"
+        },
+        {
           "run": "python -m pip install --disable-pip-version-check -r requirements-cloud.txt"
         },
         {
           "name": "Execute explicit cloud operation",
           "id": "run",
           "run": "python -m ops.cloud.platform"
+        },
+        {
+          "name": "Report production operation status",
+          "if": "${{ always() }}",
+          "run": "echo \"Operation=${{ job.status }}; an unsuccessful operation is not ingestion acceptance.\" >> \"$GITHUB_STEP_SUMMARY\""
         }
       ]
     },
