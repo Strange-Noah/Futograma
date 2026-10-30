@@ -1,6 +1,7 @@
 """Read-only cloud raw replay against a published isolated international snapshot."""
 import os,json,sqlite3,hashlib,tarfile,subprocess
 from collections import defaultdict
+from squad_pipeline.source_redirects import fetch_public_redirects
 from squad_pipeline.core import ROOT
 from squad_pipeline.cloud.github_store import GitHubStore
 from squad_pipeline.cloud.quality import sha
@@ -68,11 +69,14 @@ def main():
   assert sorted(actual)==sorted(expected['players']);primary.append(mid)
  allowed_differences={(int(r['player_id']),str(r['match_id']),r['retained_minutes'],r['new_minutes']) for r in result['retained_reference_disagreements']}
  assert {(r['player_id'],r['match_id'],r['canonical_minutes'],r['source_minutes']) for r in retained_differences}==allowed_differences,'UNEXPLAINED_REPLAY_MINUTE_DIFFERENCE'
+ class ReplayClient:
+  def fetch(self,url,purpose,conditional=False):
+   if url not in bodies:raise ValueError('REPLAY_RAW_RESPONSE_NOT_RETAINED:'+url)
+   source,body=bodies[url];return source,body.encode('utf-8')
  def fetch(url,purpose):
-  if url not in bodies:raise ValueError('REPLAY_RAW_RESPONSE_NOT_RETAINED:'+url)
-  source,body=bodies[url]
+  source,body=fetch_public_redirects(ReplayClient(),url,purpose)
   if source['status']!='SUCCESS':raise ValueError('REPLAY_RETAINED_SOURCE_UNAVAILABLE:'+url)
-  return source,body
+  return source,body.decode('utf-8')
  alternatives=acquire_sky_alternatives(db,fetch,fixtures,claims,ids,managed,clubs,END,'raw-replay-'+run,'phase3-international-evidence-'+run)
  assert alternatives['new_rows']==0,'REPLAY_CREATED_NEW_APPEARANCES';assert table_facts(db)==before,'REPLAY_CHANGED_CANONICAL_FACTS'
  expected_sky={r['provider_match_id'] for r in result.get('independent_alternatives',{}).get('independent_matches',[])};actual_sky={r['provider_match_id'] for r in alternatives['independent_matches']};assert actual_sky==expected_sky,('SKY_REPLAY_MATCH_SET',actual_sky,expected_sky)

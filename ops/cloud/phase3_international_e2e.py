@@ -13,6 +13,7 @@ from squad_pipeline.international_store import migrate,evidence,team,put_match,p
 from squad_pipeline.international_retry import observe
 from squad_pipeline.international_sky_fallback import acquire_sky_alternatives
 from urllib.parse import urlsplit
+from squad_pipeline.source_redirects import fetch_public_redirects
 from squad_pipeline.provider_identity_discovery import verify_team_identities,provider_candidates
 from squad_pipeline.identity_pipeline import resolve
 from squad_pipeline.identity_sources import fotmob as parse_identity_profile
@@ -55,7 +56,7 @@ def main():
  prior_international_rows=db.execute('SELECT COUNT(*) FROM international_appearances').fetchone()[0]
  HOSTS.add('www.fotmob.com');client=Client('phase3-international-'+os.environ['GITHUB_RUN_ID'],budget=750);fixtures={};claims=defaultdict(list);affiliations={};coverage={};captures=[];errors=[];parsed=[];conflicts=[];canonical_rows=0;held=[];now=datetime.now(timezone.utc).isoformat()
  def fetch(url,purpose):
-  r,b=client.fetch(url,purpose,conditional=False);r=dict(r,provider='Sky' if urlsplit(url).netloc=='www.skysports.com' else 'FotMob');captures.append(r)
+  r,b=fetch_public_redirects(client,url,purpose);r=dict(r,provider='Sky' if urlsplit(url).netloc=='www.skysports.com' else 'FotMob');captures.append(r)
   if r['status']!='SUCCESS':raise ValueError('SOURCE_UNAVAILABLE:'+str(r.get('error') or 'HTTP_'+str(r.get('http_status'))))
   return r,b.decode('utf-8','replace')
  def add_fixture(f):
