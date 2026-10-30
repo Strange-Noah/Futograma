@@ -103,9 +103,19 @@ def main():
  club_count=configure_clubs(working)
  from .. import live_ingest
  # Explicitly pass a working-copy path even if this module is imported in a longer-lived process.
- original=live_ingest.DB;live_ingest.DB=working
- try:code=live_ingest.run(types.SimpleNamespace(preflight=args.mode=='preflight',recheck=False,budget=max(64,4*club_count+32),max_details=club_count if args.mode=='preflight' else max(18,3*club_count)))
- finally:live_ingest.DB=original
+ if args.mode=='preflight':
+  original=live_ingest.DB;live_ingest.DB=working
+  try:code=live_ingest.run(types.SimpleNamespace(preflight=True,recheck=False,budget=max(64,4*club_count+32),max_details=club_count))
+  finally:live_ingest.DB=original
+ else:
+  from .incremental import run as daily_run
+  daily=daily_run(working,work);code=daily['club_exit']
+  # Necessary unresolved/raw evidence is persisted before a candidate snapshot can become authoritative.
+  evidence_release=store.api('POST',store.base+'/releases',dict(tag_name=daily['evidence_tag'],target_commitish=store.ref,name='Daily preserved source evidence',body='Required source evidence; unresolved evidence must not be pruned.',draft=True))
+  uploaded=store.upload(evidence_release['id'],Path(daily['evidence_archive']));store.download(uploaded['id'],work/'evidence-readback.tar.gz')
+  from .quality import sha
+  if sha(work/'evidence-readback.tar.gz')!=sha(Path(daily['evidence_archive'])):raise ValueError('EVIDENCE_UPLOAD_READBACK_MISMATCH')
+  store.api('PATCH',store.base+'/releases/'+str(evidence_release['id']),dict(draft=False))
  monotonic=validate_monotonic(restored,working)
  if args.mode=='preflight':
   if inspect(restored)['tables']!=inspect(working)['tables']:raise ValueError('PREFLIGHT_CHANGED_PERMANENT_FACTS')
@@ -118,7 +128,7 @@ def main():
  capture_run(db,ROOT,records);bootstrap_indexes(db,ROOT)
  run_log=ROOT/'logs/live'/(latest['run_id']+'.json')
  if run_log.is_file():register(db,ROOT,str(run_log.relative_to(ROOT)),'RUN_LOG',latest['finished_at'],declared_temporary=True);db.commit()
- retention=cleanup(db,ROOT,apply=False);retention['filesystem_policy']='NO_DELETION;GITHUB_RUNNER_FILES_EXPIRE_WITH_JOB';retention['operational_compaction']=compact_operational_logs(db);write(work/'retention.json',retention);db.close();candidate=work/'candidate.sqlite';snapshot(working,candidate);zipped=work/'database.sqlite.gz';pack(candidate,zipped);new,pointer=store.publish(candidate,zipped,base,os.environ.get('GITHUB_SHA','UNKNOWN_CODE_COMMIT'));manifest=export(candidate,work/'site',new,pointer,ROOT/'web');pruning=store.prune(apply=args.prune_managed_releases);return output(work,dict(status='VALID_SNAPSHOT_AND_SITE_EXPORTED' if code==0 else 'VALID_SNAPSHOT_EXPORTED_WITH_PENDING_NETWORK_TASKS',publish_site=True,network_exit=code,validation=monotonic,data_version=manifest['version'],release_retention=pruning))
+ retention=cleanup(db,ROOT,apply=False);retention['filesystem_policy']='NO_DELETION;GITHUB_RUNNER_FILES_EXPIRE_WITH_JOB';retention['operational_compaction']=compact_operational_logs(db);write(work/'retention.json',retention);db.close();candidate=work/'candidate.sqlite';snapshot(working,candidate);zipped=work/'database.sqlite.gz';pack(candidate,zipped);from .export_publish import publish_with_export_preflight;new,pointer,manifest=publish_with_export_preflight(store,candidate,zipped,base,os.environ.get('GITHUB_SHA','UNKNOWN_CODE_COMMIT'),work,datetime.now(timezone.utc).astimezone(__import__('zoneinfo').ZoneInfo('Europe/Madrid')).date().isoformat(),acceptance=False);pruning=store.prune(apply=args.prune_managed_releases);return output(work,dict(status='VALID_SNAPSHOT_AND_SITE_EXPORTED' if code==0 else 'VALID_SNAPSHOT_EXPORTED_WITH_PENDING_NETWORK_TASKS',publish_site=True,network_exit=code,validation=monotonic,data_version=manifest['version'],release_retention=pruning))
 if __name__=='__main__':
  result=main()
  if result.get('status')=='CLOUD_PREFLIGHT_INCOMPLETE':raise SystemExit(2)

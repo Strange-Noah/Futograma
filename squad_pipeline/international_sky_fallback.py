@@ -10,6 +10,7 @@ from .identity_registry import lookup
 from .identity_pipeline import variants
 from .international_store import team,evidence,put_match,put_appearance,complete_missing_minutes,encoded
 from .international_retry import observe
+from .minute_policy import select
 
 def competition_aliases(fixture):
     key=str(fixture['competition_key']);label=fixture.get('competition_label','')
@@ -61,7 +62,11 @@ def target_minutes(player,claim,fixture,side,duration):
             elif role=='bench' and c.get('playedInMatch') is False and c.get('onBench') is True and reported==0:status='UNUSED_SUBSTITUTE'
             if role=='bench' and reported==0 and status=='BENCH_PARTICIPATION_UNKNOWN':reason='ZERO_MINUTE_PARTICIPATION_UNVERIFIED'
             elif derived is None or reported==derived:selected=reported;reason='EXACT_PERSONAL_REPORT_AND_CERTIFIED_LINEUP_NAME'+(';CLOCKS_AGREE' if derived is not None else ';NO_INDEPENDENT_MINUTE_CORROBORATION')
-            else:reason='PERSONAL_REPORT_AND_SKY_CLOCKS_DISAGREE;NO_AUTOMATIC_SELECTION'
+            else:
+                clock_status=player.get('participation_status') or ('STARTER' if role=='starters' else 'SUBSTITUTE_USED' if player.get('entry') else 'BENCH_PARTICIPATION_UNKNOWN')
+                selection=select([dict(status=status,minutes=reported,provider='FotMob'),dict(status=clock_status,minutes=derived,provider='DERIVED_CLOCK')])
+                if selection['accepted']:selected=selection['minutes'];reason=selection['reason']
+                else:reason=selection['reason']+';PERSONAL_REPORT_AND_SKY_CLOCKS_DISAGREE'
     return dict(participation_status=status,minutes=selected,reported_minutes=reported,derived_minutes=derived,minutes_precision='SOURCE_REPORTED_INTEGER' if selected is not None else 'UNKNOWN',verification_status='CROSS_PROVIDER_CERTIFIED_NAME_AND_PERSONAL_HISTORY_MATCH' if selected is not None else 'CANONICAL_LINEUP_IDENTITY_VERIFIED_MINUTES_UNKNOWN',evidence_scope=reason)
 
 def acquire_sky_alternatives(db,fetch,fixtures,claims,ids,managed,clubs,asof,token,asset_ref):

@@ -3,7 +3,7 @@ import json,sqlite3,hashlib
 from datetime import datetime,timezone
 from pathlib import Path
 from .quality import inspect,readonly
-from ..managed_roster import decision
+from ..roster_policy import roster_decision as decision
 from ..live_parse import CLUBS
 
 def minute_state(status,minutes):
@@ -15,12 +15,12 @@ def export_browser(database,out,data_head,pointer,as_of,acceptance=True):
  db=readonly(database);db.row_factory=sqlite3.Row;clubs=[];players={};records={};competitions={str(r['competition_id']):r['name'] for r in db.execute('SELECT * FROM competitions')}
  for c in db.execute('SELECT * FROM clubs ORDER BY name'):
   cid=c['club_id'];entries=[]
-  ids={r[0] for r in db.execute('SELECT player_id FROM validation_roster_membership WHERE club_id=? UNION SELECT player_id FROM player_eligibility WHERE club_id=? UNION SELECT player_id FROM club_management_events WHERE club_id=?',(cid,cid,cid))}
+  ids={r[0] for r in db.execute('SELECT player_id FROM validation_roster_membership WHERE club_id=? UNION SELECT player_id FROM player_eligibility WHERE club_id=? UNION SELECT player_id FROM club_management_events WHERE club_id=? UNION SELECT player_id FROM player_match_minutes WHERE club_id=?',(cid,cid,cid,cid))}
   for pid in sorted(ids):
    p=db.execute('SELECT * FROM players WHERE player_id=?',(pid,)).fetchone()
    if not p:continue
    key=str(pid);d=decision(db,cid,pid,as_of);players[key]=dict(player_id=key,name=p['display_name'],identity_status=p['identity_status']);entries.append(dict(player_id=key,management=d))
-  clubs.append(dict(club_id=str(cid),name=c['name'],players=entries,managed_count=sum(x['management']['included'] for x in entries),unknown_count=sum(x['management']['state']=='UNKNOWN' for x in entries)))
+  clubs.append(dict(club_id=str(cid),name=c['name'],players=entries,managed_count=sum(x['management']['included'] for x in entries),unknown_count=sum(x['management']['state']=='UNKNOWN' for x in entries),youth_count=sum(x['management']['state']=='YOUTH' for x in entries)))
  club_names={str(r['club_id']):r['name'] for r in db.execute('SELECT * FROM clubs')}
  for r in db.execute('SELECT p.*,m.kickoff,m.local_date,m.competition_id,m.metadata_json,m.home_id,m.away_id FROM player_match_minutes p JOIN matches m USING(match_id) ORDER BY m.kickoff DESC,p.club_id,p.player_id'):
   pid=str(r['player_id']);cid=str(r['club_id']);meta=json.loads(r['metadata_json'] or '{}');own_home=r['home_id']==r['club_id'];opponent=meta.get('away_team') if own_home else meta.get('home_team');sources=meta.get('source_evidence') or [];url=next((x.get('url') for x in sources if (x.get('url') or '').startswith('https://')),None)

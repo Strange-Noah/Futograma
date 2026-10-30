@@ -127,7 +127,13 @@ def apply_sheet(db,f,s,runid,asof,dry=False):
    # Corrections need two current public providers agreeing exactly; otherwise freeze accepted values.
    fresh=[s]+[v for v in other.values() if v['source']['acquired_at'][:10]>=asof]
    votes=[incremental_row(tid,pid,f,[v]) for v in fresh]
-   if len({v['provider'] for v in fresh})<2 or any((v['status'],v['minutes'])!=(row['status'],row['minutes']) for v in votes):raise Conflict('ACCEPTED_FACT_CHANGE_REQUIRES_CURRENT_CORROBORATION:'+str(pid))
+   from .minute_policy import select
+   policy=select([dict(status=old['participation_status'],minutes=old['minutes'],provider='RETAINED_ACCEPTED')]+[dict(status=v['status'],minutes=v['minutes'],provider=fresh[i]['provider']) for i,v in enumerate(votes)])
+   if policy['accepted']:
+    row['minutes']=policy['minutes'];row['minute_selection']=policy;row['minute_method']=policy['reason']
+    if semantic(old)==(row['status'],row['minutes']):pass
+    elif old['participation_status']!=row['status']:raise Conflict('PARTICIPATION_STATUS_CHANGE_REQUIRES_REVIEW')
+   elif len({v['provider'] for v in fresh})<2 or any((v['status'],v['minutes'])!=(row['status'],row['minutes']) for v in votes):raise Conflict('ACCEPTED_FACT_CHANGE_REQUIRES_CURRENT_CORROBORATION:'+str(pid))
   rows.append((row,old))
  if dry:return dict(status='UNCHANGED' if not new else 'VALIDATED_DRY_RUN',match_id=mid,club_id=tid,players=len(s['players']),dry_run=True)
  existing=db.execute('SELECT * FROM matches WHERE match_id=?',(mid,)).fetchone()
@@ -137,6 +143,9 @@ def apply_sheet(db,f,s,runid,asof,dry=False):
   d=date.fromisoformat(f['match_date']);sy=d.year if d.month>=7 else d.year-1;half='H1' if d.month>=7 else 'H2';period=str(sy)+'-'+str(sy+1)[2:]+'_'+half;begin=f'{sy}-07-01' if half=='H1' else f'{sy+1}-01-01';end=f'{sy+1}-01-01' if half=='H1' else f'{sy+1}-07-01';db.execute('INSERT OR IGNORE INTO periods VALUES(?,?,?,?,?,?)',(period,str(sy)+'/'+str(sy+1)[2:],half,begin,end,'Europe/Madrid'));db.execute('UPDATE matches SET period_id=? WHERE match_id=?',(period,mid))
  # Recording a same-value new observation must not churn accepted fact evidence/revisions.
  for row,old in rows:
+  if row.get('minute_selection'):
+   from .minute_policy import audit
+   audit(db,'CLUB',mid,row['player_id'],row['minute_selection'])
   if old and semantic(old)==(row['status'],row['minutes']):continue
   result=fact(db,row,asof,'LIVE_VALIDATED_CORROBORATED_CORRECTION' if old else 'LIVE_NEW_COMPLETE_MATCH');changed+=result=='UPDATED';inserted+=result=='INSERTED';correction_rollups(db,tid,row['player_id'],f['match_date'],asof)
  aid=ev(db,s['source'])
@@ -171,7 +180,7 @@ def weekend_report(db):
 
 def run(args):
  runid=datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%fZ');origin=os.environ.get('FUTBOL_RUN_ORIGIN','manual');settings=json.loads(Path(os.environ.get('FUTBOL_SETTINGS_PATH',str(ROOT/'ops/live/settings.json'))).read_text());current=datetime.now(timezone.utc);first=datetime.fromisoformat(settings['first_formal_run']);window_start=current-timedelta(hours=settings['lookback_hours']);asof=current.astimezone(ZoneInfo('Europe/Madrid')).date().isoformat()
- if not args.preflight and current<first:
+ if not args.preflight and current<first and not getattr(args,'isolated_prelaunch',False):
   result=dict(run_id=runid,origin=origin,status='WAITING_FOR_FIRST_FORMAL_RUN',first_formal_run=settings['first_formal_run'],timezone=settings['timezone'],lookback_hours=settings['lookback_hours'],requests=0,observed_at=now());folder=ROOT/'logs/live';folder.mkdir(exist_ok=True,parents=True);(folder/(runid+'.json')).write_text(json.dumps(result,ensure_ascii=False,indent=2));print(encoded(result),flush=True);return 0
  db=connect()
  if not args.preflight and origin=='launchd_automatic':

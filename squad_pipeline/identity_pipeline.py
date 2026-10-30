@@ -152,6 +152,7 @@ def management_state(records,on,prior=None):
         return {'state':'INCLUDED','included':True,'status':'LOAN_IN' if current.scope=='LOAN_IN' else 'CLUB_MANAGED_DEVELOPMENT' if current.scope=='EXPLICIT_MANAGED_DEVELOPMENT' else 'FIRST_TEAM','evidence':[r.evidence() for r in positive],'academy_affiliation':affiliation,'registration':registration,'effective_from':current.effective_from,'date_precision':current.date_precision}
     if prior and prior.get('state')=='INCLUDED' and (not prior.get('end_exclusive') or on<prior['end_exclusive']):
         return dict(prior,source_health='DEGRADED',retention_reason='Source failure or absence is not departure evidence',academy_affiliation=affiliation,registration=registration)
+    if affiliation:return dict(state='YOUTH',included=False,status='YOUTH',cohort='YOUTH',evidence=affiliation,academy_affiliation=affiliation,registration=registration,remaining_requirements=[])
     return {'state':'UNKNOWN','included':False,'status':'MANAGEMENT_SCOPE_UNVERIFIED','evidence':[],'academy_affiliation':affiliation,'registration':registration,'remaining_requirements':['Current first-team or explicit development management proof; academy/U21/List B alone is insufficient']}
 
 DDL="""CREATE TABLE IF NOT EXISTS verified_identity_links(provider TEXT,provider_player_id TEXT,player_id INTEGER,verified_at TEXT,evidence_json TEXT,PRIMARY KEY(provider,provider_player_id));

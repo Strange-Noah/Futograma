@@ -21,7 +21,9 @@ def commit_tree(s,ref,files,message):
  if s.api('GET',s.base+'/git/ref/heads/'+ref)['object']['sha']!=commit['sha']:raise RuntimeError('REF_READBACK_FAILED')
  return commit['sha']
 def publish_site(s,work,code_commit):
- work.mkdir(parents=True,exist_ok=False);head,p=s.restore(work/'source.sqlite');m=export(work/'source.sqlite',work/'site',head,p,ROOT/'web');ensure_ref(s,'site',head)
+ work.mkdir(parents=True,exist_ok=False);head,p=s.restore(work/'source.sqlite');from squad_pipeline.cloud.all_match_export import export_all_matches
+ from datetime import datetime,timezone
+ p=dict(p,dataset_ref=s.ref);m=export_all_matches(work/'source.sqlite',work/'site',head,p,datetime.now(timezone.utc).date().isoformat(),False);ensure_ref(s,'site',head)
  files={str(x.relative_to(work/'site')):x.read_bytes() for x in (work/'site').rglob('*') if x.is_file()};files['publication.json']=json.dumps(dict(data_commit=head,version=m['version'],code_commit=code_commit)).encode();commit=commit_tree(s,'site',files,'site: '+m['version']['data_version']);return dict(commit=commit,version=m['version'])
 def main():
  require_hosted();mode=os.environ['FUTOGRAMA_MODE'];code_commit=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip();os.environ['GITHUB_SHA']=code_commit;work=ROOT/'.cloud'/('hosted-'+os.environ['GITHUB_RUN_ID']+'-'+os.environ['GITHUB_RUN_ATTEMPT']+'-'+mode);work.mkdir(parents=True,exist_ok=False);s=store();original,pointer=s.head();r=dict(mode=mode,code_commit=code_commit,formal_ingestion=False,authority_handover=False)

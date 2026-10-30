@@ -9,6 +9,6 @@ class IndependentSkyTests(unittest.TestCase):
  def test_exact_personal_report_and_independent_clock(self):
   f=self.fixture();c=dict(discovery_claim=dict(id=10,teamId=1,opponentTeamId=2,isHomeTeam=True,matchDate=dict(utcTime=f['kickoff']),minutesPlayed=67,playedInMatch=True));r=target_minutes(dict(role='starters',derived_minutes=67),c,f,'home',90);self.assertEqual(r['minutes'],67);self.assertIn('CLOCKS_AGREE',r['evidence_scope'])
  def test_disagreement_is_not_averaged(self):
-  f=self.fixture();c=dict(discovery_claim=dict(id=10,teamId=1,opponentTeamId=2,isHomeTeam=True,matchDate=dict(utcTime=f['kickoff']),minutesPlayed=78,playedInMatch=True));r=target_minutes(dict(role='starters',derived_minutes=80),c,f,'home',90);self.assertIsNone(r['minutes']);self.assertEqual(r['reported_minutes'],78)
+  f=self.fixture();c=dict(discovery_claim=dict(id=10,teamId=1,opponentTeamId=2,isHomeTeam=True,matchDate=dict(utcTime=f['kickoff']),minutesPlayed=78,playedInMatch=True));r=target_minutes(dict(role='starters',derived_minutes=80),c,f,'home',90);self.assertEqual(r['minutes'],78);self.assertEqual(r['reported_minutes'],78);self.assertEqual(r['derived_minutes'],80);self.assertIn('FIVE_MINUTE_SOURCE_PRIORITY',r['evidence_scope'])
  def test_no_guessed_competition_alias(self):
   f=self.fixture();f['competition_key']='unknown';self.assertEqual(competition_aliases(f),())

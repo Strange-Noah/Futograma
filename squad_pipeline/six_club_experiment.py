@@ -74,24 +74,17 @@ def backfill_row(tid,pid,f,ss):
  return dict(club_id=tid,player_id=pid,match_id=f['match_id'],status=status,minutes=minute,reported_minutes=reported[0] if reported else None,derived_minutes=derived[0] if derived else None,observations=obs,source_refs=[s['source'] for s in ss],issues=issues,minute_method='SOURCE_REPORTED' if reported else 'EVENT_CLOCK_NOMINAL_REGULATION' if minute is not None and status in ['STARTER','SUBSTITUTE_USED'] else 'VERIFIED_NONAPPEARANCE' if minute==0 else 'UNKNOWN')
 
 def incremental_row(tid,pid,f,ss):
- # Independent reducer consumes raw-sheet observations, never backfill matrix or rows.
- positive=[];evidence=[];reports=[];derived=[];covered=False
- for sheet in ss:
-  covered=covered or bool(sheet['complete_squad'])
-  for obs in sheet['players']:
-   if obs['player_id']!=pid:continue
-   evidence.append(dict(obs,provider=sheet['provider'],source=sheet['source']))
-   if obs['status']!='UNKNOWN':positive.append(obs['status'])
-   if obs.get('reported_minutes') is not None:reports.append(obs['reported_minutes'])
-   if obs.get('derived_minutes') is not None:derived.append(obs['derived_minutes'])
- distinct=set(positive);status='UNKNOWN'
- if len(distinct)==1:status=positive[0]
- elif not evidence and covered:status='NOT_IN_MATCHDAY_SQUAD'
- choices=reports+derived;issues=[];minutes=None
- if choices and max(choices)-min(choices)>=5:issues.append('MATERIAL_MINUTE_SOURCE_CONFLICT')
- if status in ['UNUSED_SUBSTITUTE','NOT_IN_MATCHDAY_SQUAD']:minutes=0
- elif status!='UNKNOWN' and choices and not issues:minutes=choices[0]
- return dict(club_id=tid,match_id=f['match_id'],player_id=pid,status=status,minutes=minutes,reported_minutes=reports[0] if reports else None,derived_minutes=derived[0] if derived else None,minute_method='SOURCE_REPORTED' if reports else 'EVENT_CLOCK_NOMINAL_REGULATION' if minutes is not None and status in ['STARTER','SUBSTITUTE_USED'] else 'VERIFIED_NONAPPEARANCE' if minutes==0 else 'UNKNOWN',observations=evidence,source_refs=[s['source'] for s in ss],issues=issues)
+ from .minute_policy import select
+ evidence=[dict(p,provider=x['provider'],source=x['source']) for x in ss for p in x['players'] if p['player_id']==pid]
+ states={p['status'] for p in evidence if p['status']!='UNKNOWN'}
+ status=next(iter(states)) if len(states)==1 else 'NOT_IN_MATCHDAY_SQUAD' if not evidence and any(x['complete_squad'] for x in ss) else 'UNKNOWN'
+ observations=[]
+ for p in evidence:
+  for field,provider in [('reported_minutes',p['provider']),('derived_minutes','DERIVED_CLOCK')]:
+   observations.append(dict(status=p['status'],minutes=p.get(field),provider=provider,source_url=p['source'].get('url','')))
+ if not evidence and status=='NOT_IN_MATCHDAY_SQUAD':observations=[dict(status=status,minutes=0,provider='OFFICIAL_REPORTED')]
+ selection=select(observations);issues=[] if selection['accepted'] and status!='UNKNOWN' else [selection['reason'] if not selection['accepted'] else 'PARTICIPATION_STATUS_CONFLICT']
+ return dict(club_id=tid,match_id=f['match_id'],player_id=pid,status=status,minutes=selection['minutes'] if not issues else None,reported_minutes=next((p.get('reported_minutes') for p in evidence if p.get('reported_minutes') is not None),None),derived_minutes=next((p.get('derived_minutes') for p in evidence if p.get('derived_minutes') is not None),None),minute_method=selection['reason'],minute_selection=selection,observations=evidence,source_refs=[x['source'] for x in ss],issues=issues)
 
 def sources_enrich(fs,ss):
  # Resolve final score from raw sheet itself, not from accepted player facts.

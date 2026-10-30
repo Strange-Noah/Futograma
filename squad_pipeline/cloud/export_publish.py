@@ -15,10 +15,10 @@ def validate_export(database,out,pointer,head):
     if sum(r.get('match_type')=='NATIONAL' and not r.get('pending') for rows in data['records'].values() for r in rows)!=count:raise ValueError('EXPORTED_INTERNATIONAL_FACT_COUNT_MISMATCH')
     return manifest
 
-def publish_with_export_preflight(store,snapshot,compressed,expected_head,code_commit,out,as_of):
+def publish_with_export_preflight(store,snapshot,compressed,expected_head,code_commit,out,as_of,acceptance=True):
     out=Path(out);stage=out/'prepublication-export';site=out/'site';staged=dict(current=dict(database=inspect(snapshot),version='UNPUBLISHED_PREFLIGHT',code_commit=code_commit),dataset_ref=store.ref)
-    export_all_matches(snapshot,stage,expected_head,staged,as_of,True);validate_export(snapshot,stage,staged,expected_head)
+    export_all_matches(snapshot,stage,expected_head,staged,as_of,acceptance);validate_export(snapshot,stage,staged,expected_head)
     # All consumer schema/count/version paths above execute before the compare-and-swap.
     head,pointer=store.publish(snapshot,compressed,expected_head,code_commit);pointer=dict(pointer,dataset_ref=store.ref)
-    export_all_matches(snapshot,site,head,pointer,as_of,True);manifest=validate_export(snapshot,site,pointer,head)
+    export_all_matches(snapshot,site,head,pointer,as_of,acceptance);manifest=validate_export(snapshot,site,pointer,head)
     return head,pointer,manifest

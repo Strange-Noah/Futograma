@@ -25,7 +25,15 @@ def export_all_matches(database,out,data_head,pointer,as_of,acceptance=True):
             dossier=json.loads(row['payload_json']);pid=str(row['player_id'])
             if pid in result['players']:result['players'][pid]['verification_dossier']=dossier;result['players'][pid]['identity_status']=row['identity_status']
     for rows in result['records'].values():rows.sort(key=lambda r:(r['date'],r.get('kickoff_utc',''),r['match_id']),reverse=True)
-    result.update(schema_version=3,scope='RECORDED_CLUB_AND_NATIONAL_MATCHES;SEE_PLAYER_COVERAGE',national_history_complete=False)
+    for pid,rows in result['records'].items():
+        if pid not in result['players']:
+            player=db.execute('SELECT * FROM players WHERE player_id=?',(int(pid),)).fetchone()
+            if player:result['players'][pid]=dict(player_id=pid,name=player['display_name'],identity_status=player['identity_status'])
+        for record in rows:
+            if db.execute("SELECT 1 FROM sqlite_master WHERE name='minute_policy_decisions'").fetchone():
+                decisions=[json.loads(r[0]) for r in db.execute('SELECT payload_json FROM minute_policy_decisions WHERE match_id=? AND player_id=?',(record['match_id'],int(pid)))]
+                if decisions:record['minute_source_decisions']=decisions
+    result.update(international_discovery_policy='ACTUAL_APPEARANCES;NO_CONTINUOUS_CALENDAR_REQUIREMENT',schema_version=3,scope='RECORDED_CLUB_AND_NATIONAL_MATCHES;SEE_PLAYER_COVERAGE',national_history_complete=False)
     data=out/'data';data.mkdir(parents=True,exist_ok=False);body=json.dumps(result,ensure_ascii=False,separators=(',',':')).encode()
     with (data/'browser.json').open('xb') as f:f.write(body)
     counts=dict(db.execute('SELECT integration_state,COUNT(*) FROM international_reference_bridge GROUP BY integration_state').fetchall());manifest.update(schema_version=3,club_only=False,national_history_complete=False,national_reference_bridge=counts,browser_sha256=hashlib.sha256(body).hexdigest(),scope=result['scope'])
