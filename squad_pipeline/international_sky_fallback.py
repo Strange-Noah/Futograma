@@ -1,5 +1,6 @@
 """Independent national fixture fallback. Name similarity never authorizes a player merge."""
 import re,html,json
+from functools import lru_cache
 from urllib.parse import urljoin,urlsplit
 from datetime import datetime,timedelta
 from .live_parse import catalogs
@@ -24,13 +25,29 @@ def month_links(raw,url,months):
         if u.scheme=='https' and u.netloc=='www.skysports.com' and not u.query and m and m[1] in months and ('scores-fixtures/' in u.path or 'results/' in u.path):out.append(target)
     return sorted(set(out))
 
-def directory_candidates(raw,fixture,asof):
+@lru_cache(maxsize=256)
+def directory_team_labels(raw):
+    rows={}
+    for value in re.findall(r'data-state="([^"<>]*&quot;matchURL&quot;[^"<>]*)"',raw):
+        d=json.loads(html.unescape(value));key=str(d['id'])
+        try:
+            record={side:dict(provider_team_id=str(d['teams'][side]['id']),full_name=d['teams'][side]['name']['full'],short_name=d['teams'][side]['name'].get('short')) for side in ('home','away')}
+            if any(not r['provider_team_id'].isdigit() or int(r['provider_team_id'])<=0 for r in record.values()):raise ValueError('DIRECTORY_TEAM_ID_MISSING')
+            if record['home']['provider_team_id']==record['away']['provider_team_id']:raise ValueError('DIRECTORY_DUPLICATE_TEAM_ID')
+        except (KeyError,TypeError,ValueError) as exc:record=dict(_error=type(exc).__name__+':'+str(exc))
+        if key in rows and rows[key]!=record:record=dict(_error='DIRECTORY_TEAM_LABEL_IDENTITY_CONFLICT')
+        rows[key]=record
+    return rows
+
+def directory_candidates(raw,fixture,asof,source):
     out=[];aliases=competition_aliases(fixture)
     for c in catalogs(raw,'Sky',None,asof):
         if not c['catalog_completed'] or c['catalog_competition'] not in aliases:continue
         if (namekey(c['catalog_home']),namekey(c['catalog_away']))!=(namekey(fixture['home']['name']),namekey(fixture['away']['name'])):continue
         if abs((datetime.fromisoformat(c['date']).date()-instant(fixture['kickoff']).date()).days)>1:continue
-        out.append(c)
+        labels=directory_team_labels(raw)[c['catalog_provider_id']]
+        if '_error' in labels:raise ValueError(labels['_error'])
+        c['team_label_certificates']={side:dict(label,provider='Sky',provider_match_id=c['catalog_provider_id'],side=side,directory_source_sha256=source['sha256'],directory_source_url=source['url'],source_locator='HTML.data-state[match.id='+c['catalog_provider_id']+'].teams.'+side) for side,label in labels.items()};out.append(c)
     return out
 
 def target_minutes(player,claim,fixture,side,duration):
@@ -76,14 +93,17 @@ def acquire_sky_alternatives(db,fetch,fixtures,claims,ids,managed,clubs,asof,tok
         for pages in directories.values():
             for source,body in pages:
                 try:
-                    for c in directory_candidates(body,f,asof):candidates[c['url']]=(c,source)
+                    for c in directory_candidates(body,f,asof,source):candidates[c['url']]=(c,source)
                 except Exception as exc:errors.append(dict(match_id=mid,url=source['url'],stage='CATALOG',error=type(exc).__name__+':'+str(exc)))
         if not candidates:errors.append(dict(match_id=mid,stage='DISCOVERY',error='NO_EXACT_ORDERED_COUNTRY_COMPETITION_DATE_CANDIDATE;NOT_NO_APPEARANCE'));continue
         accepted=False
         for url,(candidate,directory_source) in candidates.items():
             before=new_rows;db.execute('SAVEPOINT independent_sky_match')
             try:
-                source,body=fetch(url,'independent_national_lineup:'+mid);context=dict(home=f['home']['name'],away=f['away']['name'],home_team_key='fotmob-national:'+str(f['home']['id']),away_team_key='fotmob-national:'+str(f['away']['id']),kickoff=f['kickoff'],competition_label=candidate['catalog_competition'],competition_key=f['competition_key'],level=f['level'],evidence=f['source']);sheet=parse_sky(body,source,context);eid=evidence(db,dict(source,retained_asset_ref=asset_ref,verified_fixture_context=f,directory_source=directory_source),'CROSS_PROVIDER_EXACT_ORDERED_COUNTRIES_KICKOFF_COMPETITION','INDEPENDENT_LINEUP_SOURCE',1);teams={s:team(db,f[s]['name'],f['level'],eid,'FotMob',f[s]['id']) for s in ('home','away')};match=dict(match_id='nt_fotmob_'+mid,home_team_key=teams['home'],away_team_key=teams['away'],kickoff_utc=sheet['kickoff_utc'],madrid_date=sheet['madrid_date'],competition_key=f['competition_key'],stage=None,match_state='FINISHED',score=None,duration_minutes=sheet['duration_minutes'],extra_time_status='SOURCE_FULL_TIME_90;HIDDEN_AET_TEMPLATE_IGNORED',identity_status='CROSS_PROVIDER_EXACT_FIXTURE_CONTEXT_VERIFIED',metadata_json=encoded(dict(competition=candidate['catalog_competition'],identity_scope='MANAGED_TARGETS_ONLY;OTHER_SQUAD_NAMES_NOT_GLOBALLY_ID_VERIFIED')));canonical=put_match(db,match,'FotMob',mid,eid);assert put_match(db,dict(match,match_id=canonical),'Sky',candidate['catalog_provider_id'],eid)==canonical;targets=[];seen=set()
+                source,body=fetch(url,'independent_national_lineup:'+mid);context=dict(home=f['home']['name'],away=f['away']['name'],home_team_key='fotmob-national:'+str(f['home']['id']),away_team_key='fotmob-national:'+str(f['away']['id']),kickoff=f['kickoff'],competition_label=candidate['catalog_competition'],competition_key=f['competition_key'],level=f['level'],evidence=f['source'],team_label_certificates=candidate['team_label_certificates']);sheet=parse_sky(body,source,context);eid=evidence(db,dict(source,retained_asset_ref=asset_ref,verified_fixture_context=f,directory_source=directory_source,team_label_certificates=candidate['team_label_certificates']),'CROSS_PROVIDER_EXACT_ORDERED_COUNTRIES_KICKOFF_COMPETITION','INDEPENDENT_LINEUP_SOURCE',1);teams={s:team(db,f[s]['name'],f['level'],eid,'FotMob',f[s]['id']) for s in ('home','away')}
+                for side,certificate in candidate['team_label_certificates'].items():
+                    assert team(db,f[side]['name'],f['level'],eid,'Sky',certificate['provider_team_id'])==teams[side],'SKY_TEAM_PROVIDER_ID_CONFLICT'
+                match=dict(match_id='nt_fotmob_'+mid,home_team_key=teams['home'],away_team_key=teams['away'],kickoff_utc=sheet['kickoff_utc'],madrid_date=sheet['madrid_date'],competition_key=f['competition_key'],stage=None,match_state='FINISHED',score=None,duration_minutes=sheet['duration_minutes'],extra_time_status='SOURCE_FULL_TIME_90;HIDDEN_AET_TEMPLATE_IGNORED',identity_status='CROSS_PROVIDER_EXACT_FIXTURE_CONTEXT_VERIFIED',metadata_json=encoded(dict(competition=candidate['catalog_competition'],identity_scope='MANAGED_TARGETS_ONLY;OTHER_SQUAD_NAMES_NOT_GLOBALLY_ID_VERIFIED')));canonical=put_match(db,match,'FotMob',mid,eid);assert put_match(db,dict(match,match_id=canonical),'Sky',candidate['catalog_provider_id'],eid)==canonical;targets=[];seen=set()
                 for side in sheet['sheets']:
                     for player in side['players']:
                         hits={lookup(db,cid,player) for cid in {c for pid in managed for c in clubs[pid]}}-{None};hits&=managed

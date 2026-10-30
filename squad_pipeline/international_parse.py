@@ -54,6 +54,19 @@ def sky_duration(header,fixture):
     if header.attrs.get('data-status')=='4':return 90
     raise Pending('SKY_MATCH_DURATION_NOT_VERIFIED')
 
+def certified_sky_team_label(observed,expected,side,fixture,source):
+    """Reuse only a source-declared full/short label bound to this exact provider match/team."""
+    if canon(observed)==canon(expected):return None
+    from urllib.parse import urlsplit
+    import re
+    certs=fixture.get('team_label_certificates') or {};cert=certs.get(side) or {};other=certs.get('away' if side=='home' else 'home') or {};url=urlsplit(source.get('url',''));directory=urlsplit(cert.get('directory_source_url',''))
+    valid=cert.get('provider')=='Sky' and cert.get('side')==side and url.scheme=='https' and url.hostname=='www.skysports.com' and str(cert.get('provider_match_id'))==url.path.rstrip('/').rsplit('/',1)[-1]
+    valid=valid and str(cert.get('provider_team_id','')).isdigit() and int(cert['provider_team_id'])>0 and str(cert['provider_team_id'])!=str(other.get('provider_team_id'))
+    valid=valid and directory.scheme=='https' and directory.hostname=='www.skysports.com' and re.fullmatch('[0-9a-f]{64}',cert.get('directory_source_sha256','')) and cert.get('source_locator')
+    valid=valid and namekey(cert.get('full_name',''))==namekey(expected) and namekey(cert.get('short_name',''))==namekey(observed)
+    if not valid:raise ParseError('SKY_ROSTER_SIDE_MISMATCH;NO_EXACT_SOURCE_TEAM_LABEL_CERTIFICATE')
+    return cert
+
 def parse_sky(raw,source,fixture):
     # Context must come from verified history/schedule evidence, not a guessed country/competition.
     required=('home','away','home_team_key','away_team_key','kickoff','competition_label','competition_key','level','evidence')
@@ -70,7 +83,7 @@ def parse_sky(raw,source,fixture):
     sheets=[];both=[];cols=root.all('sdc-site-team-lineup__col')
     if len(cols)!=2:raise Pending('SKY_TWO_LINEUP_COLUMNS_REQUIRED')
     for side,col in zip(('home','away'),cols):
-        if canon(col.one('sdc-site-team-lineup__team-name').txt())!=canon(fixture[side]):raise ParseError('SKY_ROSTER_SIDE_MISMATCH')
+        observed_team_label=col.one('sdc-site-team-lineup__team-name').txt();label_certificate=certified_sky_team_label(observed_team_label,fixture[side],side,fixture,source)
         players=[];events=[]
         for group in col.all('sdc-site-team-lineup__players'):
             role='bench' if 'sdc-site-team-lineup__players--subs' in group.attrs.get('class','') else 'starters'
@@ -85,6 +98,6 @@ def parse_sky(raw,source,fixture):
                     types=[c.split('icon--',1)[1] for c in event.one('sdc-site-team-lineup__item-event-icon').attrs.get('class','').split() if 'icon--' in c]
                     if len(types)!=1:raise ParseError('SKY_UNTYPED_EVENT')
                     events.append(dict(type=types[0],provider_key=key,clock=clock(event.one('sdc-site-team-lineup__event_time').txt())))
-        both.append({namekey(p['name']) for p in players});sheets.append(dict(represented_team_key=fixture[side+'_team_key'],side=side,players=minutes_from_events(players,events,duration),events=events,source=source,complete_squad=True))
+        both.append({namekey(p['name']) for p in players});sheets.append(dict(represented_team_key=fixture[side+'_team_key'],side=side,observed_team_label=observed_team_label,team_label_certificate=label_certificate,players=minutes_from_events(players,events,duration),events=events,source=source,complete_squad=True))
     if both[0]&both[1]:raise ParseError('PLAYER_ON_BOTH_SIDES')
     return dict(fixture=fixture,kickoff_utc=kickoff,madrid_date=datetime.fromisoformat(kickoff.replace('Z','+00:00')).astimezone(ZoneInfo('Europe/Madrid')).date().isoformat(),duration_minutes=duration,sheets=sheets,shootout_minutes=0)
