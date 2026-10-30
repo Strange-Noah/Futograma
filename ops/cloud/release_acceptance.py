@@ -13,11 +13,11 @@ from squad_pipeline.cloud.all_match_export import export_all_matches
 from squad_pipeline.cloud.release_gate import verify_frontend
 from squad_pipeline.cloud.storage import StaleWriter
 from squad_pipeline.roster_policy import population
-REF='acceptance/production-release-20261030'
+REF=os.environ.get('FUTBOL_DATA_REF','acceptance/production-release-20261030')
 def store(ref):return GitHubStore('Strange-Noah/Futograma-data',os.environ['GITHUB_TOKEN'],ref)
 def guard():
     require_hosted()
-    if os.environ.get('FUTBOL_CLOUD_ENABLED')!='false' or os.environ.get('FUTBOL_AUTHORITY_HANDOVER')!='UNCONFIRMED' or os.environ.get('FUTBOL_DATA_REF')!=REF:raise RuntimeError('ISOLATED_RELEASE_PREPARATION_REQUIRED')
+    if os.environ.get('FUTBOL_CLOUD_ENABLED')!='false' or os.environ.get('FUTBOL_AUTHORITY_HANDOVER')!='UNCONFIRMED' or not REF.startswith('acceptance/production-release-'):raise RuntimeError('ISOLATED_RELEASE_PREPARATION_REQUIRED')
 def write(path,value):
     with Path(path).open('x') as f:json.dump(value,f,ensure_ascii=False,indent=2)
 def upload(s,release,path,work):
@@ -33,10 +33,13 @@ def producer():
     guard();work=ROOT/'.cloud/release-producer';work.mkdir(parents=True,exist_ok=False);s=store(REF);prod=store('main');production=prod.head();base,pointer=s.restore(work/'input.sqlite');snapshot(work/'input.sqlite',work/'working.sqlite');configure_clubs(work/'working.sqlite');code=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
     db=sqlite3.connect(work/'input.sqlite');old_refs=list(db.execute('SELECT * FROM validation_national_reference ORDER BY player_id,match_id'));old_players={r[0] for r in db.execute('SELECT player_id FROM players')};db.close()
     result=run(work/'working.sqlite',work,isolated=True)
+    latest=json.loads((ROOT/'squad_pipeline/audit/live_deployment/latest_run.json').read_text());result['club_summary']={key:latest.get(key) for key in ('run_id','status','requests','status_counts','catalogs','coverage_limitations')}
+    result['club_results']=[{key:r.get(key) for key in ('club_id','match_id','match_date','url','status','error','inserted_rows','updated_rows','failure_classification','retry_state')} for r in latest['results']]
     integrity=inspect(work/'working.sqlite');monotonic=validate_monotonic(work/'input.sqlite',work/'working.sqlite');db=sqlite3.connect(work/'working.sqlite');db.row_factory=sqlite3.Row
     assert [tuple(r) for r in db.execute('SELECT * FROM validation_national_reference ORDER BY player_id,match_id')]==old_refs
     assert old_players<={r[0] for r in db.execute('SELECT player_id FROM players')}
     groups=population(db,datetime.now(timezone.utc).date().isoformat());cohorts={state:sum(r['cohort']==state for r in groups) for state in ('FIRST_TEAM','YOUTH','UNKNOWN','EXCLUDED')}
+    roster_unresolved=[dict(player_id=r['player_id'],club_id=r['club_id'],cohort=r['cohort'],name=db.execute('SELECT display_name FROM players WHERE player_id=?',(r['player_id'],)).fetchone()[0]) for r in groups if r['cohort']=='UNKNOWN']
     unknown=[dict(r) for r in db.execute('SELECT a.player_id,p.display_name,a.match_id,a.participation_status FROM international_appearances a JOIN players p USING(player_id) WHERE minutes IS NULL')];db.close()
     release=s.api('POST',s.base+'/releases',dict(tag_name='release-readiness-'+os.environ['GITHUB_RUN_ID'],target_commitish=REF,name='Isolated production release preparation',body='No production collection, promotion, public website publication or handover.',draft=True))
     evidence_release=s.api('POST',s.base+'/releases',dict(tag_name=result['evidence_tag'],target_commitish=REF,name='Preserved daily-controller raw sources',body='Unresolved evidence retained; no local dependency or cleanup.',draft=True))
@@ -47,7 +50,7 @@ def producer():
     except StaleWriter:pass
     else:raise RuntimeError('STALE_WRITER_NOT_REJECTED')
     assert prod.head()==production
-    report=dict(status='ISOLATED_REAL_DAILY_CONTROLLER_EXECUTED',code_commit=code,data_head=head,pointer=pointer,daily=result,cohorts=cohorts,remaining_unknown_minutes=unknown,legacy_references_preserved=len(old_refs),canonical_players_preserved=True,monotonic=monotonic,evidence=evidence,manifest=manifest,production_pointer_unchanged=True,production_authority='DISABLED',website_publication='NOT_PERFORMED')
+    report=dict(status='ISOLATED_REAL_DAILY_CONTROLLER_EXECUTED',code_commit=code,data_head=head,pointer=pointer,daily=result,cohorts=cohorts,remaining_roster_unknown=roster_unresolved,remaining_unknown_minutes=unknown,legacy_references_preserved=len(old_refs),canonical_players_preserved=True,monotonic=monotonic,evidence=evidence,manifest=manifest,production_pointer_unchanged=True,production_authority='DISABLED',website_publication='NOT_PERFORMED')
     write(work/'release-result.json',report);upload(s,release,work/'release-result.json',work);upload(s,release,work/'site/data/browser.json',work);upload(s,release,work/'site/data/manifest.json',work);s.api('PATCH',s.base+'/releases/'+str(release['id']),dict(draft=False))
     with open(os.environ['GITHUB_OUTPUT'],'a') as f:f.write('data_head='+head+'\n')
     print(json.dumps({k:v for k,v in report.items() if k not in ('daily','pointer')},ensure_ascii=False))

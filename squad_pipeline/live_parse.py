@@ -8,7 +8,7 @@ from .six_club_validation import canon as base_canon,CLUBS,day
 from .multi_source_dataset import identity,norm
 # Same-page Sky header says Fleetwood Town, lineup header abbreviates it Fleetwood.
 def canon(name):return {'fleetwood':'fleetwoodtown'}.get(base_canon(name),base_canon(name))
-COMP={'Premier League':47,'Bundesliga':54,'La Liga':87,'LaLiga':87,'Serie A':55,'Ligue 1':53,'UEFA Champions League':42,'Champions League':42,'Carabao Cup':133,'EFL Cup':133,'FA Cup':132,'The FA Cup':132,'DFB Pokal':209,'DFB-Pokal':209,'German DFB Cup':209,'Copa del Rey':138,'Coupe de France':141,'Coppa Italia':137,'Community Shield':247,'UEFA Super Cup':74,'Trophée des Champions':207,'DFL Supercup':'DFL_SUPERCUP'}
+COMP={'Premier League':47,'Bundesliga':54,'La Liga':87,'LaLiga':87,'Serie A':55,'Italian Serie A':55,'Ligue 1':53,'UEFA Champions League':42,'Champions League':42,'Carabao Cup':133,'EFL Cup':133,'FA Cup':132,'The FA Cup':132,'DFB Pokal':209,'DFB-Pokal':209,'German DFB Cup':209,'Copa del Rey':138,'Coupe de France':141,'Coppa Italia':137,'Community Shield':247,'UEFA Super Cup':74,'Trophée des Champions':207,'DFL Supercup':'DFL_SUPERCUP'}
 class ParseError(ValueError):pass
 class Pending(ParseError):pass
 class Node:
@@ -120,12 +120,17 @@ def sky_detail(raw,r):
  if len(names)!=2 or len(scores)!=2:raise ParseError('SKY_TEAM_SCORE_MISSING')
  f=fixture(comp,kick,names[0].txt(),names[1].txt(),'-'.join(scores),src(r));return _sky_lineups(root,f,r)
 
+def certified_catalog_side(observed,fixture,side,source):
+ c=source.get('catalog_candidate') or {};labels=c.get('catalog_team_labels') or {};label=labels.get(side) or {};other=labels.get('away' if side=='home' else 'home') or {};catalog=c.get('catalog_source') or {}
+ provider_id=str(c.get('catalog_provider_id') or '')
+ return bool(provider_id and source['url'].rstrip('/').rsplit('/',1)[-1]==provider_id and len(catalog.get('sha256',''))==64 and catalog.get('url','').startswith('https://www.skysports.com/') and str(label.get('provider_team_id','')).isdigit() and str(other.get('provider_team_id','')).isdigit() and int(label['provider_team_id'])>0 and int(other['provider_team_id'])>0 and label['provider_team_id']!=other['provider_team_id'] and canon(label.get('full_name',''))==fixture[side+'_team'] and canon(label.get('short_name',''))==canon(observed) and c.get('catalog_'+side)==fixture[side+'_team'])
+
 def _sky_lineups(root,f,r):
  cols=root.all('sdc-site-team-lineup__col');sheets=[];all_names=[]
  if len(cols)!=2:raise Pending('SKY_TWO_LINEUP_COLUMNS_REQUIRED')
  for side,col in zip(['home','away'],cols):
   own=col.one('sdc-site-team-lineup__team-name').txt()
-  if canon(own)!=f[side+'_team']:raise ParseError('SKY_ROSTER_SIDE_MISMATCH')
+  if canon(own)!=f[side+'_team'] and not certified_catalog_side(own,f,side,r):raise ParseError('SKY_ROSTER_SIDE_MISMATCH')
   tid=f.get(side+'_id');ps=[];evs=[]
   for group in col.all('sdc-site-team-lineup__players'):
    role='bench' if 'sdc-site-team-lineup__players--subs' in group.attrs.get('class','') else 'starters';numbers=group.all('sdc-site-team-lineup__player-number');dds=group.all('sdc-site-team-lineup__player-name')
@@ -157,6 +162,6 @@ def catalogs(raw,provider,tid,asof):
  else:
   for payload in re.findall(r'data-state="([^"<>]*&quot;matchURL&quot;[^"<>]*)"',raw):
    d=json.loads(html.unescape(payload));ds=re.sub(r'(\d)(?:st|nd|rd|th)\b',r'\1',d['start']['date']);year=int(asof[:4]);md=datetime.strptime(ds,'%A %d %B');year=year-1 if md.month>int(asof[5:7])+6 else year;date_=md.replace(year=year).date().isoformat();path=d['matchURL'];parts=path.rsplit('/',1);url='https://www.skysports.com'+parts[0]+'/teams/'+parts[1]
-   out.append(dict(url=url,date=date_,provider=provider,club_id=tid,catalog_completed=bool(d['isResult']) and d['status']=='FT',catalog_provider_id=str(d['id']),catalog_competition=d['competition']['name']['full'],catalog_home=canon(d['teams']['home']['name']['full']),catalog_away=canon(d['teams']['away']['name']['full']),date_precision='CURRENT_MONTH_DIRECTORY;DETAIL_VERIFIES_YEAR_AND_KICKOFF'))
+   out.append(dict(url=url,date=date_,provider=provider,club_id=tid,catalog_completed=bool(d['isResult']) and d['status']=='FT',catalog_provider_id=str(d['id']),catalog_competition=d['competition']['name']['full'],catalog_home=canon(d['teams']['home']['name']['full']),catalog_away=canon(d['teams']['away']['name']['full']),date_precision='CURRENT_MONTH_DIRECTORY;DETAIL_VERIFIES_YEAR_AND_KICKOFF',catalog_team_labels={side:dict(provider_team_id=str(d['teams'][side].get('id','')),full_name=d['teams'][side]['name']['full'],short_name=d['teams'][side]['name'].get('short')) for side in ('home','away')}))
  if not out:raise ParseError('EMPTY_DIRECTORY_IS_NOT_NO_MATCHES')
  return out

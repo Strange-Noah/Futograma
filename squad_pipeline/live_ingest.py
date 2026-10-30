@@ -102,7 +102,9 @@ def apply_sheet(db,f,s,runid,asof,dry=False):
   except IdentityError as exc:
    if str(exc).startswith('VERIFIED_REGISTRY_IDENTITY_REQUIRED:'):
     from .source_player_registration import register
-    p['player_id']=register(db,tid,p,s['source'])
+    
+    try:p['player_id']=register(db,tid,p,s['source'])
+    except ValueError as reason:raise IdentityError('NEW_SOURCE_IDENTITY_UNRESOLVED:'+p['name']+':'+str(reason)) from reason
    else:raise
  if len({p['player_id'] for p in s['players']})!=len(s['players']):raise IdentityError('POST_MAPPING_DUPLICATE_ID')
  # Store latest provider snapshots separately, preserving every source version.
@@ -207,6 +209,7 @@ def run(args):
    try:
     r,b=client.fetch(url,'catalog_'+str(tid));items=catalogs(b.decode('utf-8','replace'),provider,tid,asof) if r['status']=='SUCCESS' else [];status='SUCCESS' if items else 'SOURCE_UNAVAILABLE';entry=dict(club_id=tid,provider=provider,status=status,source=r,discovered=len(items));report['catalogs'].append(entry)
     db.execute('INSERT INTO live_catalogs VALUES(?,?,?,?,?)',(runid,tid,provider,status,encoded(entry)));db.execute('INSERT OR REPLACE INTO live_checkpoints VALUES(?,?,?,?,?)',(tid,provider,asof,status,runid));db.commit()
+    for item in items:item['catalog_source']={key:r.get(key) for key in ('url','sha256','path','response_timestamp')}
     if not items:report['coverage_limitations'].append(dict(club_id=tid,provider=provider,issue='CATALOG_UNAVAILABLE;NOT_EVIDENCE_NO_MATCHES'));continue
     # Current Sky public directory is month limited. Query previous calendar month using its public navigation route if a gap crosses months.
     checkpoint=db.execute('SELECT completed_at FROM live_scan_windows WHERE club_id=? AND provider=?',(tid,provider)).fetchone();scan_start=min(window_start,datetime.fromisoformat(checkpoint[0])) if checkpoint else window_start;since=scan_start.astimezone(ZoneInfo('Europe/Madrid')).date().isoformat()
@@ -220,7 +223,9 @@ def run(args):
        report['coverage_limitations'].append(dict(club_id=tid,provider=provider,issue='PUBLIC_MONTH_NAVIGATION_UNAVAILABLE_OR_BUDGET',from_date=month.isoformat(),to_date=asof));break
       mr,mb=client.fetch('https://www.skysports.com'+path,'catchup_catalog_'+str(tid))
       if mr['status']!='SUCCESS':report['coverage_limitations'].append(dict(club_id=tid,provider=provider,issue='CATCHUP_MONTH_UNAVAILABLE',source=mr));break
-      items+=catalogs(mb.decode('utf-8','replace'),provider,tid,month.isoformat());month=(month.replace(day=28)+timedelta(days=4)).replace(day=1)
+      more=catalogs(mb.decode('utf-8','replace'),provider,tid,month.isoformat())
+      for item in more:item['catalog_source']={key:mr.get(key) for key in ('url','sha256','path','response_timestamp')}
+      items+=more;month=(month.replace(day=28)+timedelta(days=4)).replace(day=1)
     eligible=[x for x in items if since<=x['date']<=asof and x.get('catalog_completed',True)]
     for c in eligible:
      c['window_start_utc']=scan_start.isoformat()
@@ -247,7 +252,7 @@ def run(args):
    r,b=client.fetch(c['url'],'match_detail');result['source']=r;result['source_context']=pending.sky_context(b.decode('utf-8','replace'),c) if c['provider']=='Sky' and r['status']=='SUCCESS' else {}
    if r['status']!='SUCCESS':result.update(status='SOURCE_UNAVAILABLE',error=r.get('error') or 'HTTP_'+str(r.get('http_status')),source=r)
    else:
-    f,sheets=(torly_detail if c['provider']=='Torlytics' else sky_detail)(b.decode('utf-8','replace'),r);result['match_date']=f['match_date']
+    f,sheets=(torly_detail if c['provider']=='Torlytics' else sky_detail)(b.decode('utf-8','replace'),dict(r,catalog_candidate=c));result['match_date']=f['match_date']
     if datetime.fromisoformat(f['kickoff'].replace('Z','+00:00'))>current:raise Pending('FUTURE_KICKOFF')
     if not args.preflight and not c.get('durable_pending_retry') and c.get('window_start_utc') and datetime.fromisoformat(f['kickoff'].replace('Z','+00:00'))<datetime.fromisoformat(c['window_start_utc']):
      result.update(status='UNCHANGED',reason='BEFORE_EXACT_72H_OR_CATCHUP_BOUND;NO_FACT_WRITE');report['results'].append(result);task(db,c,result,runid);continue

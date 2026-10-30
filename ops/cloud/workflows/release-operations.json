@@ -1,0 +1,79 @@
+{
+  "name": "Explicit reviewed release operation",
+  "on": {
+    "workflow_dispatch": {
+      "inputs": {
+        "operation": {
+          "type": "string",
+          "required": true
+        },
+        "approval": {
+          "type": "string",
+          "required": true
+        },
+        "source_ref": {
+          "type": "string",
+          "required": true
+        },
+        "expected_source_head": {
+          "type": "string",
+          "required": true
+        },
+        "expected_production_head": {
+          "type": "string",
+          "required": true
+        },
+        "expected_sqlite_sha256": {
+          "type": "string",
+          "required": true
+        }
+      }
+    }
+  },
+  "permissions": {
+    "contents": "write",
+    "actions": "read"
+  },
+  "concurrency": {
+    "group": "futograma-data-authority-and-recovery",
+    "cancel-in-progress": false
+  },
+  "jobs": {
+    "operate": {
+      "runs-on": "ubuntu-latest",
+      "env": {
+        "GITHUB_TOKEN": "${{ github.token }}",
+        "EXPECTED_CODE_SHA": "CODE_SHA_PLACEHOLDER",
+        "FUTOGRAMA_APPROVED_CODE_SHA": "CODE_SHA_PLACEHOLDER",
+        "FUTOGRAMA_RELEASE_APPROVAL": "${{ inputs.approval }}",
+        "OPERATION": "${{ inputs.operation }}",
+        "SOURCE_REF": "${{ inputs.source_ref }}",
+        "SOURCE_HEAD": "${{ inputs.expected_source_head }}",
+        "PRODUCTION_HEAD": "${{ inputs.expected_production_head }}",
+        "DATABASE_SHA": "${{ inputs.expected_sqlite_sha256 }}"
+      },
+      "steps": [
+        {
+          "uses": "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "with": {
+            "repository": "Strange-Noah/Futograma",
+            "ref": "CODE_SHA_PLACEHOLDER",
+            "persist-credentials": false
+          }
+        },
+        {
+          "uses": "actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1",
+          "with": {
+            "python-version": "3.14"
+          }
+        },
+        {
+          "run": "python -m ops.cloud.phase3_ci_gate"
+        },
+        {
+          "run": "python -m ops.cloud.release_ops --operation \"$OPERATION\" --source-ref \"$SOURCE_REF\" --expected-source-head \"$SOURCE_HEAD\" --expected-production-head \"$PRODUCTION_HEAD\" --expected-sqlite-sha256 \"$DATABASE_SHA\""
+        }
+      ]
+    }
+  }
+}
