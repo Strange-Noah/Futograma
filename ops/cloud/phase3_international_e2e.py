@@ -83,7 +83,7 @@ def main():
     ids[fid]=pid;persist_verified_alias(db,record,result,END)
     for dossier in roster['players']:
      if int(dossier['player_id'])==pid and dossier['identity_status']!='VERIFIED':
-      dossier['identity_status']='VERIFIED';dossier['verified_source_records'].append(record.evidence());data=encoded(dossier);db.execute('INSERT OR IGNORE INTO roster_verification_dossiers VALUES(?,?,?,?,?,?,?,?,?)',(digest(dossier),dossier['club_id'],pid,now,'VERIFIED',dossier['academy_affiliation_status'],'REGISTERED' if dossier['management'].get('registration') else 'UNCONFIRMED',dossier['management']['state'],data))
+      dossier['identity_status']='VERIFIED';dossier['verified_source_records'].append(record.evidence());dossier['remaining_requirements']=[requirement for requirement in dossier.get('remaining_requirements',[]) if requirement!='Independent stable-ID/biography verification'];data=encoded(dossier);db.execute('INSERT OR IGNORE INTO roster_verification_dossiers VALUES(?,?,?,?,?,?,?,?,?)',(digest(dossier),dossier['club_id'],pid,now,'VERIFIED',dossier['academy_affiliation_status'],'REGISTERED' if dossier['management'].get('registration') else 'UNCONFIRMED',dossier['management']['state'],data))
     provider_discovery.append(dict(club_id=cid,player_id=pid,provider_player_id=fid,status='VERIFIED',proof=result['identity_proof'],source_sha256=source['sha256']))
   except Exception as exc:pending('TEAM_PROVIDER_IDENTITY',str(cid),url,type(exc).__name__+':'+str(exc))
  identity_candidates=provider_candidates(roster['players'],roster['source_results']);prefetched_profiles={}
