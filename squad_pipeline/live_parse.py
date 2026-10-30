@@ -33,7 +33,7 @@ class Tree(HTMLParser):
   for i in range(len(self.stack)-1,0,-1):
    if self.stack[i].tag==t:self.stack=self.stack[:i];break
  def handle_data(self,d):self.stack[-1].children.append(d)
-def src(r):return dict(provider='Sky' if 'skysports' in r['url'] or 'sport.sky.de' in r['url'] else 'Torlytics',url=r['url'],path=r.get('reused_body_path',r['path']),sha256=r.get('reused_body_sha256',r['sha256']),acquired_at=r['response_timestamp'],http_status=r['http_status'],location='HTML own-side XI/bench and explicitly typed substitution/red-card clocks')
+def src(r):return dict(provider='Sky' if 'skysports' in r['url'] or 'sport.sky.de' in r['url'] else 'Torlytics',url=r['url'],path=r.get('reused_body_path',r['path']),sha256=r.get('reused_body_sha256',r['sha256']),acquired_at=r['response_timestamp'],http_status=r['http_status'],location='HTML own-side XI/bench and explicitly typed substitution/red-card clocks',catalog_source=(r.get('catalog_candidate') or {}).get('catalog_source'),directory_match_id=(r.get('catalog_candidate') or {}).get('catalog_provider_id'),directory_team_labels=(r.get('catalog_candidate') or {}).get('catalog_team_labels'))
 def fixture(comp,kick,home,away,score,source):
  if comp not in COMP:raise ParseError('UNSUPPORTED_COMPETITION:'+str(comp))
  home,away=canon(home),canon(away);cid=COMP[comp]

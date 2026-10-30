@@ -16,13 +16,13 @@ with tarfile.open(work/'raw.tar.gz') as tar:
   source=json.load(tar.extractfile(m));raw=tar.extractfile(members[source['path']]).read()
   import hashlib
   assert hashlib.sha256(raw).hexdigest()==source['sha256'];bodies.append((source,raw.decode('utf-8','replace')))
-candidates={};errors=[]
+candidates={};errors=[];catalog_gaps=[]
 for source,raw in bodies:
  if not source['purpose'].startswith('catalog_') or source['http_status']!=200:continue
  provider='Sky' if 'www.skysports.com/' in source['url'] else 'Torlytics';cid=int(source['purpose'].split('_')[-1])
  try:
   for candidate in catalogs(raw,provider,cid,'2026-10-30'):candidate['catalog_source']=source;candidates[candidate['url']]=candidate
- except Exception as exc:errors.append(dict(url=source['url'],error=str(exc)))
+ except Exception as exc:catalog_gaps.append(dict(url=source['url'],error=str(exc)))
 parsed=[]
 for source,raw in bodies:
  if source['purpose']!='match_detail' or source['http_status']!=200:continue
@@ -34,7 +34,7 @@ for source,raw in bodies:
     if lookup(db,sheet['club_id'],player) is None:unknown.append(dict(club_id=sheet['club_id'],name=player['name'],provider_key=player['provider_key']))
   parsed.append(dict(url=source['url'],match_id=fixture['match_id'],competition=fixture['competition'],sides=[fixture['home_team'],fixture['away_team']],unresolved_identities=unknown))
  except Exception as exc:errors.append(dict(url=source['url'],error=type(exc).__name__+':'+str(exc)))
-db.close();report=dict(status='READ_ONLY_REAL_CLUB_REPLAY',parsed=parsed,errors=errors,canonical_facts_written=0)
+db.close();report=dict(status='READ_ONLY_REAL_CLUB_REPLAY',parsed=parsed,errors=errors,catalog_source_gaps=catalog_gaps,canonical_facts_written=0)
 with (work/'club-replay.json').open('x') as f:json.dump(report,f,ensure_ascii=False,indent=2)
 r=s.api('POST',s.base+'/releases',dict(tag_name='club-replay-'+os.environ['GITHUB_RUN_ID'],target_commitish=os.environ['FUTBOL_DATA_REF'],name='Read-only retained club source replay',body='No production writes.',draft=True));a=s.upload(r['id'],work/'club-replay.json');s.download(a['id'],work/'verified.json');assert sha(work/'verified.json')==sha(work/'club-replay.json');s.api('PATCH',s.base+'/releases/'+str(r['id']),dict(draft=False));print(json.dumps(report,ensure_ascii=False))
 assert not errors,'RETAINED_CLUB_PARSER_ERRORS'
