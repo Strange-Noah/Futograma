@@ -24,10 +24,21 @@ from squad_pipeline.cloud.export_publish import publish_with_export_preflight
 from squad_pipeline.pending_matches import migrate as club_retry_migrate
 from squad_pipeline.live_sources import Client,HOSTS
 
+def initial_history_start(on):
+ from datetime import date
+ d=date.fromisoformat(on);year=d.year if d.month>=7 else d.year-1
+ return f'{year}-07-01'
+
+def personal_window(db,pid,normal_start,on):
+ seen=db.execute('SELECT completed_at FROM pipeline_checkpoints WHERE scope=?',('player-history:'+str(pid),)).fetchone()
+ if not seen and db.execute("SELECT 1 FROM sqlite_master WHERE name='player_discovery_coverage'").fetchone():seen=db.execute("SELECT 1 FROM player_discovery_coverage WHERE player_id=? AND history_status NOT IN ('PENDING','FAILED') LIMIT 1",(pid,)).fetchone()
+ return (normal_start,False) if seen else (min(normal_start,initial_history_start(on)),True)
+
 def acquire(db,fetch,client,window_start,window_end,run_id,asset_ref,not_before_utc=None,not_after_utc=None):
  from squad_pipeline.roster_policy import materialize,latest
  from squad_pipeline.minute_reconciliation import apply_existing
  START,END=window_start,window_end
+ db.execute('CREATE TABLE IF NOT EXISTS pipeline_checkpoints(scope TEXT PRIMARY KEY,completed_at TEXT)')
  migrate(db);club_retry_migrate(db);db.executescript(DDL);management_migrate(db);import_verified_history(db)
  changes=apply_existing(db);dossiers=latest(db);cohorts=materialize(db,END)
  managed={r['player_id'] for r in cohorts if r['cohort']=='FIRST_TEAM'}
@@ -42,7 +53,7 @@ def acquire(db,fetch,client,window_start,window_end,run_id,asset_ref,not_before_
  for d in roster['players']:
   d.setdefault('name',names[int(d['player_id'])]);d.setdefault('remaining_requirements',[])
  db.commit()
- HOSTS.add('www.fotmob.com');fixtures={};claims=defaultdict(list);affiliations={};coverage={};captures=[];errors=[];parsed=[];conflicts=[];canonical_rows=0;held=[];now=datetime.now(timezone.utc).isoformat()
+ HOSTS.add('www.fotmob.com');fixtures={};claims=defaultdict(list);affiliations={};initial_teams={};coverage={};captures=[];errors=[];parsed=[];conflicts=[];canonical_rows=0;held=[];now=datetime.now(timezone.utc).isoformat()
  def add_fixture(f,outside_window=False):
   from squad_pipeline.international_fotmob import instant
   if not outside_window and ((not_before_utc and instant(f['kickoff'])<instant(not_before_utc)) or (not_after_utc and instant(f['kickoff'])>instant(not_after_utc))):return
@@ -93,17 +104,18 @@ def acquire(db,fetch,client,window_start,window_end,run_id,asset_ref,not_before_
   try:
    source,body=prefetched_profiles.pop(fid) if fid in prefetched_profiles else fetch(url,'managed_player_personal_history:'+str(pid));d=payload(body)
    if str(d['id'])!=fid or similarity(names[pid],d.get('name',''))<.6:raise ValueError('IdentityError:PROFILE_ID_OR_NAME_CONFLICT')
-   h=profile_hints(body,source,START,END);coverage[pid].update(history_status='PERSONAL_HISTORY_SCANNED',affiliation_status='EXPLICIT_CAREER_TEAMS' if h['affiliations'] else 'NO_EXPLICIT_TEAM_IN_PUBLIC_CAREER;NOT_NO_APPEARANCES',evidence=[source])
+   history_start,initial_history=personal_window(db,pid,START,END);h=profile_hints(body,source,history_start,END);db.execute('INSERT OR REPLACE INTO pipeline_checkpoints VALUES(?,?)',('player-history:'+str(pid),now));coverage[pid].update(history_status='PERSONAL_HISTORY_SCANNED',affiliation_status='EXPLICIT_CAREER_TEAMS' if h['affiliations'] else 'NO_EXPLICIT_TEAM_IN_PUBLIC_CAREER;NOT_NO_APPEARANCES',evidence=[source])
    for a in h['affiliations']:
+    if initial_history:initial_teams[a['provider_team_id']]=min(initial_teams.get(a['provider_team_id'],history_start),history_start)
     affiliations.setdefault(a['provider_team_id'],[]).append((pid,a));eid=evidence(db,dict(a['source'],retained_asset_ref=asset_ref,json_path=a['source_path'],national_career_claim={k:a.get(k) for k in ('provider_player_id','provider_team_id','name','level','start_date','end_date','scope','verification_status')}),a['scope'],a['verification_status'],1);tk=team(db,a['name'],a['level'],eid,'FotMob',a['provider_team_id']);db.execute('INSERT OR IGNORE INTO national_affiliation_events VALUES(?,?,?,?,?,?,?,?,?,?)',(digest([pid,a['provider_team_id'],a.get('start_date'),a.get('end_date'),a['verification_status']]),pid,tk,a.get('start_date'),None,END,'EXPLICIT_CAREER_RANGE',a['verification_status'],eid,'PROVIDER_CAREER_RANGE;END_DATE_NOT_ASSUMED_EXCLUSIVE'))
-   for f in h['matches']:add_fixture(f);claims[f['provider_match_id']].append(f)
+   for f in h['matches']:add_fixture(f,outside_window=initial_history);claims[f['provider_match_id']].append(f)
   except Exception as exc:pending('PLAYER_HISTORY',fid,url,type(exc).__name__+':'+str(exc),pid)
   print('PLAYER_DISCOVERY',pid,coverage[pid]['history_status'],flush=True)
  for tid,entries in sorted(affiliations.items()):
   url='https://www.fotmob.com/teams/'+tid+'/fixtures'
   try:
-   source,body=fetch(url,'verified_national_team_fixture_fallback:'+tid);a=entries[0][1];rows=team_fixture_hints(body,source,a,START,END)
-   for f in rows:add_fixture(f)
+   source,body=fetch(url,'verified_national_team_fixture_fallback:'+tid);a=entries[0][1];rows=team_fixture_hints(body,source,a,initial_teams.get(tid,START),END)
+   for f in rows:add_fixture(f,outside_window=tid in initial_teams)
    for pid,a in entries:coverage[pid]['fixture_status']='PUBLIC_TEAM_FIXTURES_SCANNED;BOUNDARY_NOT_FULL_HISTORY_PROOF'
   except Exception as exc:
    pending('NATIONAL_TEAM_FIXTURES',tid,url,type(exc).__name__+':'+str(exc));
