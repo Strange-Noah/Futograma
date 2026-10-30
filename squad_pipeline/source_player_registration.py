@@ -8,6 +8,17 @@ def register(db,club_id,player,source):
     key=player.get('provider_key','');u=urlsplit(key)
     if not (u.scheme=='https' and u.hostname=='torlytics.de' and re.fullmatch(r'/spieler/[a-zA-Z0-9-]+',u.path)) and not re.fullmatch(r'fotmob:[1-9][0-9]*',key):raise ValueError('NEW_SOURCE_PLAYER_REQUIRES_REAL_STABLE_PROVIDER_KEY')
     if not source.get('sha256') or not source.get('url'):raise ValueError('HASHED_VALIDATED_SHEET_REQUIRED')
+    # A new provider URL may be a renamed URL for an existing canonical person.
+    # Similarity can block duplicate creation, but can never authorize a merge.
+    from .identity_pipeline import Candidate,ranked_candidates
+    candidates={r['player_id']:Candidate(r['player_id'],[r['display_name']]) for r in db.execute('SELECT player_id,display_name FROM players')}
+    for row in db.execute('SELECT player_id,identity_json FROM validation_player_aliases'):
+        import json
+        if row['player_id'] in candidates:candidates[row['player_id']].names+=json.loads(row['identity_json']).get('names',[])
+    probe=Record(source['url'],source['sha256'],'new-provider-entity','Torlytics' if key.startswith('https:') else 'FotMob',[player['name']])
+    possible=[r for r in ranked_candidates(probe,list(candidates.values())) if r['score']>=.82]
+    if possible:raise ValueError('POSSIBLE_EXISTING_CANONICAL_IDENTITY;VERIFY_PROVIDER_BRIDGE_BEFORE_CREATE')
+
     provider='FotMob' if key.startswith('fotmob:') else 'Torlytics';value=key.split(':',1)[1] if provider=='FotMob' else key
     pid=int(value) if provider=='FotMob' else -int(hashlib.sha256(key.encode()).hexdigest()[:15],16)
     if db.execute('SELECT 1 FROM players WHERE player_id=?',(pid,)).fetchone():raise ValueError('NEW_SOURCE_ID_COLLISION;NO_NAME_MERGE')
