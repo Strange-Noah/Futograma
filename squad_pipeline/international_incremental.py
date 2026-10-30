@@ -104,11 +104,12 @@ def acquire(db,fetch,client,window_start,window_end,run_id,asset_ref,not_before_
   try:
    source,body=prefetched_profiles.pop(fid) if fid in prefetched_profiles else fetch(url,'managed_player_personal_history:'+str(pid));d=payload(body)
    if str(d['id'])!=fid or similarity(names[pid],d.get('name',''))<.6:raise ValueError('IdentityError:PROFILE_ID_OR_NAME_CONFLICT')
-   history_start,initial_history=personal_window(db,pid,START,END);h=profile_hints(body,source,history_start,END);db.execute('INSERT OR REPLACE INTO pipeline_checkpoints VALUES(?,?)',('player-history:'+str(pid),now));coverage[pid].update(history_status='PERSONAL_HISTORY_SCANNED',affiliation_status='EXPLICIT_CAREER_TEAMS' if h['affiliations'] else 'NO_EXPLICIT_TEAM_IN_PUBLIC_CAREER;NOT_NO_APPEARANCES',evidence=[source])
+   history_start,initial_history=personal_window(db,pid,START,END);h=profile_hints(body,source,history_start,END);coverage[pid].update(history_status='PERSONAL_HISTORY_SCANNED',affiliation_status='EXPLICIT_CAREER_TEAMS' if h['affiliations'] else 'NO_EXPLICIT_TEAM_IN_PUBLIC_CAREER;NOT_NO_APPEARANCES',evidence=[source])
    for a in h['affiliations']:
     if initial_history:initial_teams[a['provider_team_id']]=min(initial_teams.get(a['provider_team_id'],history_start),history_start)
     affiliations.setdefault(a['provider_team_id'],[]).append((pid,a));eid=evidence(db,dict(a['source'],retained_asset_ref=asset_ref,json_path=a['source_path'],national_career_claim={k:a.get(k) for k in ('provider_player_id','provider_team_id','name','level','start_date','end_date','scope','verification_status')}),a['scope'],a['verification_status'],1);tk=team(db,a['name'],a['level'],eid,'FotMob',a['provider_team_id']);db.execute('INSERT OR IGNORE INTO national_affiliation_events VALUES(?,?,?,?,?,?,?,?,?,?)',(digest([pid,a['provider_team_id'],a.get('start_date'),a.get('end_date'),a['verification_status']]),pid,tk,a.get('start_date'),None,END,'EXPLICIT_CAREER_RANGE',a['verification_status'],eid,'PROVIDER_CAREER_RANGE;END_DATE_NOT_ASSUMED_EXCLUSIVE'))
    for f in h['matches']:add_fixture(f,outside_window=initial_history);claims[f['provider_match_id']].append(f)
+   db.execute('INSERT OR REPLACE INTO pipeline_checkpoints VALUES(?,?)',('player-history:'+str(pid),now))
   except Exception as exc:pending('PLAYER_HISTORY',fid,url,type(exc).__name__+':'+str(exc),pid)
   print('PLAYER_DISCOVERY',pid,coverage[pid]['history_status'],flush=True)
  for tid,entries in sorted(affiliations.items()):
