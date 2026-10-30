@@ -138,7 +138,7 @@ def apply_sheet(db,f,s,runid,asof,dry=False):
    from .minute_policy import select
    policy=select([dict(status=old['participation_status'],minutes=old['minutes'],provider='RETAINED_ACCEPTED')]+[dict(status=v['status'],minutes=v['minutes'],provider=fresh[i]['provider']) for i,v in enumerate(votes)])
    if policy['accepted']:
-    row['minutes']=policy['minutes'];row['minute_selection']=policy;row['minute_method']=policy['reason']
+    row['minutes']=policy['minutes'];row['status']=policy['selected_source']['status'];row['minute_selection']=policy;row['minute_method']=policy['reason']
     if semantic(old)==(row['status'],row['minutes']):pass
     elif old['participation_status']!=row['status']:raise Conflict('PARTICIPATION_STATUS_CHANGE_REQUIRES_REVIEW')
    elif len({v['provider'] for v in fresh})<2 or any((v['status'],v['minutes'])!=(row['status'],row['minutes']) for v in votes):raise Conflict('ACCEPTED_FACT_CHANGE_REQUIRES_CURRENT_CORROBORATION:'+str(pid))

@@ -83,7 +83,9 @@ def incremental_row(tid,pid,f,ss):
   for field,provider in [('reported_minutes',p['provider']),('derived_minutes','DERIVED_CLOCK')]:
    observations.append(dict(status=p['status'],minutes=p.get(field),provider=provider,source_url=p['source'].get('url','')))
  if not evidence and status=='NOT_IN_MATCHDAY_SQUAD':observations=[dict(status=status,minutes=0,provider='OFFICIAL_REPORTED')]
- selection=select(observations);issues=[] if selection['accepted'] and status!='UNKNOWN' else [selection['reason'] if not selection['accepted'] else 'PARTICIPATION_STATUS_CONFLICT']
+ selection=select(observations)
+ if selection['accepted'] and states and states<={'STARTER','SUBSTITUTE_USED'}:status=selection['selected_source']['status']
+ issues=[] if selection['accepted'] and status!='UNKNOWN' else [selection['reason'] if not selection['accepted'] else 'PARTICIPATION_STATUS_CONFLICT']
  return dict(club_id=tid,match_id=f['match_id'],player_id=pid,status=status,minutes=selection['minutes'] if not issues else None,reported_minutes=next((p.get('reported_minutes') for p in evidence if p.get('reported_minutes') is not None),None),derived_minutes=next((p.get('derived_minutes') for p in evidence if p.get('derived_minutes') is not None),None),minute_method=selection['reason'],minute_selection=selection,observations=evidence,source_refs=[x['source'] for x in ss],issues=issues)
 
 def sources_enrich(fs,ss):

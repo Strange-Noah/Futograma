@@ -16,3 +16,6 @@ class ReconciliationTests(unittest.TestCase):
  def test_canonical_store_rejects_played_vs_unused(self):
   f=self.fixture.fact();f.update(minutes=1,reported_minutes=1);put_appearance(self.db,f);g=dict(f,minutes=0,reported_minutes=0,participation_status='UNUSED_SUBSTITUTE')
   with self.assertRaises(ValueError):put_appearance(self.db,g)
+
+ def test_both_sources_played_role_difference_retains_selected_source(self):
+  f=self.fixture.fact();f.update(minutes=78,reported_minutes=78);put_appearance(self.db,f);g=dict(f,minutes=80,reported_minutes=80,participation_status='SUBSTITUTE_USED');self.assertFalse(put_appearance(self.db,g));self.assertEqual(tuple(self.db.execute('SELECT minutes,participation_status FROM international_appearances').fetchone()),(78,'STARTER'))

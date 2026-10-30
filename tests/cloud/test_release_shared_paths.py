@@ -8,3 +8,6 @@ class SharedClubPolicyTests(unittest.TestCase):
  def test_club_played_unused_conflict_never_tolerated(self):
   r=incremental_row(1,7,dict(match_id='x'),[self.sheet('FotMob',1,'SUBSTITUTE_USED'),self.sheet('Sky',0,'UNUSED_SUBSTITUTE')]);self.assertIsNone(r['minutes']);self.assertTrue(r['issues'])
  def test_club_more_than_five_remains_unresolved(self):self.assertTrue(incremental_row(1,7,dict(match_id='x'),[self.sheet('FotMob',84),self.sheet('Sky',90)])['issues'])
+
+ def test_both_sources_confirm_played_role_difference_uses_same_priority(self):
+  r=incremental_row(1,7,dict(match_id='x'),[self.sheet('Sky',90,'SUBSTITUTE_USED'),self.sheet('FotMob',85,'STARTER')]);self.assertEqual(r['minutes'],85);self.assertEqual(r['status'],'STARTER');self.assertFalse(r['issues'])
