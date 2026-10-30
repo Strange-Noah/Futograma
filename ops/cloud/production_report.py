@@ -48,17 +48,28 @@ def publish(s,record,ref=REPORT_REF):
     if head:s.api('PATCH',s.base+'/git/refs/heads/'+ref,dict(sha=commit['sha'],force=False))
     else:s.api('POST',s.base+'/git/refs',dict(ref='refs/heads/'+ref,sha=commit['sha']))
     for path,body in paths.items():
-        item=s.api('GET',s.base+'/contents/'+path+'?ref='+commit['sha'])
+        item=s.api('GET',s.base+'/git/blobs/'+next(e['sha'] for e in entries if e['path']==path))
         if base64.b64decode(item['content'])!=body:raise RuntimeError('DURABLE_REPORT_READBACK_FAILED')
     return dict(ref=ref,commit=commit['sha'],latest='reports/production/latest.json',run='reports/production/runs/'+rid+'.json')
 
 def main():
-    require_hosted();a=argparse.ArgumentParser();a.add_argument('--capture',action='store_true');a.add_argument('--job-conclusion',default='failure');a.add_argument('--mode',required=True);args=a.parse_args()
+    require_hosted();a=argparse.ArgumentParser();a.add_argument('--capture',action='store_true');a.add_argument('--finalize',action='store_true');a.add_argument('--job-conclusion',default='failure');a.add_argument('--mode',required=True);args=a.parse_args()
     s=GitHubStore('Strange-Noah/Futograma-data',os.environ['GITHUB_TOKEN']);run=os.environ['GITHUB_RUN_ID'];attempt=os.environ['GITHUB_RUN_ATTEMPT'];folder=ROOT/'.cloud'/('receipt-'+run+'-'+attempt);folder.mkdir(parents=True,exist_ok=True);context=folder/'start.json'
     head,pointer=s.head()
     if args.capture:
         with context.open('x') as f:json.dump(dict(started_at=utc(),head=head,current=pointer['current']),f)
         return
+    if args.finalize:
+        item=s.api('GET',s.base+'/contents/reports/production/runs/'+run+'.json?ref='+REPORT_REF,allow404=True)
+        prior=json.loads(base64.b64decode(item['content'])) if item and item.get('content') else {}
+        if prior.get('run_attempt')!=attempt:prior={}
+        if not prior:
+            prior=dict(schema_version=1,run_id=run,run_attempt=attempt,mode=args.mode,started_at=os.environ.get('WORKFLOW_STARTED_AT'),status='FAILED_OR_INCOMPLETE',collection_completed=False,formal_ingestion=False,match_counts=None,unresolved_source_issues=[],unresolved_state='Unavailable because controller receipt was not produced',snapshot_publication=dict(published=None,result='UNCONFIRMED'),recovery_or_retry_actions=[],application_code_commit=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),reporting_code_commit=os.environ.get('REPORTING_CODE_SHA'))
+        prior.update(finished_at=utc(),workflow_conclusion=args.job_conclusion,data_commit=head,after=pointer['current'],workflow_url='https://github.com/Strange-Noah/Futograma-data/actions/runs/'+run,finalized_by_independent_job=True,next_scheduled_update_enabled=os.environ.get('SCHEDULER_ENABLED')=='true' and os.environ.get('FUTBOL_CLOUD_ENABLED')=='true' and os.environ.get('FUTBOL_AUTHORITY_HANDOVER')=='CONFIRMED')
+        if args.job_conclusion!='success':prior.update(status='FAILED_OR_INCOMPLETE',collection_completed=False,formal_ingestion=False)
+        receipt=publish(s,prior)
+        if s.head()[0]!=head:raise RuntimeError('REPORT_CHANGED_DATABASE_AUTHORITY')
+        print(json.dumps(dict(status=prior['status'],durable=receipt),indent=2));return
     start=read(context,{})
     work=ROOT/'.cloud'/('hosted-'+run+'-'+attempt+'-'+args.mode);operation=read(work/'result.json',{});detail=read(work/'update/result.json',{});club=read(BASE/'audit/live_deployment/latest_run.json',{})
     # No result is completion evidence when the process died, timed out, or failed a version gate.
@@ -73,7 +84,7 @@ def main():
         for table,statecol in [('match_retry_queue','state'),('international_acquisition_queue','state')]:
             if db.execute('SELECT 1 FROM sqlite_master WHERE name=?',(table,)).fetchone():
                 for row in db.execute('SELECT * FROM '+table+" WHERE "+statecol+"<>'RESOLVED'"):
-                    item={k:row[k] for k in row.keys() if k not in ('payload_json','source_json')};unresolved.append(dict(queue=table,**item))
+                    item={k:row[k] for k in row.keys() if k in ('match_key','task_key','club_id','player_id','provider','provider_match_id','canonical_match_id','match_id','url','match_date','state','last_attempt_at','attempt_count','next_retry_at','failure_classification','escalation_status','last_error')};unresolved.append(dict(queue=table,**item))
         db.close()
     status='WAITING_FOR_FIRST_FORMAL_RUN' if waiting else ('COMPLETED_WITH_SOURCE_ISSUES' if detail.get('network_exit') else 'COMPLETED') if complete else 'OPERATION_SUCCEEDED' if args.job_conclusion=='success' and operation else 'FAILED_OR_INCOMPLETE'
     report=dict(schema_version=1,run_id=run,run_attempt=attempt,workflow_url='https://github.com/Strange-Noah/Futograma-data/actions/runs/'+run,event=os.environ.get('GITHUB_EVENT_NAME'),mode=args.mode,started_at=start.get('started_at'),finished_at=utc(),workflow_conclusion=args.job_conclusion,status=status,collection_completed=complete,formal_ingestion=complete,application_code_commit=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),reporting_code_commit=os.environ.get('REPORTING_CODE_SHA'),before=start.get('current'),after=pointer['current'],data_commit=head,match_counts=counts,unchanged_definition='Existing accepted matches with identical facts; separately see actually checked club status counts',checked_club_status_counts=club.get('status_counts',{}) if args.mode=='update' else {},catalog_results=club.get('catalogs',[]) if args.mode=='update' else [],unresolved_source_issues=unresolved,remaining_unresolved_count=len(unresolved),snapshot_publication=dict(published=published,result=detail.get('status'),version=pointer['current']['version'],sha256=pointer['current']['database']['sha256']),recovery_or_retry_actions=dict(policy='72-hour lookback + checkpoint catchup + durable due retries; quarantines not silently retried',missed_window_catchup=club.get('missed_window_catchup',[]),source_results=club.get('results',[]) if args.mode=='update' else []),next_scheduled_update_enabled=os.environ.get('SCHEDULER_ENABLED')=='true' and os.environ.get('FUTBOL_CLOUD_ENABLED')=='true' and os.environ.get('FUTBOL_AUTHORITY_HANDOVER')=='CONFIRMED',schedule='0 8 * * *',first_formal_run='2026-10-31T16:00:00+08:00',site_publication=operation.get('site'),failure_phase='No successful cloud controller result' if not operation else None)
