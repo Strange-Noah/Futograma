@@ -24,12 +24,12 @@ from squad_pipeline.cloud.export_publish import publish_with_export_preflight
 from squad_pipeline.pending_matches import migrate as club_retry_migrate
 from squad_pipeline.live_sources import Client,HOSTS
 
-def acquire(db,fetch,client,window_start,window_end,run_id,asset_ref):
- from squad_pipeline.roster_policy import population,latest
+def acquire(db,fetch,client,window_start,window_end,run_id,asset_ref,not_before_utc=None,not_after_utc=None):
+ from squad_pipeline.roster_policy import materialize,latest
  from squad_pipeline.minute_reconciliation import apply_existing
  START,END=window_start,window_end
  migrate(db);club_retry_migrate(db);db.executescript(DDL);management_migrate(db);import_verified_history(db)
- changes=apply_existing(db);dossiers=latest(db);cohorts=population(db,END)
+ changes=apply_existing(db);dossiers=latest(db);cohorts=materialize(db,END)
  managed={r['player_id'] for r in cohorts if r['cohort']=='FIRST_TEAM'}
  clubs=defaultdict(list)
  for r in cohorts:clubs[r['player_id']].append(r['club_id'])
@@ -43,7 +43,9 @@ def acquire(db,fetch,client,window_start,window_end,run_id,asset_ref):
   d.setdefault('name',names[int(d['player_id'])]);d.setdefault('remaining_requirements',[])
  db.commit()
  HOSTS.add('www.fotmob.com');fixtures={};claims=defaultdict(list);affiliations={};coverage={};captures=[];errors=[];parsed=[];conflicts=[];canonical_rows=0;held=[];now=datetime.now(timezone.utc).isoformat()
- def add_fixture(f):
+ def add_fixture(f,outside_window=False):
+  from squad_pipeline.international_fotmob import instant
+  if not outside_window and ((not_before_utc and instant(f['kickoff'])<instant(not_before_utc)) or (not_after_utc and instant(f['kickoff'])>instant(not_after_utc))):return
   key=f['provider_match_id'];old=fixtures.get(key)
   if old and any(old[k]!=f[k] for k in ('home','away','competition_key','kickoff','level')):
    from squad_pipeline.international_fotmob import instant
@@ -111,7 +113,7 @@ def acquire(db,fetch,client,window_start,window_end,run_id,asset_ref):
   if retry.get('player_id') is not None and retry['player_id'] not in managed:continue
   fixture=retry.get('fixture')
   if fixture and fixture.get('provider_match_id'):
-   add_fixture(fixture)
+   add_fixture(fixture,outside_window=True)
    if fixture.get('discovery_claim') and retry.get('player_id') in managed:
     provider_ids=[fid for fid,pid in ids.items() if pid==retry['player_id']]
     if len(provider_ids)==1:claims[fixture['provider_match_id']].append(dict(fixture,player_provider_id=provider_ids[0],discovery_claim=fixture['discovery_claim'],source=retry.get('source') or {}))

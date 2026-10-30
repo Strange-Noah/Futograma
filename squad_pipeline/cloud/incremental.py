@@ -43,7 +43,7 @@ def run(database,work,isolated=False,at=None):
     try:club_code=live_ingest.run(types.SimpleNamespace(preflight=False,recheck=False,budget=160,max_details=36,isolated_prelaunch=isolated))
     finally:live_ingest.DB=previous
     db=sqlite3.connect(database);db.row_factory=sqlite3.Row;db.execute('PRAGMA foreign_keys=ON')
-    asset_ref='daily-evidence-'+os.environ['GITHUB_RUN_ID'];national=acquire(db,fetch,client,start.date().isoformat(),end.date().isoformat(),os.environ['GITHUB_RUN_ID'],asset_ref)
+    asset_ref='daily-evidence-'+os.environ['GITHUB_RUN_ID'];national=acquire(db,fetch,client,start.date().isoformat(),end.date().isoformat(),os.environ['GITHUB_RUN_ID'],asset_ref,not_before_utc=start.isoformat(),not_after_utc=end.isoformat())
     # Actual failed discoveries are durable tasks, so the scan checkpoint can advance without losing them.
     db.execute('INSERT OR REPLACE INTO pipeline_checkpoints VALUES(?,?)',('international',end.isoformat()));db.commit();db.close()
     if client.records:

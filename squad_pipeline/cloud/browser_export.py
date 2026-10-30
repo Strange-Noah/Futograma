@@ -1,5 +1,5 @@
 """Raw browser export. Current management and historical match facts are separate dimensions."""
-import json,sqlite3,hashlib
+import json,sqlite3,hashlib,os
 from datetime import datetime,timezone
 from pathlib import Path
 from .quality import inspect,readonly
@@ -46,7 +46,7 @@ def export_browser(database,out,data_head,pointer,as_of,acceptance=True):
    own=c.get('catalog_home');away=c.get('catalog_away');opponent=away if own==CLUBS.get(r['club_id'],(None,None))[1] else own or c.get('opponent') or '待核实'
    rows.append(dict(match_id=r['match_key'],date=r['match_date'],competition=(c.get('catalog_competition')+'（待阵容页核实）') if c.get('catalog_competition') else '赛事待核实',opponent=opponent,club_id=str(r['club_id']),club=club['name'],minutes=None,minute_state='PENDING_SOURCE' if r['state']=='PENDING' else 'REQUIRES_REVIEW',participation_status='PLAYER_SELECTION_UNCONFIRMED',verification_status=r['failure_classification'],source_url=r['url'],pending=True,queue_state=r['state'],next_retry_at=r['next_retry_at']))
  for rows in records.values():rows.sort(key=lambda x:(x['date'],x['club']),reverse=True)
- version=dict(data_commit=data_head,data_version=pointer['current']['version'],sqlite_sha256=info['sha256'],code_commit=pointer['current']['code_commit']);result=dict(schema_version=2,as_of=as_of,generated_at=datetime.now(timezone.utc).isoformat(),acceptance_dataset=acceptance,production_ingestion_enabled=False,authority_handover=False,scope='RECORDED_CLUB_MATCHES_ONLY;NOT_COMPLETE_PERSONAL_WORKLOAD',version=version,clubs=clubs,players=players,records=records,pending=pending,club_retry_queue_status='INITIALIZED' if queue_initialized else 'NOT_INITIALIZED;NO_COMPLETENESS_CLAIM')
+ version=dict(data_commit=data_head,data_version=pointer['current']['version'],sqlite_sha256=info['sha256'],code_commit=pointer['current']['code_commit']);result=dict(schema_version=2,as_of=as_of,generated_at=datetime.now(timezone.utc).isoformat(),acceptance_dataset=acceptance,production_ingestion_enabled=not acceptance and os.environ.get('FUTBOL_CLOUD_ENABLED')=='true',authority_handover=not acceptance and os.environ.get('FUTBOL_AUTHORITY_HANDOVER')=='CONFIRMED',scope='RECORDED_CLUB_MATCHES_ONLY;NOT_COMPLETE_PERSONAL_WORKLOAD',version=version,clubs=clubs,players=players,records=records,pending=pending,club_retry_queue_status='INITIALIZED' if queue_initialized else 'NOT_INITIALIZED;NO_COMPLETENESS_CLAIM')
  p=Path(out)/'data/browser.json';p.parent.mkdir(parents=True,exist_ok=True)
  with p.open('x') as f:json.dump(result,f,ensure_ascii=False,separators=(',',':'))
  manifest=dict(browser_sha256=hashlib.sha256(p.read_bytes()).hexdigest(),schema_version=2,exported_at=result['generated_at'],as_of=as_of,version=version,acceptance_dataset=acceptance,dataset_ref=pointer.get('dataset_ref'),club_only=True,national_history_complete=False,first_team_population_complete=all(c['unknown_count']==0 for c in clubs),endpoint='browser.json',club_retry_queue_status=result['club_retry_queue_status'])
