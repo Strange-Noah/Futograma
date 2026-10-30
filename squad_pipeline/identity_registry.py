@@ -16,6 +16,8 @@ def lookup(db,club_id,player):
         if not target&forms(row['source_name']):continue
         certificate=json.loads(row['evidence_json']);source=certificate.get('source_record',{});proof=certificate.get('identity_proof',[])
         if certificate.get('identity_status')!='VERIFIED' or not proof:continue
+        # A newly observed source entity is not a reusable cross-provider name certificate.
+        if any(p.get('method','').startswith('NEW_STABLE_SOURCE_ENTITY') for p in proof):continue
         # A full documented mononym may be reused only with official ID/DOB/club evidence, never as a surname shortcut.
         if len(player['name'].split())<2:
             if source.get('authority')!='OFFICIAL' or not source.get('birth_date') or str(club_id) not in source.get('official_clubs',[]) or not source.get('provider_ids'):continue
