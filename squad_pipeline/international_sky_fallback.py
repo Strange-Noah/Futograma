@@ -122,7 +122,9 @@ def acquire_sky_alternatives(db,fetch,fixtures,claims,ids,managed,clubs,asof,tok
                         if old:
                             if old['represented_team_key']!=ownkey:raise ValueError('SKY_TARGET_SIDE_CONFLICT_WITH_CANONICAL_FACT')
                             if old['minutes'] is None and fact['minutes'] is not None and not old['verification_status'].startswith('RETAINED_PRIOR'):complete_missing_minutes(db,appearance,eid)
-                            elif fact['minutes'] is not None and old['minutes']!=fact['minutes']:agree=0;decision='RETAIN_PRIOR_KNOWN_MINUTES;EXPLICIT_ADJUDICATION_REQUIRED'
+                            elif fact['minutes'] is not None and old['minutes']!=fact['minutes']:
+                                from .minute_policy import audit
+                                selection=select([dict(status=old['participation_status'],minutes=old['minutes'],provider='RETAINED_ACCEPTED'),dict(status=fact['participation_status'],minutes=fact['minutes'],provider='FotMob')]);audit(db,'NATIONAL',canonical,pid,selection);agree=int(selection['accepted']);decision=selection['reason']
                         else:new_rows+=int(put_appearance(db,appearance))
                         db.execute('INSERT OR IGNORE INTO international_fact_evidence VALUES(?,?,?,?,?,?,?)',(canonical,pid,eid,'independent_lineup_and_minutes',encoded(appearance),int(agree and 'DISAGREE' not in fact['evidence_scope']),decision))
                         if reports:

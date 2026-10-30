@@ -7,6 +7,7 @@ from .international_store import encoded,digest
 def apply_existing(db):
     changes=[]
     for r in db.execute('SELECT * FROM international_appearances').fetchall():
+        if any(marker in r['evidence_scope'] for marker in ('APPEARANCE_STATUS_CONTRADICTION','PARTICIPATION_CONFLICT','ZERO_MINUTE_PARTICIPATION_UNVERIFIED')):continue
         old=dict(r);observations=[]
         if r['minutes'] is not None:observations.append(dict(status=r['participation_status'],minutes=r['minutes'],provider='RETAINED_ACCEPTED'))
         for field,provider in [('reported_minutes','FotMob'),('derived_minutes','DERIVED_CLOCK')]:

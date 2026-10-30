@@ -88,6 +88,11 @@ def put_appearance(db,appearance):
     fields=['match_id','player_id','represented_team_key','participation_status','minutes','reported_minutes','derived_minutes','minutes_precision','verification_status','evidence_scope','revision','metadata_json']
     old=db.execute('SELECT * FROM international_appearances WHERE match_id=? AND player_id=?',(appearance['match_id'],appearance['player_id'])).fetchone()
     if old:
+        if old['represented_team_key']==appearance.get('represented_team_key') and old['minutes'] is not None and appearance.get('minutes') is not None and old['minutes']!=appearance['minutes']:
+            from .minute_policy import select,audit
+            selected=select([dict(status=old['participation_status'],minutes=old['minutes'],provider='RETAINED_ACCEPTED'),dict(status=appearance.get('participation_status'),minutes=appearance['minutes'],provider=json.loads(appearance.get('metadata_json') or '{}').get('source_provider','FotMob'))])
+            if selected['accepted'] and old['participation_status']==appearance.get('participation_status'):
+                audit(db,'NATIONAL',appearance['match_id'],appearance['player_id'],selected);return False
         if any(old[k]!=appearance.get(k) for k in fields if k!='revision'):raise ValueError('INTERNATIONAL_FACT_CHANGE_REQUIRES_CORROBORATION_AND_REVISION')
         return False
     db.execute('INSERT INTO international_appearances VALUES('+','.join('?' for _ in fields)+')',[appearance.get(k) for k in fields]);return True

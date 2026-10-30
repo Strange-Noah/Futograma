@@ -39,10 +39,9 @@ def producer():
     groups=population(db,datetime.now(timezone.utc).date().isoformat());cohorts={state:sum(r['cohort']==state for r in groups) for state in ('FIRST_TEAM','YOUTH','UNKNOWN','EXCLUDED')}
     unknown=[dict(r) for r in db.execute('SELECT a.player_id,p.display_name,a.match_id,a.participation_status FROM international_appearances a JOIN players p USING(player_id) WHERE minutes IS NULL')];db.close()
     release=s.api('POST',s.base+'/releases',dict(tag_name='release-readiness-'+os.environ['GITHUB_RUN_ID'],target_commitish=REF,name='Isolated production release preparation',body='No production collection, promotion, public website publication or handover.',draft=True))
-    evidence=upload(s,release,Path(result['evidence_archive']),work)
-    # Final evidence references use a stable cloud tag before the snapshot is published.
-    evidence_release=s.api('POST',s.base+'/releases',dict(tag_name=result['evidence_tag'],target_commitish=REF,name='Preserved daily-controller raw sources',body='Unresolved evidence retained; not automatic cleanup eligible.',draft=True));upload(s,evidence_release,Path(result['evidence_archive']),work/'evidence-readback' if False else work/'more') if False else None
-    s.api('PATCH',s.base+'/releases/'+str(evidence_release['id']),dict(body='Raw source asset '+str(evidence['asset_id'])+' in release-readiness-'+os.environ['GITHUB_RUN_ID']+'; evidence retained without cleanup.',draft=False))
+    evidence_release=s.api('POST',s.base+'/releases',dict(tag_name=result['evidence_tag'],target_commitish=REF,name='Preserved daily-controller raw sources',body='Unresolved evidence retained; no local dependency or cleanup.',draft=True))
+    evidence=upload(s,evidence_release,Path(result['evidence_archive']),work)
+    s.api('PATCH',s.base+'/releases/'+str(evidence_release['id']),dict(draft=False))
     snapshot(work/'working.sqlite',work/'snapshot.sqlite');pack(work/'snapshot.sqlite',work/'snapshot.gz');head,pointer,manifest=publish_with_export_preflight(s,work/'snapshot.sqlite',work/'snapshot.gz',base,code,work,datetime.now(timezone.utc).date().isoformat())
     try:s.publish(work/'snapshot.sqlite',work/'snapshot.gz',base,code)
     except StaleWriter:pass

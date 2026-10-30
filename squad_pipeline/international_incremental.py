@@ -128,13 +128,16 @@ def acquire(db,fetch,client,window_start,window_end,run_id,asset_ref):
      pid=ids.get(p['provider_player_id'])
      if pid not in managed:continue
      if similarity(names[pid],p['name'])<.6:raise ValueError('IdentityError:LINEUP_CANONICAL_NAME_CONFLICT')
-     a=dict(match_id=accepted,player_id=pid,represented_team_key=teams[side['side']],participation_status=p['participation_status'],minutes=p['minutes'],reported_minutes=p['reported_minutes'],derived_minutes=p['derived_minutes'],minutes_precision=p['minutes_precision'],verification_status=p['verification_status'],evidence_scope=p['evidence_scope'],revision=1,metadata_json=encoded(dict(source_path=p['source_path'],provider_player_id=p['provider_player_id'],shirt=p['shirt'],role=p['role'])))
+     a=dict(match_id=accepted,player_id=pid,represented_team_key=teams[side['side']],participation_status=p['participation_status'],minutes=p['minutes'],reported_minutes=p['reported_minutes'],derived_minutes=p['derived_minutes'],minutes_precision=p['minutes_precision'],verification_status=p['verification_status'],evidence_scope=p['evidence_scope'],revision=1,metadata_json=encoded(dict(source_path=p['source_path'],provider_player_id=p['provider_player_id'],shirt=p['shirt'],role=p['role'],minute_observations=p.get('minute_observations',[]))))
      old=db.execute('SELECT * FROM international_appearances WHERE match_id=? AND player_id=?',(accepted,pid)).fetchone()
      if old:
       if old['minutes'] is None and a['minutes'] is not None and not old['verification_status'].startswith('RETAINED_PRIOR'):
        complete_missing_minutes(db,a,eid);old=db.execute('SELECT * FROM international_appearances WHERE match_id=? AND player_id=?',(accepted,pid)).fetchone()
       if a['minutes'] is not None and old['minutes']!=a['minutes']:
-       conflicts.append(dict(player_id=pid,match_id=mid,retained_minutes=old['minutes'],new_minutes=a['minutes'],reason='RETAIN_ORIGINAL_REFERENCE;EXPLICIT_REVISION_REQUIRED'));decision='RETAINED_ORIGINAL_ADJUDICATION';agree=0
+       from squad_pipeline.minute_policy import select,audit
+       selection=select([dict(status=old['participation_status'],minutes=old['minutes'],provider='RETAINED_ACCEPTED'),dict(status=a['participation_status'],minutes=a['minutes'],provider='FotMob')]);audit(db,'NATIONAL',accepted,pid,selection)
+       if selection['accepted']:decision=selection['reason'];agree=1
+       else:conflicts.append(dict(player_id=pid,match_id=mid,retained_minutes=old['minutes'],new_minutes=a['minutes'],reason=selection['reason']));decision='RETAINED_ORIGINAL_ADJUDICATION';agree=0
       else:decision='CORROBORATES_EXISTING_REFERENCE';agree=1
      else:canonical_rows+=int(put_appearance(db,a));decision='NEW_EXACT_PROVIDER_ID_FACT';agree=1
      db.execute('INSERT OR IGNORE INTO international_fact_evidence VALUES(?,?,?,?,?,?,?)',(accepted,pid,eid,'lineup_and_minutes',encoded(a),agree,decision))
