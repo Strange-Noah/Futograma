@@ -27,6 +27,7 @@ def main():
   for path,member in members.items():
    if not path.endswith('.metadata.json'):continue
    source=json.load(archive.extractfile(member));body=archive.extractfile(members[source['path']]).read();assert hashlib.sha256(body).hexdigest()==source['sha256'];source=dict(source,provider='Sky' if 'www.skysports.com/' in source['url'] else 'FotMob');captures.append((source,body.decode('utf-8','replace')));bodies[source['url']]=(source,body.decode('utf-8','replace'))
+ captures.sort(key=lambda entry:entry[0]['request_timestamp']);bodies={source['url']:(source,body) for source,body in captures}
  db=sqlite3.connect(':memory:');db.row_factory=sqlite3.Row;original=sqlite3.connect('file:'+str(work/'snapshot.sqlite')+'?mode=ro',uri=True);original.backup(db);original.close();db.execute('PRAGMA foreign_keys=ON')
  before=table_facts(db);ids={str(r['provider_player_id']):int(r['player_id']) for r in db.execute("SELECT provider_player_id,player_id FROM verified_identity_links WHERE provider='FotMob'")}
  source_audit=store.api('GET',store.base+'/releases/assets/688943155');store.download(688943155,work/'identity.json.gz');assert source_audit['digest']=='sha256:'+sha(work/'identity.json.gz')
