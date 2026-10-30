@@ -13,3 +13,10 @@ class ClubSourceLabelTests(unittest.TestCase):
  def test_missing_hash_rejected(self):
   f,r=self.fixture();r['catalog_candidate']['catalog_source']['sha256']='';self.assertFalse(certified_catalog_side('Example',f,'home',r))
  def test_italian_serie_a_is_supported(self):self.assertEqual(COMP['Italian Serie A'],55)
+
+ def test_every_explicit_configured_club_name_maps_to_its_canonical_slug(self):
+  import json
+  from squad_pipeline.core import ROOT
+  from squad_pipeline.live_parse import canon
+  for club in json.loads((ROOT/'ops/cloud/clubs.json').read_text()):
+   for field in ('name','sky_slug','torlytics_slug'):self.assertEqual(canon(club[field]),club['canonical_slug'])

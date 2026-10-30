@@ -7,7 +7,26 @@ from .six_player_extract import take,text,players,clock
 from .six_club_validation import canon as base_canon,CLUBS,day
 from .multi_source_dataset import identity,norm
 # Same-page Sky header says Fleetwood Town, lineup header abbreviates it Fleetwood.
-def canon(name):return {'fleetwood':'fleetwoodtown'}.get(base_canon(name),base_canon(name))
+def canon(name):
+ value=base_canon(name)
+ # Canonical club names are configuration bindings, not match/player-specific aliases.
+ from .core import ROOT
+ from functools import lru_cache
+ mappings=configured_club_names()
+ return mappings.get(value,{'fleetwood':'fleetwoodtown'}.get(value,value))
+
+from functools import lru_cache
+@lru_cache(maxsize=1)
+def configured_club_names():
+ from .core import ROOT
+ rows=json.loads((ROOT/'ops/cloud/clubs.json').read_text());result={}
+ for row in rows:
+  for field in ('name','canonical_slug','sky_slug','torlytics_slug'):
+   key=base_canon(row[field]);value=row['canonical_slug']
+   if key in result and result[key]!=value:raise ParseError('AMBIGUOUS_CONFIGURED_CLUB_NAME')
+   result[key]=value
+ return result
+
 COMP={'Premier League':47,'Bundesliga':54,'La Liga':87,'LaLiga':87,'Serie A':55,'Italian Serie A':55,'Ligue 1':53,'UEFA Champions League':42,'Champions League':42,'Carabao Cup':133,'EFL Cup':133,'FA Cup':132,'The FA Cup':132,'DFB Pokal':209,'DFB-Pokal':209,'German DFB Cup':209,'Copa del Rey':138,'Coupe de France':141,'Coppa Italia':137,'Community Shield':247,'UEFA Super Cup':74,'Trophée des Champions':207,'DFL Supercup':'DFL_SUPERCUP'}
 class ParseError(ValueError):pass
 class Pending(ParseError):pass
