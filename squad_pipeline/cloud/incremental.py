@@ -38,14 +38,14 @@ def run(database,work,isolated=False,at=None):
     from ..pending_matches import migrate as retry_migrate
     db=sqlite3.connect(database);db.row_factory=sqlite3.Row;migrate(db);management_migrate(db);import_verified_history(db);retry_migrate(db)
     roster=refresh(db,fetch,end.date().isoformat(),'daily-evidence-'+os.environ['GITHUB_RUN_ID']);db.close()
-    from .. import live_ingest
-    previous=live_ingest.DB;live_ingest.DB=Path(database)
-    try:club_code=live_ingest.run(types.SimpleNamespace(preflight=False,recheck=False,budget=160,max_details=36,isolated_prelaunch=isolated))
-    finally:live_ingest.DB=previous
     db=sqlite3.connect(database);db.row_factory=sqlite3.Row;db.execute('PRAGMA foreign_keys=ON')
     asset_ref='daily-evidence-'+os.environ['GITHUB_RUN_ID'];national=acquire(db,fetch,client,start.date().isoformat(),end.date().isoformat(),os.environ['GITHUB_RUN_ID'],asset_ref,not_before_utc=start.isoformat(),not_after_utc=end.isoformat())
     # Actual failed discoveries are durable tasks, so the scan checkpoint can advance without losing them.
     db.execute('INSERT OR REPLACE INTO pipeline_checkpoints VALUES(?,?)',('international',end.isoformat()));db.commit();db.close()
+    from .. import live_ingest
+    previous=live_ingest.DB;live_ingest.DB=Path(database)
+    try:club_code=live_ingest.run(types.SimpleNamespace(preflight=False,recheck=False,budget=160,max_details=36,isolated_prelaunch=isolated))
+    finally:live_ingest.DB=previous
     if client.records:
         from ..live_sources import OUT
         log=OUT/'http_requests.jsonl'

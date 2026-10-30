@@ -104,6 +104,8 @@ def acquire(db,fetch,client,window_start,window_end,run_id,asset_ref,not_before_
   try:
    source,body=prefetched_profiles.pop(fid) if fid in prefetched_profiles else fetch(url,'managed_player_personal_history:'+str(pid));d=payload(body)
    if str(d['id'])!=fid or similarity(names[pid],d.get('name',''))<.6:raise ValueError('IdentityError:PROFILE_ID_OR_NAME_CONFLICT')
+   from squad_pipeline.provider_identity_discovery import verify_profile_aliases
+   verify_profile_aliases(db,body,source,pid,identity_candidates,END)
    history_start,initial_history=personal_window(db,pid,START,END);h=profile_hints(body,source,history_start,END);coverage[pid].update(history_status='PERSONAL_HISTORY_SCANNED',affiliation_status='EXPLICIT_CAREER_TEAMS' if h['affiliations'] else 'NO_EXPLICIT_TEAM_IN_PUBLIC_CAREER;NOT_NO_APPEARANCES',evidence=[source])
    for a in h['affiliations']:
     if initial_history:initial_teams[a['provider_team_id']]=min(initial_teams.get(a['provider_team_id'],history_start),history_start)

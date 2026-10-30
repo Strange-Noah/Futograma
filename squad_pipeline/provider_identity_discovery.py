@@ -46,3 +46,12 @@ def provider_candidates(dossiers,source_results=()):
 def verify_team_identities(raw,source,team_id,dossiers,source_results=()):
     candidates=provider_candidates(dossiers,source_results)
     return [(record,resolve(record,candidates)) for record in team_identity_records(raw,source,team_id)]
+
+
+def verify_profile_aliases(db,raw,source,canonical_id,candidates,on):
+    """A fetched exact-ID personal profile can add its documented names to the shared registry."""
+    from .identity_sources import fotmob
+    from .identity_pipeline import persist_verified_alias
+    record=fotmob(raw,source)[0];result=resolve(record,candidates)
+    if result['identity_status']!='VERIFIED' or int(result['player_id'])!=canonical_id:raise ValueError('PROFILE_ALIAS_CANONICAL_IDENTITY_CONFLICT')
+    persist_verified_alias(db,record,result,on);return result
