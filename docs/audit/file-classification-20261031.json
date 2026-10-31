@@ -1,0 +1,1929 @@
+{
+  "as_of": "2026-10-31T08:45:44.103785+00:00",
+  "application_sha": "6e3078bb15ca2e83323e80af86f7234e54910fd8",
+  "tools_sha": "1fbdf1f445c9f07e3ab3ca6e528d71073fb1137f",
+  "method": "Static imports are conservative evidence, not proof that an unreachable file is obsolete. Runtime acceptance additionally verifies fresh hosted checkout. No file classified solely by name/date.",
+  "roles": {
+    "DEPLOYMENT_OR_CI_WORKFLOW": 2,
+    "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED": 40,
+    "DOCUMENTATION_OR_HISTORICAL_REPORT_REVIEW": 7,
+    "RETAIN_SHARED_IMPORTED_LIBRARY": 56,
+    "RUNTIME_CONFIG_OR_WORKFLOW_TEMPLATE_REVIEW": 9,
+    "EXPLICIT_ACCEPTANCE_OR_OPERATION_REVIEW": 19,
+    "PRODUCTION_ENTRYPOINT": 7,
+    "REGRESSION_TEST": 28,
+    "PRODUCTION_WEBSITE_SOURCE": 3
+  },
+  "files": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "role": "DEPLOYMENT_OR_CI_WORKFLOW",
+      "production_import_reachable": null,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": ".github/workflows/pages.yml",
+      "role": "DEPLOYMENT_OR_CI_WORKFLOW",
+      "production_import_reachable": null,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": ".gitignore",
+      "role": "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED",
+      "production_import_reachable": null,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "README.md",
+      "role": "DOCUMENTATION_OR_HISTORICAL_REPORT_REVIEW",
+      "production_import_reachable": null,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "docs/DEPLOYMENT.md",
+      "role": "DOCUMENTATION_OR_HISTORICAL_REPORT_REVIEW",
+      "production_import_reachable": null,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "docs/DEPLOYMENT_STATUS_20261029.md",
+      "role": "DOCUMENTATION_OR_HISTORICAL_REPORT_REVIEW",
+      "production_import_reachable": null,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "docs/MANAGED_ROSTER_AND_RETRY.md",
+      "role": "DOCUMENTATION_OR_HISTORICAL_REPORT_REVIEW",
+      "production_import_reachable": null,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "docs/OCT31_RELEASE_RUNBOOK.md",
+      "role": "DOCUMENTATION_OR_HISTORICAL_REPORT_REVIEW",
+      "production_import_reachable": null,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "docs/PHASE3_ISOLATED_PIPELINE.md",
+      "role": "DOCUMENTATION_OR_HISTORICAL_REPORT_REVIEW",
+      "production_import_reachable": null,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "docs/RECOVERY.md",
+      "role": "DOCUMENTATION_OR_HISTORICAL_REPORT_REVIEW",
+      "production_import_reachable": null,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "futbol/__init__.py",
+      "role": "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "futbol/aggregation.py",
+      "role": "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED",
+      "production_import_reachable": false,
+      "imported_by": [
+        "futbol.pipeline",
+        "tests.test_contracts"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "futbol/analytics.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "futbol.aggregation",
+        "futbol.pipeline",
+        "futbol.team_cohorts",
+        "squad_pipeline.fotmob",
+        "tests.test_contracts"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "futbol/availability.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "futbol.normalization",
+        "tests.test_contracts"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "futbol/collection.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "futbol.discovery",
+        "futbol.normalization",
+        "futbol.pipeline",
+        "squad_pipeline.dynamic_sources",
+        "squad_pipeline.feeds",
+        "squad_pipeline.fotmob",
+        "squad_pipeline.six_club_validation",
+        "squad_pipeline.tests.test_pipeline",
+        "tests.test_contracts"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "futbol/common.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "futbol.aggregation",
+        "futbol.analytics",
+        "futbol.collection",
+        "futbol.discovery",
+        "futbol.normalization",
+        "futbol.pipeline",
+        "futbol.reports",
+        "futbol.roster",
+        "futbol.storage",
+        "futbol.team_cohorts",
+        "futbol.visualization",
+        "squad_pipeline.dynamic_acquisition",
+        "squad_pipeline.dynamic_sources",
+        "squad_pipeline.feeds",
+        "squad_pipeline.fotmob",
+        "squad_pipeline.multi_source_dataset",
+        "squad_pipeline.personal_workload",
+        "squad_pipeline.player_history",
+        "tests.test_contracts",
+        "tests.test_team_cohorts"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "futbol/discovery.py",
+      "role": "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED",
+      "production_import_reachable": false,
+      "imported_by": [
+        "futbol.pipeline"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "futbol/normalization.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "futbol.pipeline",
+        "futbol.team_cohorts",
+        "squad_pipeline.fotmob",
+        "squad_pipeline.identity_reverse",
+        "squad_pipeline.player_history",
+        "tests.test_contracts"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "futbol/pipeline.py",
+      "role": "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED",
+      "production_import_reachable": false,
+      "imported_by": [
+        "tests.test_contracts"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "futbol/reports.py",
+      "role": "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED",
+      "production_import_reachable": false,
+      "imported_by": [
+        "futbol.pipeline"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "futbol/roster.py",
+      "role": "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED",
+      "production_import_reachable": false,
+      "imported_by": [
+        "futbol.pipeline"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "futbol/storage.py",
+      "role": "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED",
+      "production_import_reachable": false,
+      "imported_by": [
+        "futbol.pipeline"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "futbol/team_cohorts.py",
+      "role": "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED",
+      "production_import_reachable": false,
+      "imported_by": [
+        "tests.test_team_cohorts"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "futbol/visualization.py",
+      "role": "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED",
+      "production_import_reachable": false,
+      "imported_by": [
+        "futbol.pipeline"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "ops/cloud/action-pins.json",
+      "role": "RUNTIME_CONFIG_OR_WORKFLOW_TEMPLATE_REVIEW",
+      "production_import_reachable": null,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "ops/cloud/browser_expressions.mjs",
+      "role": "EXPLICIT_ACCEPTANCE_OR_OPERATION_REVIEW",
+      "production_import_reachable": null,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "ops/cloud/build_pages.py",
+      "role": "PRODUCTION_ENTRYPOINT",
+      "production_import_reachable": true,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "ops/cloud/club_raw_replay.py",
+      "role": "EXPLICIT_ACCEPTANCE_OR_OPERATION_REVIEW",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "ops/cloud/clubs.json",
+      "role": "RUNTIME_CONFIG_OR_WORKFLOW_TEMPLATE_REVIEW",
+      "production_import_reachable": null,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "ops/cloud/health_receipt.py",
+      "role": "PRODUCTION_ENTRYPOINT",
+      "production_import_reachable": true,
+      "imported_by": [
+        "tests.cloud.test_cloud"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "ops/cloud/management-evidence.json",
+      "role": "RUNTIME_CONFIG_OR_WORKFLOW_TEMPLATE_REVIEW",
+      "production_import_reachable": null,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "ops/cloud/official_browser_capture.mjs",
+      "role": "EXPLICIT_ACCEPTANCE_OR_OPERATION_REVIEW",
+      "production_import_reachable": null,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "ops/cloud/phase2_acceptance.py",
+      "role": "EXPLICIT_ACCEPTANCE_OR_OPERATION_REVIEW",
+      "production_import_reachable": false,
+      "imported_by": [
+        "ops.cloud.phase2_publish",
+        "ops.cloud.phase3_capture",
+        "tests.cloud.test_phase2"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "ops/cloud/phase2_publish.py",
+      "role": "EXPLICIT_ACCEPTANCE_OR_OPERATION_REVIEW",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "ops/cloud/phase3_audit.py",
+      "role": "EXPLICIT_ACCEPTANCE_OR_OPERATION_REVIEW",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "ops/cloud/phase3_capture.py",
+      "role": "EXPLICIT_ACCEPTANCE_OR_OPERATION_REVIEW",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "ops/cloud/phase3_ci_gate.py",
+      "role": "EXPLICIT_ACCEPTANCE_OR_OPERATION_REVIEW",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "ops/cloud/phase3_enrich.py",
+      "role": "EXPLICIT_ACCEPTANCE_OR_OPERATION_REVIEW",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "ops/cloud/phase3_international_e2e.py",
+      "role": "EXPLICIT_ACCEPTANCE_OR_OPERATION_REVIEW",
+      "production_import_reachable": false,
+      "imported_by": [
+        "ops.cloud.phase3_raw_replay"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "ops/cloud/phase3_national_capture.py",
+      "role": "EXPLICIT_ACCEPTANCE_OR_OPERATION_REVIEW",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "ops/cloud/phase3_raw_replay.py",
+      "role": "EXPLICIT_ACCEPTANCE_OR_OPERATION_REVIEW",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "ops/cloud/platform.py",
+      "role": "PRODUCTION_ENTRYPOINT",
+      "production_import_reachable": true,
+      "imported_by": [
+        "ops.cloud.phase2_publish",
+        "ops.cloud.production_entry"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "ops/cloud/production_entry.py",
+      "role": "PRODUCTION_ENTRYPOINT",
+      "production_import_reachable": true,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "ops/cloud/production_report.py",
+      "role": "PRODUCTION_ENTRYPOINT",
+      "production_import_reachable": true,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "ops/cloud/release_acceptance.py",
+      "role": "EXPLICIT_ACCEPTANCE_OR_OPERATION_REVIEW",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "ops/cloud/release_failure_evidence.py",
+      "role": "EXPLICIT_ACCEPTANCE_OR_OPERATION_REVIEW",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "ops/cloud/release_ops.py",
+      "role": "PRODUCTION_ENTRYPOINT",
+      "production_import_reachable": true,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "ops/cloud/remote_safety.py",
+      "role": "EXPLICIT_ACCEPTANCE_OR_OPERATION_REVIEW",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "ops/cloud/retry-policy.json",
+      "role": "RUNTIME_CONFIG_OR_WORKFLOW_TEMPLATE_REVIEW",
+      "production_import_reachable": null,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "ops/cloud/roster-sources.json",
+      "role": "RUNTIME_CONFIG_OR_WORKFLOW_TEMPLATE_REVIEW",
+      "production_import_reachable": null,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "ops/cloud/runtime.json",
+      "role": "RUNTIME_CONFIG_OR_WORKFLOW_TEMPLATE_REVIEW",
+      "production_import_reachable": null,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "ops/cloud/templates/daily.yml",
+      "role": "EXPLICIT_ACCEPTANCE_OR_OPERATION_REVIEW",
+      "production_import_reachable": null,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "ops/cloud/templates/recovery.yml",
+      "role": "EXPLICIT_ACCEPTANCE_OR_OPERATION_REVIEW",
+      "production_import_reachable": null,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "ops/cloud/ui_check.mjs",
+      "role": "EXPLICIT_ACCEPTANCE_OR_OPERATION_REVIEW",
+      "production_import_reachable": null,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "ops/cloud/ui_international_check.mjs",
+      "role": "EXPLICIT_ACCEPTANCE_OR_OPERATION_REVIEW",
+      "production_import_reachable": null,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "ops/cloud/verification-source-catalog.json",
+      "role": "RUNTIME_CONFIG_OR_WORKFLOW_TEMPLATE_REVIEW",
+      "production_import_reachable": null,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "ops/cloud/verify_pages.py",
+      "role": "PRODUCTION_ENTRYPOINT",
+      "production_import_reachable": true,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "ops/cloud/workflows/data-platform.json",
+      "role": "RUNTIME_CONFIG_OR_WORKFLOW_TEMPLATE_REVIEW",
+      "production_import_reachable": null,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "ops/cloud/workflows/release-operations.json",
+      "role": "RUNTIME_CONFIG_OR_WORKFLOW_TEMPLATE_REVIEW",
+      "production_import_reachable": null,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "ops/repository/check_tracked.py",
+      "role": "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "requirements-cloud.txt",
+      "role": "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED",
+      "production_import_reachable": null,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "requirements.txt",
+      "role": "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED",
+      "production_import_reachable": null,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/__init__.py",
+      "role": "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/acquisition.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "squad_pipeline.atalanta_text",
+        "squad_pipeline.cloud.github_store",
+        "squad_pipeline.feeds",
+        "squad_pipeline.live_sources",
+        "squad_pipeline.manual",
+        "squad_pipeline.tests.test_pipeline",
+        "squad_pipeline.tests.test_three_club_import"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/atalanta_text.py",
+      "role": "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED",
+      "production_import_reachable": false,
+      "imported_by": [
+        "squad_pipeline.identity_reverse",
+        "squad_pipeline.identity_v2",
+        "squad_pipeline.roster_import",
+        "squad_pipeline.tests.test_atalanta_text"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/cloud/__init__.py",
+      "role": "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/cloud/all_match_export.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "ops.cloud.phase3_international_e2e",
+        "ops.cloud.platform",
+        "ops.cloud.production_entry",
+        "ops.cloud.release_acceptance",
+        "squad_pipeline.cloud.export_publish",
+        "squad_pipeline.international_incremental",
+        "tests.cloud.test_historical_snapshot_export"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/cloud/bootstrap_schema.sql",
+      "role": "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED",
+      "production_import_reachable": null,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/cloud/browser_export.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "ops.cloud.phase2_acceptance",
+        "squad_pipeline.cloud.all_match_export",
+        "tests.cloud.test_phase2"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/cloud/cleanup_cli.py",
+      "role": "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/cloud/driver.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "ops.cloud.platform",
+        "ops.cloud.release_acceptance",
+        "tests.cloud.test_cloud"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/cloud/export.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "ops.cloud.platform",
+        "squad_pipeline.cloud.driver",
+        "tests.cloud.test_cloud"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/cloud/export_publish.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "ops.cloud.phase3_international_e2e",
+        "ops.cloud.release_acceptance",
+        "squad_pipeline.cloud.driver",
+        "squad_pipeline.international_incremental",
+        "tests.cloud.test_export_publish"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/cloud/github_store.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "ops.cloud.club_raw_replay",
+        "ops.cloud.health_receipt",
+        "ops.cloud.phase2_acceptance",
+        "ops.cloud.phase3_audit",
+        "ops.cloud.phase3_enrich",
+        "ops.cloud.phase3_international_e2e",
+        "ops.cloud.phase3_national_capture",
+        "ops.cloud.phase3_raw_replay",
+        "ops.cloud.platform",
+        "ops.cloud.production_report",
+        "ops.cloud.release_acceptance",
+        "ops.cloud.release_failure_evidence",
+        "ops.cloud.release_ops",
+        "ops.cloud.remote_safety",
+        "squad_pipeline.cloud.driver",
+        "squad_pipeline.international_incremental",
+        "tests.cloud.test_cloud"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/cloud/hosted_guard.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "ops.cloud.build_pages",
+        "ops.cloud.club_raw_replay",
+        "ops.cloud.health_receipt",
+        "ops.cloud.phase2_acceptance",
+        "ops.cloud.phase2_publish",
+        "ops.cloud.phase3_audit",
+        "ops.cloud.phase3_capture",
+        "ops.cloud.phase3_enrich",
+        "ops.cloud.phase3_international_e2e",
+        "ops.cloud.phase3_national_capture",
+        "ops.cloud.platform",
+        "ops.cloud.production_report",
+        "ops.cloud.release_acceptance",
+        "ops.cloud.release_failure_evidence",
+        "ops.cloud.release_ops",
+        "ops.cloud.remote_safety",
+        "squad_pipeline.cloud.driver",
+        "squad_pipeline.cloud.incremental",
+        "squad_pipeline.cloud.retention",
+        "squad_pipeline.international_incremental",
+        "squad_pipeline.live_ingest",
+        "tests.cloud.test_cloud",
+        "tests.cloud.test_historical_snapshot_export",
+        "tests.cloud.test_phase2"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/cloud/incremental.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "ops.cloud.release_acceptance",
+        "squad_pipeline.cloud.driver",
+        "tests.cloud.test_release_policy"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/cloud/quality.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "ops.cloud.club_raw_replay",
+        "ops.cloud.phase2_acceptance",
+        "ops.cloud.phase2_publish",
+        "ops.cloud.phase3_audit",
+        "ops.cloud.phase3_international_e2e",
+        "ops.cloud.phase3_raw_replay",
+        "ops.cloud.platform",
+        "ops.cloud.release_acceptance",
+        "ops.cloud.release_failure_evidence",
+        "ops.cloud.release_ops",
+        "ops.cloud.remote_safety",
+        "squad_pipeline.cloud.browser_export",
+        "squad_pipeline.cloud.driver",
+        "squad_pipeline.cloud.export",
+        "squad_pipeline.cloud.export_publish",
+        "squad_pipeline.cloud.github_store",
+        "squad_pipeline.cloud.retention",
+        "squad_pipeline.cloud.storage",
+        "squad_pipeline.international_incremental",
+        "tests.cloud.fixtures",
+        "tests.cloud.test_cloud",
+        "tests.cloud.test_historical_snapshot_export",
+        "tests.cloud.test_phase2"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/cloud/release_gate.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "ops.cloud.build_pages",
+        "ops.cloud.phase3_audit",
+        "ops.cloud.phase3_ci_gate",
+        "ops.cloud.release_acceptance",
+        "tests.cloud.test_phase3_gates"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/cloud/retention.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "squad_pipeline.cloud.cleanup_cli",
+        "squad_pipeline.cloud.driver",
+        "tests.cloud.test_cloud"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/cloud/storage.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "ops.cloud.platform",
+        "ops.cloud.release_acceptance",
+        "ops.cloud.remote_safety",
+        "squad_pipeline.cloud.driver",
+        "squad_pipeline.cloud.github_store",
+        "tests.cloud.test_cloud"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/core.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "ops.cloud.build_pages",
+        "ops.cloud.club_raw_replay",
+        "ops.cloud.phase2_acceptance",
+        "ops.cloud.phase2_publish",
+        "ops.cloud.phase3_audit",
+        "ops.cloud.phase3_capture",
+        "ops.cloud.phase3_enrich",
+        "ops.cloud.phase3_international_e2e",
+        "ops.cloud.phase3_national_capture",
+        "ops.cloud.phase3_raw_replay",
+        "ops.cloud.platform",
+        "ops.cloud.production_entry",
+        "ops.cloud.production_report",
+        "ops.cloud.release_acceptance",
+        "ops.cloud.release_failure_evidence",
+        "ops.cloud.release_ops",
+        "ops.cloud.remote_safety",
+        "squad_pipeline.acquisition",
+        "squad_pipeline.atalanta_text",
+        "squad_pipeline.cloud.cleanup_cli",
+        "squad_pipeline.cloud.driver",
+        "squad_pipeline.cloud.hosted_guard",
+        "squad_pipeline.cloud.incremental",
+        "squad_pipeline.dynamic_acquisition",
+        "squad_pipeline.dynamic_sources",
+        "squad_pipeline.eligibility",
+        "squad_pipeline.eligibility_query",
+        "squad_pipeline.feeds",
+        "squad_pipeline.fotmob",
+        "squad_pipeline.html_rosters",
+        "squad_pipeline.identity",
+        "squad_pipeline.identity_reverse",
+        "squad_pipeline.identity_v2",
+        "squad_pipeline.international_incremental",
+        "squad_pipeline.live_ingest",
+        "squad_pipeline.live_parse",
+        "squad_pipeline.live_sources",
+        "squad_pipeline.manual",
+        "squad_pipeline.manual_identity",
+        "squad_pipeline.multi_hop_extract",
+        "squad_pipeline.multi_hop_reviewed",
+        "squad_pipeline.multi_source_dataset",
+        "squad_pipeline.pending_matches",
+        "squad_pipeline.personal_workload",
+        "squad_pipeline.player_history",
+        "squad_pipeline.roster_import",
+        "squad_pipeline.roster_query",
+        "squad_pipeline.roster_refresh",
+        "squad_pipeline.six_club_validation",
+        "squad_pipeline.six_player_extract",
+        "squad_pipeline.tests.live.test_live",
+        "squad_pipeline.tests.test_atalanta_text",
+        "squad_pipeline.tests.test_dynamic_acquisition",
+        "squad_pipeline.tests.test_manual_identity",
+        "squad_pipeline.tests.test_personal_workload",
+        "squad_pipeline.tests.test_pipeline",
+        "squad_pipeline.tests.test_roster_import",
+        "squad_pipeline.tests.test_six_club_audit",
+        "squad_pipeline.tests.test_three_club_import",
+        "squad_pipeline.three_club_parsers",
+        "squad_pipeline.workload_audit",
+        "tests.cloud.fixtures",
+        "tests.cloud.test_cloud",
+        "tests.cloud.test_club_source_labels",
+        "tests.cloud.test_historical_snapshot_export",
+        "tests.cloud.test_phase2"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/dynamic_acquisition.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "squad_pipeline.dynamic_sources",
+        "squad_pipeline.roster_query",
+        "squad_pipeline.tests.test_dynamic_acquisition"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/dynamic_sources.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "squad_pipeline.dynamic_acquisition",
+        "squad_pipeline.multi_source_dataset",
+        "squad_pipeline.tests.test_dynamic_acquisition"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/eligibility.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "squad_pipeline.cloud.export",
+        "squad_pipeline.eligibility_query",
+        "squad_pipeline.live_ingest",
+        "squad_pipeline.tests.live.test_live",
+        "tests.cloud.fixtures"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/eligibility_query.py",
+      "role": "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/feeds.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "squad_pipeline.fotmob",
+        "squad_pipeline.tests.test_pipeline"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/fotmob.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "squad_pipeline.atalanta_text",
+        "squad_pipeline.feeds",
+        "squad_pipeline.player_history",
+        "squad_pipeline.six_club_validation",
+        "squad_pipeline.tests.test_pipeline"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/html_rosters.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "ops.cloud.phase2_acceptance",
+        "squad_pipeline.identity_sources",
+        "squad_pipeline.roster_import",
+        "squad_pipeline.tests.test_six_club_audit"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/identity.py",
+      "role": "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED",
+      "production_import_reachable": false,
+      "imported_by": [
+        "squad_pipeline.tests.test_pipeline"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/identity_pipeline.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "ops.cloud.phase3_audit",
+        "ops.cloud.phase3_international_e2e",
+        "squad_pipeline.identity_registry",
+        "squad_pipeline.identity_sources",
+        "squad_pipeline.international_fotmob",
+        "squad_pipeline.international_incremental",
+        "squad_pipeline.international_parse",
+        "squad_pipeline.international_sky_fallback",
+        "squad_pipeline.international_store",
+        "squad_pipeline.provider_identity_discovery",
+        "squad_pipeline.roster_policy",
+        "squad_pipeline.roster_refresh",
+        "squad_pipeline.roster_verification",
+        "squad_pipeline.source_player_registration",
+        "tests.cloud.test_departure_continuity",
+        "tests.cloud.test_identity_career_proof",
+        "tests.cloud.test_identity_pipeline",
+        "tests.cloud.test_identity_source_boundaries",
+        "tests.cloud.test_provider_identity_discovery",
+        "tests.cloud.test_source_identity_namespace",
+        "tests.cloud.test_verified_profile_alias_refresh"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/identity_registry.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "ops.cloud.club_raw_replay",
+        "ops.cloud.phase3_audit",
+        "squad_pipeline.international_sky_fallback",
+        "squad_pipeline.live_ingest",
+        "tests.cloud.test_source_identity_namespace",
+        "tests.cloud.test_verified_profile_alias_refresh"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/identity_reverse.py",
+      "role": "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED",
+      "production_import_reachable": false,
+      "imported_by": [
+        "squad_pipeline.roster_import",
+        "squad_pipeline.tests.test_six_club_audit"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/identity_sources.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "ops.cloud.phase3_audit",
+        "ops.cloud.phase3_international_e2e",
+        "squad_pipeline.international_incremental",
+        "squad_pipeline.provider_identity_discovery",
+        "squad_pipeline.roster_refresh",
+        "tests.cloud.test_identity_source_boundaries"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/identity_v2.py",
+      "role": "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED",
+      "production_import_reachable": false,
+      "imported_by": [
+        "squad_pipeline.identity_reverse",
+        "squad_pipeline.roster_import",
+        "squad_pipeline.tests.test_three_club_import"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/international_discovery.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "ops.cloud.phase3_international_e2e",
+        "ops.cloud.phase3_national_capture",
+        "ops.cloud.phase3_raw_replay",
+        "squad_pipeline.international_fotmob",
+        "squad_pipeline.international_incremental",
+        "squad_pipeline.provider_identity_discovery",
+        "tests.cloud.test_international_fotmob"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/international_fotmob.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "ops.cloud.phase3_international_e2e",
+        "ops.cloud.phase3_raw_replay",
+        "squad_pipeline.international_incremental",
+        "squad_pipeline.international_sky_fallback",
+        "tests.cloud.test_international_fotmob"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/international_incremental.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "squad_pipeline.cloud.incremental",
+        "tests.cloud.test_initial_first_team_history"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/international_parse.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "squad_pipeline.international_sky_fallback",
+        "tests.cloud.test_international_parse",
+        "tests.cloud.test_source_team_labels"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/international_retry.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "ops.cloud.phase3_international_e2e",
+        "squad_pipeline.international_incremental",
+        "squad_pipeline.international_sky_fallback",
+        "squad_pipeline.minute_reconciliation"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/international_sky_fallback.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "ops.cloud.phase3_international_e2e",
+        "ops.cloud.phase3_raw_replay",
+        "squad_pipeline.international_incremental",
+        "tests.cloud.test_release_policy",
+        "tests.cloud.test_sky_alternatives",
+        "tests.cloud.test_source_team_labels"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/international_store.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "ops.cloud.phase3_audit",
+        "ops.cloud.phase3_international_e2e",
+        "squad_pipeline.cloud.incremental",
+        "squad_pipeline.international_incremental",
+        "squad_pipeline.international_retry",
+        "squad_pipeline.international_sky_fallback",
+        "squad_pipeline.minute_reconciliation",
+        "squad_pipeline.roster_refresh",
+        "tests.cloud.test_historical_snapshot_export",
+        "tests.cloud.test_international_store",
+        "tests.cloud.test_release_reconciliation"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/live_ingest.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "ops.cloud.phase2_acceptance",
+        "ops.cloud.phase3_audit",
+        "squad_pipeline.cloud.driver",
+        "squad_pipeline.cloud.incremental",
+        "squad_pipeline.tests.live.test_live",
+        "tests.cloud.test_historical_snapshot_export",
+        "tests.cloud.test_phase2"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/live_parse.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "ops.cloud.club_raw_replay",
+        "ops.cloud.phase2_acceptance",
+        "ops.cloud.phase3_audit",
+        "squad_pipeline.cloud.browser_export",
+        "squad_pipeline.eligibility",
+        "squad_pipeline.identity_sources",
+        "squad_pipeline.international_parse",
+        "squad_pipeline.international_sky_fallback",
+        "squad_pipeline.live_ingest",
+        "squad_pipeline.pending_matches",
+        "squad_pipeline.sky_german",
+        "squad_pipeline.tests.live.test_live",
+        "tests.cloud.test_club_source_labels",
+        "tests.cloud.test_international_parse",
+        "tests.cloud.test_phase2"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/live_sources.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "ops.cloud.phase2_acceptance",
+        "ops.cloud.phase3_audit",
+        "ops.cloud.phase3_capture",
+        "ops.cloud.phase3_enrich",
+        "ops.cloud.phase3_international_e2e",
+        "ops.cloud.phase3_national_capture",
+        "squad_pipeline.cloud.driver",
+        "squad_pipeline.cloud.incremental",
+        "squad_pipeline.identity_sources",
+        "squad_pipeline.international_incremental",
+        "squad_pipeline.live_ingest",
+        "squad_pipeline.tests.live.test_live"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/managed_roster.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "ops.cloud.phase2_acceptance",
+        "ops.cloud.phase3_audit",
+        "ops.cloud.phase3_international_e2e",
+        "squad_pipeline.cloud.incremental",
+        "squad_pipeline.international_incremental",
+        "squad_pipeline.roster_policy",
+        "squad_pipeline.roster_refresh",
+        "tests.cloud.test_historical_snapshot_export",
+        "tests.cloud.test_phase2"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/manual.py",
+      "role": "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED",
+      "production_import_reachable": false,
+      "imported_by": [
+        "squad_pipeline.atalanta_text",
+        "squad_pipeline.roster_import",
+        "squad_pipeline.tests.test_atalanta_text",
+        "squad_pipeline.tests.test_pipeline",
+        "squad_pipeline.tests.test_three_club_import"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/manual_identity.py",
+      "role": "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED",
+      "production_import_reachable": false,
+      "imported_by": [
+        "squad_pipeline.roster_import",
+        "squad_pipeline.tests.test_manual_identity"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/minute_policy.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "squad_pipeline.international_fotmob",
+        "squad_pipeline.international_incremental",
+        "squad_pipeline.international_sky_fallback",
+        "squad_pipeline.international_store",
+        "squad_pipeline.live_ingest",
+        "squad_pipeline.minute_reconciliation",
+        "squad_pipeline.six_club_experiment",
+        "tests.cloud.test_release_policy"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/minute_reconciliation.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "ops.cloud.phase3_raw_replay",
+        "squad_pipeline.cloud.incremental",
+        "squad_pipeline.international_incremental",
+        "tests.cloud.test_release_reconciliation"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/multi_hop_extract.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "squad_pipeline.multi_hop_reviewed"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/multi_hop_reviewed.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "squad_pipeline.six_club_validation"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/multi_source_dataset.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "ops.cloud.phase2_acceptance",
+        "squad_pipeline.live_parse",
+        "squad_pipeline.multi_hop_extract",
+        "squad_pipeline.multi_hop_reviewed",
+        "squad_pipeline.six_club_validation",
+        "squad_pipeline.six_player_extract",
+        "squad_pipeline.tests.test_multi_source"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/pending_matches.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "ops.cloud.phase2_acceptance",
+        "ops.cloud.phase3_international_e2e",
+        "squad_pipeline.cloud.incremental",
+        "squad_pipeline.international_incremental",
+        "squad_pipeline.international_retry",
+        "squad_pipeline.live_ingest",
+        "tests.cloud.test_phase2"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/personal_workload.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "squad_pipeline.dynamic_acquisition",
+        "squad_pipeline.roster_query",
+        "squad_pipeline.tests.test_dynamic_acquisition",
+        "squad_pipeline.tests.test_personal_workload"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/player_history.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "squad_pipeline.dynamic_sources",
+        "squad_pipeline.personal_workload",
+        "squad_pipeline.tests.test_dynamic_acquisition",
+        "squad_pipeline.tests.test_personal_workload"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/provider_identity_discovery.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "ops.cloud.phase3_international_e2e",
+        "squad_pipeline.international_incremental",
+        "tests.cloud.test_provider_identity_discovery",
+        "tests.cloud.test_verified_profile_alias_refresh"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/roster_import.py",
+      "role": "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED",
+      "production_import_reachable": false,
+      "imported_by": [
+        "squad_pipeline.roster_query",
+        "squad_pipeline.tests.test_roster_import"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/roster_policy.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "ops.cloud.release_acceptance",
+        "squad_pipeline.cloud.browser_export",
+        "squad_pipeline.international_incremental",
+        "tests.cloud.test_release_policy",
+        "tests.cloud.test_release_shared_paths"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/roster_query.py",
+      "role": "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED",
+      "production_import_reachable": false,
+      "imported_by": [
+        "squad_pipeline.tests.test_personal_workload"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/roster_refresh.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "squad_pipeline.cloud.incremental"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/roster_verification.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "ops.cloud.phase3_audit",
+        "squad_pipeline.roster_refresh",
+        "tests.cloud.test_provider_identity_hints"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/schema.sql",
+      "role": "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED",
+      "production_import_reachable": null,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/six_club_experiment.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "squad_pipeline.eligibility",
+        "squad_pipeline.live_ingest",
+        "squad_pipeline.source_player_registration",
+        "squad_pipeline.tests.live.test_live",
+        "tests.cloud.test_release_shared_paths"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/six_club_validation.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "squad_pipeline.cloud.driver",
+        "squad_pipeline.eligibility",
+        "squad_pipeline.live_ingest",
+        "squad_pipeline.live_parse",
+        "squad_pipeline.six_club_experiment"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/six_player_extract.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "squad_pipeline.eligibility",
+        "squad_pipeline.international_parse",
+        "squad_pipeline.live_parse",
+        "squad_pipeline.six_club_validation"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/sky_german.py",
+      "role": "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED",
+      "production_import_reachable": false,
+      "imported_by": [
+        "ops.cloud.phase2_acceptance"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/source_player_registration.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "squad_pipeline.live_ingest",
+        "tests.cloud.test_new_source_duplicate_guard"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/source_redirects.py",
+      "role": "RETAIN_SHARED_IMPORTED_LIBRARY",
+      "production_import_reachable": true,
+      "imported_by": [
+        "ops.cloud.phase3_international_e2e",
+        "ops.cloud.phase3_raw_replay",
+        "squad_pipeline.cloud.incremental",
+        "squad_pipeline.international_incremental",
+        "tests.cloud.test_source_redirects"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/tests/live/test_live.py",
+      "role": "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/tests/test_atalanta_text.py",
+      "role": "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/tests/test_dynamic_acquisition.py",
+      "role": "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/tests/test_manual_identity.py",
+      "role": "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/tests/test_multi_source.py",
+      "role": "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/tests/test_personal_workload.py",
+      "role": "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/tests/test_pipeline.py",
+      "role": "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/tests/test_roster_import.py",
+      "role": "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/tests/test_six_club_audit.py",
+      "role": "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/tests/test_three_club_import.py",
+      "role": "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/three_club_parsers.py",
+      "role": "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED",
+      "production_import_reachable": false,
+      "imported_by": [
+        "squad_pipeline.roster_import",
+        "squad_pipeline.tests.test_three_club_import"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "squad_pipeline/workload_audit.py",
+      "role": "REVIEW_DEPENDENCY_NOT_PROVEN_UNUSED",
+      "production_import_reachable": false,
+      "imported_by": [
+        "squad_pipeline.tests.test_six_club_audit"
+      ],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "tests/cloud/fixtures.py",
+      "role": "REGRESSION_TEST",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "tests/cloud/test_cloud.py",
+      "role": "REGRESSION_TEST",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "tests/cloud/test_club_source_labels.py",
+      "role": "REGRESSION_TEST",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "tests/cloud/test_departure_continuity.py",
+      "role": "REGRESSION_TEST",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "tests/cloud/test_export_publish.py",
+      "role": "REGRESSION_TEST",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "tests/cloud/test_historical_snapshot_export.py",
+      "role": "REGRESSION_TEST",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "tests/cloud/test_identity_career_proof.py",
+      "role": "REGRESSION_TEST",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "tests/cloud/test_identity_pipeline.py",
+      "role": "REGRESSION_TEST",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "tests/cloud/test_identity_source_boundaries.py",
+      "role": "REGRESSION_TEST",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "tests/cloud/test_initial_first_team_history.py",
+      "role": "REGRESSION_TEST",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "tests/cloud/test_international_fotmob.py",
+      "role": "REGRESSION_TEST",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "tests/cloud/test_international_parse.py",
+      "role": "REGRESSION_TEST",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "tests/cloud/test_international_store.py",
+      "role": "REGRESSION_TEST",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "tests/cloud/test_new_source_duplicate_guard.py",
+      "role": "REGRESSION_TEST",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "tests/cloud/test_phase2.py",
+      "role": "REGRESSION_TEST",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "tests/cloud/test_phase3_gates.py",
+      "role": "REGRESSION_TEST",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "tests/cloud/test_provider_identity_discovery.py",
+      "role": "REGRESSION_TEST",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "tests/cloud/test_provider_identity_hints.py",
+      "role": "REGRESSION_TEST",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "tests/cloud/test_release_policy.py",
+      "role": "REGRESSION_TEST",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "tests/cloud/test_release_reconciliation.py",
+      "role": "REGRESSION_TEST",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "tests/cloud/test_release_shared_paths.py",
+      "role": "REGRESSION_TEST",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "tests/cloud/test_sky_alternatives.py",
+      "role": "REGRESSION_TEST",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "tests/cloud/test_source_identity_namespace.py",
+      "role": "REGRESSION_TEST",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "tests/cloud/test_source_redirects.py",
+      "role": "REGRESSION_TEST",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "tests/cloud/test_source_team_labels.py",
+      "role": "REGRESSION_TEST",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "tests/cloud/test_verified_profile_alias_refresh.py",
+      "role": "REGRESSION_TEST",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "tests/test_contracts.py",
+      "role": "REGRESSION_TEST",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "tests/test_team_cohorts.py",
+      "role": "REGRESSION_TEST",
+      "production_import_reachable": false,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "web/app.js",
+      "role": "PRODUCTION_WEBSITE_SOURCE",
+      "production_import_reachable": null,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "web/index.html",
+      "role": "PRODUCTION_WEBSITE_SOURCE",
+      "production_import_reachable": null,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    },
+    {
+      "path": "web/style.css",
+      "role": "PRODUCTION_WEBSITE_SOURCE",
+      "production_import_reachable": null,
+      "imported_by": [],
+      "action": "KEEP; no move/delete authorized by this audit",
+      "evidence": "Python AST imports including function-local imports; explicit GitHub workflow roots; website/workflow/config references; conservative classification"
+    }
+  ]
+}
