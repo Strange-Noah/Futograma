@@ -106,7 +106,8 @@ def select_fields(db, mid):
         if monotonic:top=sorted(claims,key=lambda r:(-lifecycle[r['value']],-r['priority'],r['observation_id']))[0]
         # A documented same-provider kickoff correction supersedes older values;
         # unrelated conflicting verified values remain visible as conflicts.
-        state = 'VERIFIED' if monotonic or len(distinct) == 1 or field == 'kickoff' and top['priority'] == 200 else 'SOURCE_CONFLICT'
+        correction=field=='kickoff' and top['priority']>=200 and len({encoded(r['value']) for r in claims if r['priority']==top['priority']})==1
+        state = 'VERIFIED' if monotonic or len(distinct) == 1 or correction else 'SOURCE_CONFLICT'
         db.execute('INSERT INTO canonical_field_values VALUES(?,?,?,?,?) ON CONFLICT(match_id,field) DO UPDATE SET value_json=excluded.value_json,state=excluded.state,decision_json=excluded.decision_json', (mid, field, encoded(top['value']), state, encoded(dict(rule=VERSION, selected=top, observations=claims))))
 
 
@@ -165,7 +166,9 @@ def reconcile(db, observation, create=False, registered_id=None):
     for field, val in fields.items():
         priority = 100 if o.get('retained_accepted') else 50
         if field == 'kickoff' and o.get('verified_kickoff_correction') and prior and ev.get('correction_basis') == 'EXACT_PROVIDER_EVENT_ID_RECONFIRMED':
-            priority = 200
+            revision=ev.get('correction_revision')
+            if not isinstance(revision,int) or isinstance(revision,bool) or revision<1:raise ValueError('VERIFIED_PROVIDER_CORRECTION_REVISION_REQUIRED')
+            priority = 200+revision
         db.execute('INSERT OR IGNORE INTO canonical_field_claims VALUES(?,?,?,?,?)', (mid, field, oid, encoded(val), priority))
     select_fields(db, mid)
     after = {k: value(db, mid, k) for k in fields}
@@ -210,6 +213,10 @@ def bootstrap(db, snapshot_sha256='RETAINED_DATABASE'):
             home = legacy_team(db, m['home_team'], r['home_id'], ev)
             away = legacy_team(db, m['away_team'], r['away_id'], ev)
             reconcile(db, dict(domain='CLUB', provider='LEGACY_ACCEPTED', provider_match_id=r['match_id'], home_key=home, away_key=away, competition_key=str(r['competition_id']), edition=r['period_id'], fields=dict(kickoff=r['kickoff'], match_status=r['match_state'], **score_fields(r['result'])), evidence=ev, retained_accepted=True), registered_id=r['match_id'])
+            for source in m.get('source_evidence') or []:
+                if not source.get('provider') or not source.get('url'):continue
+                pid=source.get('directory_match_id') or source.get('provider_match_id') or source['url']
+                db.execute('INSERT OR IGNORE INTO canonical_fixture_sources VALUES(?,?,?,?,?)',('CLUB',source['provider'],str(pid),r['match_id'],encoded(dict(ev,source_evidence=source))))
     if exists(db, 'football_teams'):
         for row in db.execute('SELECT team_key,display_name FROM football_teams').fetchall():
             entity(db,'TEAM',row[0],row[1])

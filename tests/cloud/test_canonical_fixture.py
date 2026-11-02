@@ -35,7 +35,7 @@ class CanonicalFixtureTests(unittest.TestCase):
         c.assert_alias(self.db,'COMPETITION','Test','League full','L',dict(sha256='b'*64),provider_id='99')
         self.assertEqual(c.resolve_entity(self.db,'COMPETITION','Test','League full'),'L');self.assertIsNone(c.resolve_entity(self.db,'COMPETITION','Other','League full'))
     def test_07_verified_provider_kickoff_correction_preserves_id(self):
-        a=self.put(create=True);o=copy.deepcopy(self.obs);o['fields']['kickoff']='2026-11-02T20:00:00Z';o['verified_kickoff_correction']=True;o['evidence']['correction_basis']='EXACT_PROVIDER_EVENT_ID_RECONFIRMED';b=self.put(o)
+        a=self.put(create=True);o=copy.deepcopy(self.obs);o['fields']['kickoff']='2026-11-02T20:00:00Z';o['verified_kickoff_correction']=True;o['evidence']['correction_basis']='EXACT_PROVIDER_EVENT_ID_RECONFIRMED';o['evidence']['correction_revision']=1;b=self.put(o)
         self.assertEqual(a['match_id'],b['match_id']);self.assertEqual(b['operation'],'CORRECT')
     def test_08_score_conflict_not_last_write(self):
         a=self.put(dict(self.obs,fields=dict(self.obs['fields'],home_score=2)),create=True);b=self.put(dict(self.obs,provider='B',fields=dict(self.obs['fields'],home_score=3)))
