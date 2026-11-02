@@ -1,5 +1,7 @@
 """One match's metadata decorates accepted appearance rows; issues stay separate."""
 import json
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from ..canonical_fixture import metadata, score_fields, exists, instant
 
 
@@ -24,6 +26,8 @@ def enrich_records(db, records, domain):
                 own='club:'+str(row['club_id'])
                 if m['home_team_id']==own and m['away_team']:row['opponent']=m['away_team']
                 elif m['away_team_id']==own and m['home_team']:row['opponent']=m['home_team']
-            if row.get('kickoff'):row['kickoff_utc']=instant(row['kickoff'])
+            if row.get('kickoff'):
+                row['kickoff_utc']=instant(row['kickoff'])
+                row['date']=datetime.fromisoformat(row['kickoff_utc']).astimezone(ZoneInfo('Europe/Madrid')).date().isoformat()
 
             if row.get('competition_name'):row['competition']=row['competition_name']

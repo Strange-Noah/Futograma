@@ -98,3 +98,12 @@ class CanonicalFixtureTests(unittest.TestCase):
         isolated=GitHubStore('Owner/Data','CONTROLLED_TEST_TOKEN','acceptance/test')
         self.assertEqual(production.marker,MARKER)
         self.assertNotEqual(production.marker,isolated.marker)
+
+    def test_26_export_date_follows_verified_kickoff_correction_in_madrid(self):
+        from squad_pipeline.cloud.canonical_export import enrich_records
+        mid=self.put(create=True)['match_id']
+        changed=copy.deepcopy(self.obs);changed['fields']['kickoff']='2026-11-02T23:30:00Z';changed['verified_kickoff_correction']=True;changed['evidence'].update(correction_basis='EXACT_PROVIDER_EVENT_ID_RECONFIRMED',correction_revision=1)
+        self.put(changed)
+        rows={'1':[dict(match_id=mid,date='2026-10-31',match_type='CLUB')]}
+        enrich_records(self.db,rows,'CLUB')
+        self.assertEqual(rows['1'][0]['date'],'2026-11-03')
