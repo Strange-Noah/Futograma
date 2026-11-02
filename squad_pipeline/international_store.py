@@ -75,6 +75,10 @@ def team(db,name,level,eid,provider=None,provider_id=None):
 def put_match(db,match,provider,provider_id,eid):
     prior=db.execute('SELECT match_id FROM international_match_provider_ids WHERE provider=? AND provider_match_id=?',(provider,str(provider_id))).fetchone()
     key=prior[0] if prior else match['match_id']
+    from .canonical_adapters import national
+    canonical_evidence=dict(snapshot_sha256=digest([provider,str(provider_id),eid]),basis='VERIFIED_PROVIDER_FIXTURE_AND_EVIDENCE_ID',evidence_id=eid)
+    resolved=national(db,dict(match,match_id=key),provider,provider_id,canonical_evidence)
+    key=resolved['match_id']
     old=db.execute('SELECT * FROM international_matches WHERE match_id=?',(key,)).fetchone()
     if db.execute('SELECT 1 FROM matches WHERE match_id=?',(key,)).fetchone():raise ValueError('CROSS_DOMAIN_MATCH_COLLISION')
     immutable=('home_team_key','away_team_key','kickoff_utc','competition_key')
@@ -82,6 +86,10 @@ def put_match(db,match,provider,provider_id,eid):
     if not old:
         cols=['match_id','home_team_key','away_team_key','kickoff_utc','madrid_date','competition_key','stage','match_state','score','duration_minutes','extra_time_status','identity_status','metadata_json']
         db.execute('INSERT INTO international_matches VALUES('+','.join('?' for _ in cols)+')',[key]+[match.get(k) for k in cols[1:]])
+    if old:
+        for field in ('score','duration_minutes','extra_time_status','stage'):
+            if old[field] is None and match.get(field) is not None:
+                db.execute('UPDATE international_matches SET '+field+'=? WHERE match_id=?',(match[field],key))
     db.execute('INSERT OR IGNORE INTO international_match_provider_ids VALUES(?,?,?,?)',(provider,str(provider_id),key,eid));return key
 
 def put_appearance(db,appearance):

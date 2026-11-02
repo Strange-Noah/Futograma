@@ -36,11 +36,12 @@ def classify(result,candidate,at=None):
  at=at or clock();p=policy();error=result.get('error') or '';context=result.get('source_context') or {};status=result['status'];recent=False
  try:recent=0<=(at.date()-datetime.fromisoformat(candidate['date']).date()).days<=p['max_recent_days']
  except (ValueError,KeyError):pass
+ if any(x in error for x in ['HTTP_429','HTTP_500','HTTP_502','HTTP_503','HTTP_504','Timeout','timed out']):return 'TEMPORARY_SOURCE_UNAVAILABLE',True
  if error.startswith('Conflict:') or any(x in error for x in ['IntegrityError','DatabaseError','FOREIGN KEY','INTEGRITY','FACT_OVERWRITE','CONTRADICT','CORROBORATED_CORRECTION','NEGATIVE_PLAYING','MINUTES_OUT_OF_RANGE']):return 'DATA_INTEGRITY_FAILURE',False
- if error.startswith('IdentityError:') or context.get('identity_conflict') or any(x in error for x in ['IDENTITY','ROSTER_SIDE_MISMATCH','ROSTER_HEADER_TEAM_MISMATCH','PLAYER_ON_BOTH','DUPLICATE_PLAYER','AMBIGUOUS','REQUESTED_CLUB_NOT_ON']):return 'ROSTER_IDENTITY_CONFLICT',False
  if error.startswith(('ParseError:UNSUPPORTED_COMPETITION','UNSUPPORTED_COMPETITION')):
   if error.endswith(':None') and recent and context.get('confirmed_full_time') and context.get('catalog_competition_known') and context.get('fixture_identity_agrees') and context.get('competition_field_empty'):return 'TEMPORARY_SOURCE_INCOMPLETE',True
   return 'UNSUPPORTED_OR_UNKNOWN_COMPETITION',False
+ if error.startswith('IdentityError:') or context.get('identity_conflict') or any(x in error for x in ['IDENTITY','ROSTER_SIDE_MISMATCH','ROSTER_HEADER_TEAM_MISMATCH','PLAYER_ON_BOTH','DUPLICATE_PLAYER','AMBIGUOUS','REQUESTED_CLUB_NOT_ON']):return 'ROSTER_IDENTITY_CONFLICT',False
  if status=='SOURCE_UNAVAILABLE':
   transient=any(x in error for x in ['HTTP_429','HTTP_500','HTTP_502','HTTP_503','HTTP_504','Timeout','timed out','RemoteDisconnected','ConnectionReset','NETWORK_BUDGET_EXHAUSTED'])
   return 'TEMPORARY_SOURCE_UNAVAILABLE',transient

@@ -62,23 +62,11 @@ def resolve_player(db,tid,p):
  db.execute('INSERT OR IGNORE INTO validation_player_aliases VALUES(?,?,?)',(key,pid,encoded(dict(names=[p['name']],method='EXACT_KNOWN_FULL_NAME_WITH_CLUB_CONTEXT' if candidates else 'STABLE_SOURCE_URL_NO_FOTMOB_ID_INVENTED'))));return pid
 
 def bind_fixture(db,f,url):
- alias=db.execute('SELECT match_id FROM validation_match_aliases WHERE alias=?',('url:'+url,)).fetchone()
- if alias:
-  old=db.execute('SELECT * FROM matches WHERE match_id=?',(alias[0],)).fetchone()
-  if old:
-   meta=json.loads(old['metadata_json'])
-   if (canon(meta['home_team']),canon(meta['away_team']),str(old['competition_id']))!=(f['home_team'],f['away_team'],str(f['competition_id'])):raise Conflict('PROVIDER_BINDING_TEAM_OR_COMPETITION_CHANGED')
-   f['match_id']=old['match_id'];return f
- exact=db.execute('SELECT * FROM matches WHERE match_id=?',(f['match_id'],)).fetchone()
- if exact:return f
- # Prevent a shifted kickoff/opponent spelling from becoming a duplicate physical match.
- nearby=[]
- for old in db.execute('SELECT * FROM matches WHERE competition_id=? AND ABS(julianday(local_date)-julianday(?))<=2',(f['competition_id'],f['match_date'])):
-  meta=json.loads(old['metadata_json'])
-  if (canon(meta['home_team']),canon(meta['away_team']))==(f['home_team'],f['away_team']):nearby.append(old)
- if nearby:
-  if len(nearby)==1 and nearby[0]['match_state']!='COMPLETED':f['match_id']=nearby[0]['match_id'];return f
-  raise Conflict('KICKOFF_DIFFERS_EXISTING_MATCH;RESCHEDULE_OR_SOURCE_CONFLICT')
+ from .canonical_adapters import observe_fixture
+ source=next((x for x in f.get('source_evidence',[]) if x.get('url')==url),dict(url=url,sha256=digest(encoded(f).encode()),provider='LEGACY_ACCEPTED'))
+ result=observe_fixture(db,f,source,create=True)
+ if result['operation']=='SOURCE_CONFLICT':raise Conflict('CANONICAL_FIELD_SOURCE_CONFLICT')
+ f=dict(f,match_id=result['match_id'])
  return f
 
 def semantic(row):return (row['participation_status'],row['minutes']) if row else None

@@ -37,6 +37,8 @@ def run(database,work,isolated=False,at=None):
     from ..managed_roster import migrate as management_migrate,import_verified_history
     from ..pending_matches import migrate as retry_migrate
     db=sqlite3.connect(database);db.row_factory=sqlite3.Row;migrate(db);management_migrate(db);import_verified_history(db);retry_migrate(db)
+    from ..canonical_revalidation import revalidate
+    revalidate(db,at)
     roster=refresh(db,fetch,end.date().isoformat(),'daily-evidence-'+os.environ['GITHUB_RUN_ID']);db.close()
     db=sqlite3.connect(database);db.row_factory=sqlite3.Row;db.execute('PRAGMA foreign_keys=ON')
     asset_ref='daily-evidence-'+os.environ['GITHUB_RUN_ID'];national=acquire(db,fetch,client,start.date().isoformat(),end.date().isoformat(),os.environ['GITHUB_RUN_ID'],asset_ref,not_before_utc=start.isoformat(),not_after_utc=end.isoformat())
@@ -46,6 +48,8 @@ def run(database,work,isolated=False,at=None):
     previous=live_ingest.DB;live_ingest.DB=Path(database)
     try:club_code=live_ingest.run(types.SimpleNamespace(preflight=False,recheck=False,budget=160,max_details=36,isolated_prelaunch=isolated))
     finally:live_ingest.DB=previous
+    from ..canonical_adapters import reconcile_failed_sources
+    db=sqlite3.connect(database);db.row_factory=sqlite3.Row;reconcile_failed_sources(db);db.commit();db.close()
     if client.records:
         from ..live_sources import OUT
         log=OUT/'http_requests.jsonl'

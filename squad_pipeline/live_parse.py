@@ -27,7 +27,7 @@ def configured_club_names():
    result[key]=value
  return result
 
-COMP={'Premier League':47,'Bundesliga':54,'La Liga':87,'LaLiga':87,'Serie A':55,'Italian Serie A':55,'Ligue 1':53,'UEFA Champions League':42,'Champions League':42,'Carabao Cup':133,'EFL Cup':133,'FA Cup':132,'The FA Cup':132,'DFB Pokal':209,'DFB-Pokal':209,'German DFB Cup':209,'Copa del Rey':138,'Coupe de France':141,'Coppa Italia':137,'Community Shield':247,'UEFA Super Cup':74,'Trophée des Champions':207,'DFL Supercup':'DFL_SUPERCUP'}
+from .competition_identity import COMP
 class ParseError(ValueError):pass
 class Pending(ParseError):pass
 class Node:
@@ -55,9 +55,9 @@ class Tree(HTMLParser):
 def src(r):return dict(provider='Sky' if 'skysports' in r['url'] or 'sport.sky.de' in r['url'] else 'Torlytics',url=r['url'],path=r.get('reused_body_path',r['path']),sha256=r.get('reused_body_sha256',r['sha256']),acquired_at=r['response_timestamp'],http_status=r['http_status'],location='HTML own-side XI/bench and explicitly typed substitution/red-card clocks',catalog_source=(r.get('catalog_candidate') or {}).get('catalog_source'),directory_match_id=(r.get('catalog_candidate') or {}).get('catalog_provider_id'),directory_team_labels=(r.get('catalog_candidate') or {}).get('catalog_team_labels'))
 def fixture(comp,kick,home,away,score,source):
  if comp not in COMP:raise ParseError('UNSUPPORTED_COMPETITION:'+str(comp))
- home,away=canon(home),canon(away);cid=COMP[comp]
+ source_names=dict(home=home,away=away);home,away=canon(home),canon(away);cid=COMP[comp]
  if home==away or not {home,away}&{x[1] for x in CLUBS.values()}:raise ParseError('TEAM_IDENTITY_MISMATCH')
- return dict(match_id=identity(cid,kick,home,away),competition_id=cid,competition=comp,kickoff=kick,scheduled_kickoff=kick,match_date=day(kick),home_team=home,away_team=away,home_id=next((t for t,x in CLUBS.items() if x[1]==home),None),away_id=next((t for t,x in CLUBS.items() if x[1]==away),None),score=score,match_state='COMPLETED',source_evidence=[source])
+ return dict(match_id=identity(cid,kick,home,away),competition_id=cid,competition=comp,source_team_names=source_names,kickoff=kick,scheduled_kickoff=kick,match_date=day(kick),home_team=home,away_team=away,home_id=next((t for t,x in CLUBS.items() if x[1]==home),None),away_id=next((t for t,x in CLUBS.items() if x[1]==away),None),score=score,match_state='COMPLETED',source_evidence=[source])
 def nominal(c):
  if not c:return None
  b=c['base'];return 45 if b==46 and not c.get('added') else min(b,90)

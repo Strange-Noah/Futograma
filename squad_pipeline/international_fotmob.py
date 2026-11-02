@@ -13,7 +13,9 @@ def numeric(value,duration=None):
 
 def parse_public_match(raw,source,fixture,history_claims=None):
     d=payload(raw);g=d.get('general') or {};header=d.get('header') or {};content=d.get('content') or {};expected=str(fixture['provider_match_id'])
-    if str(g.get('matchId'))!=expected:raise ValueError('RETURNED_MATCH_ID_MISMATCH')
+    if str(g.get('matchId'))!=expected:
+        from .match_diagnostics import inspect_match,MatchIdentityMismatch
+        raise MatchIdentityMismatch('RETURNED_MATCH_ID_MISMATCH',inspect_match(raw,expected,source))
     if not g.get('finished') or not (header.get('status') or {}).get('finished'):raise ValueError('MATCH_NOT_FINISHED')
     if g.get('gender')!='male':raise ValueError('MATCH_GENDER_UNVERIFIED')
     actual=[str((g.get(s+'Team') or {}).get('id')) for s in ('home','away')];wanted=[str(fixture[s]['id']) for s in ('home','away')]
@@ -26,7 +28,9 @@ def parse_public_match(raw,source,fixture,history_claims=None):
     levels={level(g[s+'Team']['name']) for s in ('home','away')}
     if levels!={fixture['level']}:raise ValueError('NATIONAL_TEAM_LEVEL_MISMATCH')
     lineup=content.get('lineup') or {}
-    if str(lineup.get('matchId'))!=expected:raise ValueError('LINEUP_MATCH_ID_MISMATCH')
+    if str(lineup.get('matchId'))!=expected:
+        from .match_diagnostics import inspect_match,MatchIdentityMismatch
+        raise MatchIdentityMismatch('LINEUP_MATCH_ID_MISMATCH',inspect_match(raw,expected,source))
     status=header['status'];halves=status.get('halfs') or {};reason=(status.get('reason') or {}).get('short','').upper()
     duration=120 if halves.get('firstExtraHalfStarted') or halves.get('secondExtraHalfStarted') or reason=='AET' else 90 if reason=='FT' and halves.get('secondHalfEnded') else None
     stats=content.get('playerStats') or {};seen=set();sheets=[];identity_issues=[];claims=history_claims or []

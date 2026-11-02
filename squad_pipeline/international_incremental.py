@@ -169,6 +169,9 @@ def acquire(db,fetch,client,window_start,window_end,run_id,asset_ref,not_before_
    parsed.append(dict(provider_match_id=mid,canonical_match_id=accepted,players=accepted_players,structural_identity=sheet['full_squad_identity_status'],identity_issues=sheet['identity_issues']));observe(db,dict(entity_type='MATCH',provider='FotMob',provider_entity_id=mid,url=f['url'],fixture=f),dict(status='DISCOVERED',match_id=accepted),run_id)
   except Exception as exc:
    db.execute('ROLLBACK TO acquired_international_match');canonical_rows=row_count_before
+   if hasattr(exc,'diagnostic'):
+    from .match_diagnostics import record
+    record(db,exc.diagnostic)
    pending('MATCH',mid,f['url'],type(exc).__name__+':'+str(exc),fixture=f,source=source)
    for c in claims[mid]:
     pid=ids.get(c['player_provider_id'])

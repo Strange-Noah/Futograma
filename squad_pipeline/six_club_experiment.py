@@ -37,6 +37,10 @@ def ev(db,e):
  key='e_'+digest(encoded(e).encode());db.execute('INSERT OR IGNORE INTO raw_artifacts VALUES(?,?,?,?,?,?,?,?,?)',(key,None,e.get('path'),e.get('sha256') or digest(encoded(e).encode()),None,'SOURCE_REFERENCE' if e.get('path') else 'DERIVED_FACT_EVIDENCE',e.get('acquired_at'),None,None));db.execute('INSERT OR IGNORE INTO validation_source_evidence VALUES(?,?)',(key,encoded(e)));return key
 
 def match(db,f):
+ from .canonical_adapters import observe_fixture
+ outcome=observe_fixture(db,f,(f.get('source_evidence') or [{}])[0],create=True,registered_id=f['match_id'])
+ f['match_id']=outcome['match_id']
+ if outcome['operation']=='SOURCE_CONFLICT':raise ValueError('CANONICAL_FIELD_SOURCE_CONFLICT')
  old=db.execute('SELECT * FROM matches WHERE match_id=?',(f['match_id'],)).fetchone()
  data=(f.get('home_id') or next((t for t,v in CLUBS.items() if v[1]==f['home_team']),None),f.get('away_id') or next((t for t,v in CLUBS.items() if v[1]==f['away_team']),None),f['kickoff'],f['match_date'],'2026-27_H1',f['competition_id'],f.get('score'),f['scheduled_kickoff'],f['match_state'],encoded(f))
  db.execute('INSERT OR IGNORE INTO competitions VALUES(?,?,?,?)',(f['competition_id'],f['competition'],'COMPETITIVE',None))
