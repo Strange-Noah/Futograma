@@ -67,3 +67,10 @@ class CanonicalFixtureTests(unittest.TestCase):
         raw='<script id="__NEXT_DATA__">'+json.dumps({'props':{'pageProps':{'data':{'general':{'matchId':999},'content':{'lineup':{'matchId':999}}}}}})+'</script>'
         d=inspect_match(raw,'123',dict(url='https://example.com/series#123',sha256='c'*64))
         self.assertEqual(d['actual_id'],'999');self.assertTrue(d['fragment_only_routing_risk']);self.assertEqual(d['request_url_without_fragment'],'https://example.com/series')
+
+    def test_19_season_half_uses_match_date_not_collection_date(self):
+        self.assertEqual(c.club_period('2027-01-02')[0],'2026-27_H2')
+        self.assertEqual(c.club_period('2025-10-03')[0],'2025-26_H1')
+    def test_20_two_competitions_not_same_fixture(self):
+        a=self.put(create=True);b=self.put(dict(self.obs,competition_key='CUP',provider_match_id='cup'),create=True)
+        self.assertNotEqual(a['match_id'],b['match_id'])

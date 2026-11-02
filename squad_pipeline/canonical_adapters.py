@@ -46,7 +46,7 @@ def observe_fixture(db, f, source, create=False, domain='CLUB', registered_id=No
     fields=dict(kickoff=f.get('kickoff'),match_status=f.get('match_state'),**c.score_fields(f.get('score')))
     provider=source.get('provider') or 'LEGACY_ACCEPTED'
     provider_id=source.get('directory_match_id') or source.get('provider_match_id') or source.get('url') or f['match_id']
-    obs=dict(domain=domain,provider=provider,provider_match_id=str(provider_id),home_key=home,away_key=away,competition_key=str(f['competition_id']),fields=fields,evidence=ev)
+    obs=dict(domain=domain,provider=provider,provider_match_id=str(provider_id),home_key=home,away_key=away,competition_key=str(f['competition_id']),edition=f.get('competition_edition') or c.club_period(f['match_date'])[1],fields=fields,evidence=ev)
     existing=db.execute('SELECT 1 FROM matches WHERE match_id=?',(f['match_id'],)).fetchone() if c.exists(db,'matches') else None
     try:
         result=c.reconcile(db,obs,create=False,registered_id=f['match_id'] if existing else None)

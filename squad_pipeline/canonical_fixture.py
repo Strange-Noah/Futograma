@@ -212,7 +212,7 @@ def bootstrap(db, snapshot_sha256='RETAINED_DATABASE'):
                 continue
             home = legacy_team(db, m['home_team'], r['home_id'], ev)
             away = legacy_team(db, m['away_team'], r['away_id'], ev)
-            reconcile(db, dict(domain='CLUB', provider='LEGACY_ACCEPTED', provider_match_id=r['match_id'], home_key=home, away_key=away, competition_key=str(r['competition_id']), edition=r['period_id'], fields=dict(kickoff=r['kickoff'], match_status=r['match_state'], **score_fields(r['result'])), evidence=ev, retained_accepted=True), registered_id=r['match_id'])
+            reconcile(db, dict(domain='CLUB', provider='LEGACY_ACCEPTED', provider_match_id=r['match_id'], home_key=home, away_key=away, competition_key=str(r['competition_id']), edition=club_period(r['local_date'])[1], fields=dict(kickoff=r['kickoff'], match_status=r['match_state'], **score_fields(r['result'])), evidence=ev, retained_accepted=True), registered_id=r['match_id'])
             for source in m.get('source_evidence') or []:
                 if not source.get('provider') or not source.get('url'):continue
                 pid=source.get('directory_match_id') or source.get('provider_match_id') or source['url']
@@ -245,3 +245,11 @@ def metadata(db, mid):
         row = db.execute('SELECT name FROM canonical_entities WHERE kind=? AND entity_id=?', (kind, key)).fetchone()
         return row[0] if row else None
     return dict(match_id=mid, home_team_id=r['home_key'], away_team_id=r['away_key'], home_team=name('TEAM',r['home_key']), away_team=name('TEAM',r['away_key']), competition_id=r['competition_key'], competition=name('COMPETITION',r['competition_key']), fields=fields)
+
+
+def club_period(day):
+    """European club season fallback; explicit provider edition wins in adapters."""
+    from datetime import date
+    d=date.fromisoformat(day);year=d.year if d.month>=7 else d.year-1
+    half='H1' if d.month>=7 else 'H2';season=f'{year}/{str(year+1)[2:]}'
+    return (f'{year}-{str(year+1)[2:]}_{half}',season,half,f'{year}-07-01' if half=='H1' else f'{year+1}-01-01',f'{year+1}-01-01' if half=='H1' else f'{year+1}-07-01','Europe/Madrid')

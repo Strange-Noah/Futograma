@@ -42,7 +42,9 @@ def match(db,f):
  f['match_id']=outcome['match_id']
  if outcome['operation']=='SOURCE_CONFLICT':raise ValueError('CANONICAL_FIELD_SOURCE_CONFLICT')
  old=db.execute('SELECT * FROM matches WHERE match_id=?',(f['match_id'],)).fetchone()
- data=(f.get('home_id') or next((t for t,v in CLUBS.items() if v[1]==f['home_team']),None),f.get('away_id') or next((t for t,v in CLUBS.items() if v[1]==f['away_team']),None),f['kickoff'],f['match_date'],'2026-27_H1',f['competition_id'],f.get('score'),f['scheduled_kickoff'],f['match_state'],encoded(f))
+ from .canonical_fixture import club_period
+ period=club_period(f['match_date']);db.execute('INSERT OR IGNORE INTO periods VALUES(?,?,?,?,?,?)',period)
+ data=(f.get('home_id') or next((t for t,v in CLUBS.items() if v[1]==f['home_team']),None),f.get('away_id') or next((t for t,v in CLUBS.items() if v[1]==f['away_team']),None),f['kickoff'],f['match_date'],period[0],f['competition_id'],f.get('score'),f['scheduled_kickoff'],f['match_state'],encoded(f))
  db.execute('INSERT OR IGNORE INTO competitions VALUES(?,?,?,?)',(f['competition_id'],f['competition'],'COMPETITIVE',None))
  if old:
   current=tuple(old[k] for k in ['home_id','away_id','kickoff','local_date','period_id','competition_id','result','scheduled_kickoff','match_state','metadata_json'])
