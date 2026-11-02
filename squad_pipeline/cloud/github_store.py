@@ -11,7 +11,7 @@ class GitHubStore:
   if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9-]{0,38}/[A-Za-z0-9_.-]+',repository):raise ValueError('EXPLICIT_OWNER_AND_DATA_REPOSITORY_REQUIRED')
   if not token:raise ValueError('DATA_REPOSITORY_TOKEN_REQUIRED')
   if not re.fullmatch(r'[A-Za-z0-9_./-]+',ref) or '..' in ref:raise ValueError('INVALID_DATA_REF')
-  self.repository=repository;self.token=token;self.ref=ref;self.base='/repos/'+repository
+  self.repository=repository;self.token=token;self.ref=ref;self.base='/repos/'+repository;self.marker=MARKER if ref=='main' else MARKER+' Isolated data ref: '+ref
  def api(self,method,path,data=None,allow404=False):
   headers={'Authorization':'Bearer '+self.token,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','User-Agent':'FutbolSnapshot/1.0'}
   if data is not None:headers['Content-Type']='application/json'
@@ -74,7 +74,7 @@ class GitHubStore:
   if head!=expected_head:raise StaleWriter('BASE_HEAD_ALREADY_STALE')
   if not old and not allow_bootstrap:raise ValueError('EXPLICIT_BOOTSTRAP_REQUIRED')
   if old and allow_bootstrap:raise ValueError('REFUSE_REBOOTSTRAP_EXISTING_AUTHORITY')
-  m=metadata(snapshot,compressed,expected_head,code_commit);tag='futbol-data-'+m['version'];release=self.api('POST',self.base+'/releases',dict(tag_name=tag,target_commitish=expected_head,name='Futbol data '+m['version'],body=MARKER,draft=True,prerelease=False));asset=self.upload(release['id'],compressed);m.update(release_id=release['id'],asset_id=asset['id'],tag=tag)
+  m=metadata(snapshot,compressed,expected_head,code_commit);tag='futbol-data-'+m['version'];release=self.api('POST',self.base+'/releases',dict(tag_name=tag,target_commitish=expected_head,name='Futbol data '+m['version'],body=self.marker,draft=True,prerelease=False));asset=self.upload(release['id'],compressed);m.update(release_id=release['id'],asset_id=asset['id'],tag=tag)
   # Download the actual uploaded bytes before publishing a pointer; a mere API success is insufficient.
   verify=Path(str(compressed)+'.verify-download.'+m['version']);self.download(asset['id'],verify)
   if sha(verify)!=m['compressed']['sha256']:raise UploadFailed('UPLOADED_ASSET_READBACK_FAILED')
@@ -91,7 +91,7 @@ class GitHubStore:
   for page in range(1,21):
    rows=self.api('GET',self.base+'/releases?per_page=100&page='+str(page))
    for r in rows:
-    if r['id'] in keep or r.get('body')!=MARKER or not r['tag_name'].startswith('futbol-data-'):continue
+    if r['id'] in keep or r.get('body')!=self.marker or not r['tag_name'].startswith('futbol-data-'):continue
     if r.get('draft') and r['created_at']>=cut:continue # interrupted fresh upload may still be in progress
     candidates.append(dict(id=r['id'],tag=r['tag_name']))
    if len(rows)<100:break

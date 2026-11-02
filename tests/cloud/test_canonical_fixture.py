@@ -91,3 +91,10 @@ class CanonicalFixtureTests(unittest.TestCase):
             self.put(dict(self.obs,away_key='unverified'),create=True)
     def test_24_wrong_event_is_not_player_identity_conflict(self):
         self.assertEqual(classify(dict(status='VALIDATION_FAILED',error='ValueError:RETURNED_MATCH_ID_MISMATCH'),{})[0],'SOURCE_MATCH_ID_MISMATCH')
+
+    def test_25_isolated_snapshots_have_separate_retention_marker(self):
+        from squad_pipeline.cloud.github_store import GitHubStore,MARKER
+        production=GitHubStore('Owner/Data','CONTROLLED_TEST_TOKEN')
+        isolated=GitHubStore('Owner/Data','CONTROLLED_TEST_TOKEN','acceptance/test')
+        self.assertEqual(production.marker,MARKER)
+        self.assertNotEqual(production.marker,isolated.marker)
