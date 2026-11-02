@@ -160,6 +160,8 @@ def reconcile(db, observation, create=False, registered_id=None):
             raise ValueError('VERIFIED_CREATION_ANCHOR_REQUIRED')
         mid = mid or 'fx_' + uuid.uuid4().hex
         db.execute('INSERT INTO canonical_fixtures VALUES(?,?,?,?,?,?,?)', (mid, o['domain'], o['home_key'], o['away_key'], str(o['competition_key']), o.get('edition'), o.get('stage')))
+    if db.execute('SELECT 1 FROM canonical_observations WHERE observation_id=?',(oid,)).fetchone():
+        return dict(match_id=mid,observation_id=oid,operation='REDUNDANT',fields={k:value(db,mid,k) for k in fields})
     before = {k: value(db, mid, k) for k in fields}
     db.execute('INSERT OR IGNORE INTO canonical_observations VALUES(?,?,?,?,?,?,?)', (oid, o['domain'], o['provider'], str(o['provider_match_id']), mid, encoded(o), encoded(ev)))
     db.execute('INSERT OR IGNORE INTO canonical_fixture_sources VALUES(?,?,?,?,?)', (o['domain'], o['provider'], str(o['provider_match_id']), mid, encoded(ev)))
