@@ -54,22 +54,38 @@ def evidence(db,source,scope='TARGET_SPECIFIC_LEGACY',verification='RETAINED_PRI
         return eid
     db.execute('INSERT INTO persistent_source_evidence VALUES(?,?,?,?,?,?,?,?,?,?,?)',(eid,source.get('provider'),url,source.get('acquired_at') or source.get('response_timestamp'),sha,source.get('retained_asset_ref'),locator,scope,verification,hold,payload));return eid
 
-def team(db,name,level,eid,provider=None,provider_id=None):
+def team(db,name,level,eid,provider=None,provider_id=None,verified_key=None):
+    """Resolve stable provider IDs or an explicit, evidenced cross-provider bridge.
+
+    Historical name-derived keys remain untouched. New provider identities never
+    bind to them merely because transliterated display labels look alike.
+    """
     if not name or not level:raise ValueError('VERIFIED_TEAM_NAME_AND_LEVEL_REQUIRED')
-    key='national:'+digest([name.casefold(),level])[:24]
-    if provider and provider_id is not None:
-        old=db.execute('SELECT team_key FROM football_team_provider_ids WHERE provider=? AND provider_team_id=?',(provider,str(provider_id))).fetchone()
-        if old:
-            check=db.execute('SELECT level FROM football_teams WHERE team_key=?',(old[0],)).fetchone()
-            if check[0]!=level:raise ValueError('NATIONAL_TEAM_LEVEL_CONFLICT')
-            return old[0]
-    from .identity_pipeline import variants
-    normalized=variants(name)['forms'].get('LATIN_TRANSLITERATION_JOINED')
-    equivalents=[r[0] for r in db.execute("SELECT team_key,display_name FROM football_teams WHERE team_type='NATIONAL' AND level=?",(level,)) if normalized and variants(r[1])['forms'].get('LATIN_TRANSLITERATION_JOINED')==normalized]
-    if len(set(equivalents))>1:raise ValueError('AMBIGUOUS_EXISTING_NATIONAL_TEAM_NAME')
-    if equivalents:key=equivalents[0]
+    from . import canonical_fixture as c
+    c.migrate(db)
+    src=db.execute('SELECT body_sha256,source_url FROM persistent_source_evidence WHERE evidence_id=?',(eid,)).fetchone()
+    if not src:raise ValueError('RETAINED_TEAM_IDENTITY_EVIDENCE_REQUIRED')
+    ev=dict(snapshot_sha256=digest([eid,src[0]]),evidence_id=eid,url=src[1],basis='VERIFIED_TEAM_PROVIDER_RECORD')
+    old=db.execute('SELECT team_key FROM football_team_provider_ids WHERE provider=? AND provider_team_id=?',(provider,str(provider_id))).fetchone() if provider and provider_id is not None else None
+    central=c.resolve_entity(db,'TEAM',provider,provider_id=provider_id) if provider and provider_id is not None else None
+    if old and central and old[0]!=central:raise ValueError('PROVIDER_TEAM_REGISTRY_CONFLICT')
+    key=old[0] if old else central
+    if verified_key is not None:
+        row=db.execute('SELECT level FROM football_teams WHERE team_key=?',(verified_key,)).fetchone()
+        if not row or row[0]!=level:raise ValueError('NATIONAL_TEAM_LEVEL_CONFLICT')
+        if key and key!=verified_key:raise ValueError('PROVIDER_TEAM_BRIDGE_CONFLICT')
+        key=verified_key;ev['basis']='EXPLICIT_VERIFIED_PROVIDER_ID_BRIDGE'
+    if key:
+        row=db.execute('SELECT level FROM football_teams WHERE team_key=?',(key,)).fetchone()
+        if not row or row[0]!=level:raise ValueError('NATIONAL_TEAM_LEVEL_CONFLICT')
+    else:
+        key='national:'+digest([provider,str(provider_id),level])[:24] if provider and provider_id is not None else 'national:'+digest([name.casefold(),level])[:24]
     db.execute('INSERT OR IGNORE INTO football_teams VALUES(?,?,?,?,?,?,?)',(key,'NATIONAL',level,name,None,None,'EVIDENCED_MATCH_PARTICIPANT'))
-    if provider and provider_id is not None:db.execute('INSERT OR IGNORE INTO football_team_provider_ids VALUES(?,?,?,?,?,?)',(provider,str(provider_id),key,eid,None,None))
+    c.entity(db,'TEAM',key,name)
+    if provider and provider_id is not None:
+        # Provider IDs, rather than labels, are the primary national-team aliases.
+        c.assert_alias(db,'TEAM',provider,'provider-id:'+str(provider_id),key,ev,provider_id=provider_id)
+        db.execute('INSERT OR IGNORE INTO football_team_provider_ids VALUES(?,?,?,?,?,?)',(provider,str(provider_id),key,eid,None,None))
     return key
 
 def put_match(db,match,provider,provider_id,eid):

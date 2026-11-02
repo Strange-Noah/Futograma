@@ -116,7 +116,13 @@ def national(db, match, provider, provider_id, evidence):
         c.entity(db,'TEAM',key,row[0])
     meta=json.loads(match.get('metadata_json') or '{}')
     c.entity(db,'COMPETITION',str(match['competition_key']),meta.get('competition') or str(match['competition_key']))
-    result=c.reconcile(db,dict(domain='NATIONAL',provider=provider,provider_match_id=str(provider_id),home_key=match['home_team_key'],away_key=match['away_team_key'],competition_key=str(match['competition_key']),fields=dict(kickoff=match['kickoff_utc'],match_status=match.get('match_state'),duration_minutes=match.get('duration_minutes'),extra_time_status=match.get('extra_time_status'),**c.score_fields(match.get('score'))),evidence=evidence),create=True,registered_id=match['match_id'] if not db.execute('SELECT 1 FROM canonical_fixture_sources WHERE domain=? AND provider=? AND provider_match_id=?',('NATIONAL',provider,str(provider_id))).fetchone() else None)
+    obs=dict(domain='NATIONAL',provider=provider,provider_match_id=str(provider_id),home_key=match['home_team_key'],away_key=match['away_team_key'],competition_key=str(match['competition_key']),fields=dict(kickoff=match['kickoff_utc'],match_status=match.get('match_state'),duration_minutes=match.get('duration_minutes'),extra_time_status=match.get('extra_time_status'),**c.score_fields(match.get('score'))),evidence=evidence)
+    existing=c.exists(db,'international_matches') and db.execute('SELECT 1 FROM international_matches WHERE match_id=?',(match['match_id'],)).fetchone()
+    try:
+        result=c.reconcile(db,obs,create=False,registered_id=match['match_id'] if existing else None)
+    except ValueError as exc:
+        if not str(exc).startswith('UNRESOLVED_FIXTURE_OBSERVATION'):raise
+        result=c.reconcile(db,obs,create=True,registered_id=match['match_id'])
     return result
 
 
