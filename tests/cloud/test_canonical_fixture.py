@@ -26,7 +26,7 @@ class CanonicalFixtureTests(unittest.TestCase):
         self.assertEqual(a['match_id'],b['match_id']);self.assertEqual(self.db.execute('SELECT COUNT(*) FROM canonical_fixtures').fetchone()[0],1)
     def test_04_collected_on_different_days_is_same_entity(self):
         a=self.put(create=True);o=copy.deepcopy(self.obs);o['evidence']['collected_at']='2026-11-02';b=self.put(o)
-        self.assertEqual(a['match_id'],b['match_id'])
+        self.assertEqual(a['match_id'],b['match_id']);self.assertEqual(self.db.execute('SELECT COUNT(*) FROM canonical_observations').fetchone()[0],1)
     def test_05_evidence_backed_team_alias_only(self):
         with self.assertRaisesRegex(ValueError,'EVIDENCE'):c.assert_alias(self.db,'TEAM','Test','FC A','A',{})
         c.assert_alias(self.db,'TEAM','Test','FC A','A',dict(sha256='b'*64),provider_id='123')

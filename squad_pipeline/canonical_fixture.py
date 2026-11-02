@@ -131,7 +131,8 @@ def reconcile(db, observation, create=False, registered_id=None):
     fields = {k: v for k, v in o.get('fields', {}).items() if v is not None}
     if fields.get('kickoff'):
         fields['kickoff'] = instant(fields['kickoff'])
-    oid = digest([o['domain'], o['provider'], str(o['provider_match_id']), o['home_key'], o['away_key'], str(o['competition_key']), o.get('edition'), o.get('stage'), fields, ev])
+    semantic_evidence={k:ev.get(k) for k in ('sha256','snapshot_sha256','url','correction_basis','correction_revision') if ev.get(k) is not None}
+    oid = digest([VERSION,o.get('parser_version'),o.get('retained_accepted',False),o['domain'], o['provider'], str(o['provider_match_id']), o['home_key'], o['away_key'], str(o['competition_key']), o.get('edition'), o.get('stage'), fields, semantic_evidence])
     prior = db.execute('SELECT match_id FROM canonical_fixture_sources WHERE domain=? AND provider=? AND provider_match_id=?', (o['domain'], o['provider'], str(o['provider_match_id']))).fetchone()
     mid = prior[0] if prior else registered_id
     if mid:
