@@ -132,6 +132,8 @@ def main():
         bindings=[list(r) for r in clone.execute('SELECT domain,provider,provider_match_id,match_id FROM canonical_fixture_sources ORDER BY domain,provider,provider_match_id')]
         order_results.append(dict(field_hash=digest(signature),binding_hash=digest(bindings),counts=counts));clone.close()
     assert order_results[0]==order_results[1],'ARCHIVED_SOURCE_ORDER_CHANGED_CANONICAL_RESULT'
+    from squad_pipeline.canonical_adapters import associate_pending_international
+    national_associations=associate_pending_international(db)
     queue_before={t:{r[0]:r[1] for r in db.execute('SELECT state,COUNT(*) FROM '+t+' GROUP BY state')} for t in ('match_retry_queue','international_acquisition_queue')}
     changes=revalidate(db,datetime.fromisoformat('2026-11-02T08:00:00+00:00'))
     recovery_attempts=[]
@@ -164,7 +166,7 @@ def main():
     before_pending=sum(bool(r.get('pending')) for rs in baseline_export['records'].values() for r in rs)
     metadata_metrics=dict(club_appearance_rows_before=sum(r.get('match_type')=='CLUB' and not r.get('pending') for rs in baseline_export['records'].values() for r in rs),club_appearance_rows_after=facts,synthetic_timeline_rows_before=before_pending,synthetic_timeline_rows_after=0,verified_score_matches_before=len({r['match_id'] for rs in baseline_export['records'].values() for r in rs if r.get('match_type')=='CLUB' and r.get('home_score') is not None}),verified_score_matches_after=len({r['match_id'] for rs in data['records'].values() for r in rs if r.get('match_type')=='CLUB' and r.get('score_state')=='VERIFIED'}))
     assert production.head()[0]==production_head,'PRODUCTION_CHANGED_DURING_ISOLATION;REVIEW_EXTERNAL_UPDATE'
-    result=dict(status='ARCHIVED_STAGING_REPLAY_PASS',code=code,ref=ref,head=head,current=pointer['current'],baseline_sha256=SNAPSHOT_SHA,all_preexisting_fact_source_tables_unchanged=True,canonical_ids_unchanged=True,player_facts=facts,national_facts=494,national_provider_records_replayed=national_replayed,queue_before=queue_before,queue_after=queue_after,recovery_attempts=recovery_attempts,raw=rawmeta,source_associations=associations,raw_replays=replays,source_order_and_idempotency=order_results,automatic_revalidations=changes,source_issues=len(data['source_issues']),metadata_metrics=metadata_metrics,synthetic_timeline_rows_after=0,duplicate_appearance_keys_after=0,production_unchanged=True)
+    result=dict(status='ARCHIVED_STAGING_REPLAY_PASS',code=code,ref=ref,head=head,current=pointer['current'],baseline_sha256=SNAPSHOT_SHA,all_preexisting_fact_source_tables_unchanged=True,canonical_ids_unchanged=True,player_facts=facts,national_facts=494,national_provider_records_replayed=national_replayed,national_source_associations=national_associations,queue_before=queue_before,queue_after=queue_after,recovery_attempts=recovery_attempts,raw=rawmeta,source_associations=associations,raw_replays=replays,source_order_and_idempotency=order_results,automatic_revalidations=changes,source_issues=len(data['source_issues']),metadata_metrics=metadata_metrics,synthetic_timeline_rows_after=0,duplicate_appearance_keys_after=0,production_unchanged=True)
     (work/'staging-result.json').write_text(json.dumps(result,ensure_ascii=False,indent=2));store.upload(pointer['current']['release_id'],work/'staging-result.json');print('STAGING_RESULT '+json.dumps(result,ensure_ascii=False))
     return result
 if __name__=='__main__':main()

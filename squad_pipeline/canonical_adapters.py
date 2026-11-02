@@ -159,4 +159,37 @@ def reconcile_failed_sources(db):
         if hashlib.sha256(raw).hexdigest()!=source.get('sha256'):continue
         try:header=failed_source_header(raw.decode('utf-8','replace'),source,json.loads(task['candidate_json']));out.append(associate_failure(db,task,header))
         except (ValueError,KeyError):continue
+    out.extend(associate_pending_international(db))
+    return out
+
+
+def associate_pending_international(db):
+    """Attach expected fixture context, never the wrongly returned lineup.
+
+    Exact accepted provider-event and ordered provider-team bindings are required;
+    unresolved acquisition/player tasks retain their state, error and history.
+    """
+    initialized(db);out=[]
+    if not c.exists(db,'international_acquisition_queue'):return out
+    for row in db.execute("SELECT * FROM international_acquisition_queue WHERE state!='RESOLVED'").fetchall():
+        task=dict(row);payload=json.loads(task['payload_json']);f=payload.get('fixture') or {}
+        provider=f.get('provider') or task['provider'];pid=f.get('provider_match_id')
+        if pid is None:continue
+        binding=db.execute("SELECT match_id,evidence_json FROM canonical_fixture_sources WHERE domain='NATIONAL' AND provider=? AND provider_match_id=?",(provider,str(pid))).fetchone()
+        if not binding:continue
+        mid=binding[0];canonical=db.execute('SELECT * FROM canonical_fixtures WHERE match_id=?',(mid,)).fetchone()
+        keys=[]
+        for side in ('home','away'):
+            expected=(f.get(side) or {}).get('id')
+            mapped=db.execute('SELECT team_key FROM football_team_provider_ids WHERE provider=? AND provider_team_id=?',(provider,str(expected))).fetchone() if expected is not None else None
+            keys.append(mapped[0] if mapped else None)
+        if tuple(keys)!=(canonical['home_key'],canonical['away_key']):continue
+        if str(f.get('competition_key'))!=canonical['competition_key'] or c.instant(f.get('kickoff'))!=c.value(db,mid,'kickoff')[0]:continue
+        if task['match_id'] is not None and task['match_id']!=mid:continue
+        history=db.execute('SELECT result_json FROM international_acquisition_history WHERE task_key=? ORDER BY observed_at DESC,event_id DESC LIMIT 1',(task['task_key'],)).fetchone()
+        reason=(json.loads(history[0]).get('error') or task['failure_classification']) if history else task['failure_classification']
+        proof=dict(basis='EXPECTED_VERIFIED_PROVIDER_FIXTURE;ORDERED_TEAM_IDS_UTC_COMPETITION;WRONG_RESPONSE_NOT_ACCEPTED',provider_match_id=str(pid),accepted_provider_binding=json.loads(binding[1]),discovery_source={k:(f.get('source') or {}).get(k) for k in ('url','sha256','response_timestamp')})
+        db.execute('UPDATE international_acquisition_queue SET match_id=? WHERE task_key=?',(mid,task['task_key']))
+        db.execute('INSERT OR REPLACE INTO canonical_source_issues VALUES(?,?,?,?,?,?,?)',(task['task_key'],'NATIONAL',mid,provider,reason,task['entity_type']+';UNRESOLVED',c.encoded(proof)))
+        out.append(dict(task_key=task['task_key'],match_id=mid,state='ASSOCIATED_NOT_RESOLVED',task_state=task['state']))
     return out

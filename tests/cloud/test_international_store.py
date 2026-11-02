@@ -69,3 +69,16 @@ class InternationalStoreTests(unittest.TestCase):
         second=put_match(self.db,dict(self.match,match_id='second_source_provisional_id'),'Other','event2',self.eid)
         self.assertEqual(second,self.mid)
         self.assertEqual(self.db.execute('SELECT COUNT(*) FROM international_matches').fetchone()[0],1)
+
+    def test_wrong_source_task_associates_expected_fixture_without_resolving(self):
+        from squad_pipeline.international_retry import observe
+        from squad_pipeline.canonical_adapters import associate_pending_international
+        from datetime import datetime,timezone
+        fixture=dict(provider='Test',provider_match_id='match1',home=dict(id='t1'),away=dict(id='t2'),competition_key=self.match['competition_key'],kickoff=self.match['kickoff_utc'])
+        task=dict(entity_type='MATCH',provider='Test',provider_entity_id='match1',url='https://example.com/match#match1',fixture=fixture,date='2026-10-01')
+        observe(self.db,task,dict(status='VALIDATION_FAILED',error='RETURNED_MATCH_ID_MISMATCH'),'test',datetime(2026,10,2,tzinfo=timezone.utc))
+        result=associate_pending_international(self.db)
+        self.assertEqual(len(result),1)
+        row=self.db.execute('SELECT match_id,state FROM international_acquisition_queue').fetchone()
+        self.assertEqual(row['match_id'],self.mid);self.assertEqual(row['state'],'QUARANTINED')
+        self.assertEqual(self.db.execute('SELECT COUNT(*) FROM international_appearances').fetchone()[0],0)
