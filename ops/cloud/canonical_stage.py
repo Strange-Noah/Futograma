@@ -61,6 +61,11 @@ def main():
     work=ROOT/'.cloud'/('canonical-stage-'+os.environ['GITHUB_RUN_ID']);work.mkdir(parents=True,exist_ok=False)
     store.download(SNAPSHOT_ASSET,work/'baseline.gz');body=gzip.decompress((work/'baseline.gz').read_bytes());assert hashlib.sha256(body).hexdigest()==SNAPSHOT_SHA
     baseline=work/'baseline.sqlite';baseline.write_bytes(body);working=work/'candidate.sqlite';working.write_bytes(body)
+    baseline_source=Path(os.environ['BASELINE_SOURCE_PATH'])
+    baseline_pointer=dict(current=dict(database=inspect(baseline),version='PINNED_BASELINE',code_commit='6e3078bb15ca2e83323e80af86f7234e54910fd8'),dataset_ref=ref)
+    env=dict(os.environ,PYTHONPATH=str(baseline_source))
+    subprocess.run(['python','-c',"import sys,json;from squad_pipeline.cloud.all_match_export import export_all_matches;export_all_matches(sys.argv[1],sys.argv[2],'BASELINE',json.loads(sys.argv[3]),'2026-11-02',True)",str(baseline),str(work/'baseline-export'),json.dumps(baseline_pointer)],cwd=baseline_source,env=env,check=True)
+    baseline_export=json.loads((work/'baseline-export/data/browser.json').read_text())
     db=sqlite3.connect(working);db.row_factory=sqlite3.Row;db.execute('PRAGMA foreign_keys=ON');before=state(db);legacy_ids=[r[0] for r in db.execute('SELECT match_id FROM matches ORDER BY match_id')];bootstrap(db,SNAPSHOT_SHA)
     tar,bodies,rawmeta=archive(store,'daily-evidence-41317204106',work/'club-raw.tar.gz');associations=[];replays=[]
     # Every retained source task whose response is archived goes through the same generic adapter.
@@ -116,8 +121,10 @@ def main():
     assert sum(r['match_type']=='CLUB' for rows in data['records'].values() for r in rows)==facts
     for rows in data['records'].values():
         keys=[(r['match_type'],r.get('club_id'),r['match_id']) for r in rows];assert len(keys)==len(set(keys))
+    before_pending=sum(bool(r.get('pending')) for rs in baseline_export['records'].values() for r in rs)
+    metadata_metrics=dict(club_appearance_rows_before=sum(r.get('match_type')=='CLUB' and not r.get('pending') for rs in baseline_export['records'].values() for r in rs),club_appearance_rows_after=facts,synthetic_timeline_rows_before=before_pending,synthetic_timeline_rows_after=0,verified_score_matches_before=len({r['match_id'] for rs in baseline_export['records'].values() for r in rs if r.get('match_type')=='CLUB' and r.get('home_score') is not None}),verified_score_matches_after=len({r['match_id'] for rs in data['records'].values() for r in rs if r.get('match_type')=='CLUB' and r.get('score_state')=='VERIFIED'}))
     assert production.head()[0]==production_head,'PRODUCTION_CHANGED_DURING_ISOLATION;REVIEW_EXTERNAL_UPDATE'
-    result=dict(status='ARCHIVED_STAGING_REPLAY_PASS',code=code,ref=ref,head=head,current=pointer['current'],baseline_sha256=SNAPSHOT_SHA,all_preexisting_fact_source_tables_unchanged=True,canonical_ids_unchanged=True,player_facts=facts,national_facts=494,raw=rawmeta,source_associations=associations,raw_replays=replays,automatic_revalidations=changes,source_issues=len(data['source_issues']),synthetic_timeline_rows_after=0,duplicate_appearance_keys_after=0,production_unchanged=True)
+    result=dict(status='ARCHIVED_STAGING_REPLAY_PASS',code=code,ref=ref,head=head,current=pointer['current'],baseline_sha256=SNAPSHOT_SHA,all_preexisting_fact_source_tables_unchanged=True,canonical_ids_unchanged=True,player_facts=facts,national_facts=494,raw=rawmeta,source_associations=associations,raw_replays=replays,automatic_revalidations=changes,source_issues=len(data['source_issues']),metadata_metrics=metadata_metrics,synthetic_timeline_rows_after=0,duplicate_appearance_keys_after=0,production_unchanged=True)
     (work/'staging-result.json').write_text(json.dumps(result,ensure_ascii=False,indent=2));store.upload(pointer['current']['release_id'],work/'staging-result.json');print('STAGING_RESULT '+json.dumps(result,ensure_ascii=False))
     return result
 if __name__=='__main__':main()

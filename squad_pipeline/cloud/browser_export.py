@@ -33,7 +33,7 @@ def export_browser(database,out,data_head,pointer,as_of,acceptance=True):
  for r in retry_rows:
   r=dict(r);c=json.loads(r['candidate_json']);
   if c.get('acceptance_test_only'):continue
-  pending.append({k:r[k] for k in ['match_key','club_id','url','match_date','failure_classification','state','next_retry_at','escalation_status','attempt_count']});club=next((x for x in clubs if x['club_id']==str(r['club_id'])),None)
+  pending.append({k:r[k] for k in ['match_key','canonical_match_id','club_id','url','match_date','failure_classification','state','next_retry_at','escalation_status','attempt_count']});club=next((x for x in clubs if x['club_id']==str(r['club_id'])),None)
   if not club:continue
  from .canonical_export import enrich_records
  enrich_records(db,records,'CLUB')

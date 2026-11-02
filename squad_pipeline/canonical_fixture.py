@@ -210,10 +210,15 @@ def bootstrap(db, snapshot_sha256='RETAINED_DATABASE'):
             home = legacy_team(db, m['home_team'], r['home_id'], ev)
             away = legacy_team(db, m['away_team'], r['away_id'], ev)
             reconcile(db, dict(domain='CLUB', provider='LEGACY_ACCEPTED', provider_match_id=r['match_id'], home_key=home, away_key=away, competition_key=str(r['competition_id']), edition=r['period_id'], fields=dict(kickoff=r['kickoff'], match_status=r['match_state'], **score_fields(r['result'])), evidence=ev, retained_accepted=True), registered_id=r['match_id'])
+    if exists(db, 'football_teams'):
+        for row in db.execute('SELECT team_key,display_name FROM football_teams').fetchall():
+            entity(db,'TEAM',row[0],row[1])
     if exists(db, 'international_matches'):
         for r in db.execute('SELECT * FROM international_matches').fetchall():
             r = dict(r)
-            reconcile(db, dict(domain='NATIONAL', provider='LEGACY_ACCEPTED', provider_match_id=r['match_id'], home_key=r['home_team_key'], away_key=r['away_team_key'], competition_key=r['competition_key'], fields=dict(kickoff=r['kickoff_utc'], match_status=r['match_state'], **score_fields(r['score'])), evidence=ev, retained_accepted=True), registered_id=r['match_id'])
+            meta=json.loads(r['metadata_json'] or '{}')
+            entity(db,'COMPETITION',str(r['competition_key']),meta.get('competition') or str(r['competition_key']))
+            reconcile(db, dict(domain='NATIONAL', provider='LEGACY_ACCEPTED', provider_match_id=r['match_id'], home_key=r['home_team_key'], away_key=r['away_team_key'], competition_key=r['competition_key'], fields=dict(kickoff=r['kickoff_utc'], match_status=r['match_state'], duration_minutes=r['duration_minutes'], extra_time_status=r['extra_time_status'], **score_fields(r['score'])), evidence=ev, retained_accepted=True), registered_id=r['match_id'])
         if exists(db, 'international_match_provider_ids'):
             for r in db.execute('SELECT * FROM international_match_provider_ids').fetchall():
                 db.execute('INSERT OR IGNORE INTO canonical_fixture_sources VALUES(?,?,?,?,?)', ('NATIONAL', r['provider'], r['provider_match_id'], r['match_id'], encoded(ev)))
