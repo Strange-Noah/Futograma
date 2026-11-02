@@ -74,3 +74,14 @@ class CanonicalFixtureTests(unittest.TestCase):
     def test_20_two_competitions_not_same_fixture(self):
         a=self.put(create=True);b=self.put(dict(self.obs,competition_key='CUP',provider_match_id='cup'),create=True)
         self.assertNotEqual(a['match_id'],b['match_id'])
+
+    def test_21_bytes_diagnostics_match_text(self):
+        raw='<script id="__NEXT_DATA__">'+json.dumps({'props':{'pageProps':{'data':{'general':{'matchId':999},'content':{'lineup':{'matchId':999}}}}}})+'</script>'
+        source=dict(url='https://example.com/series#123',sha256='c'*64)
+        self.assertEqual(inspect_match(raw.encode(),'123',source),inspect_match(raw,'123',source))
+    def test_22_nullable_legacy_id_reuses_retained_identity(self):
+        ev=dict(snapshot_sha256='d'*64)
+        a=c.legacy_team(self.db,'exact-token',123,ev)
+        self.assertEqual(c.legacy_team(self.db,'exact-token',None,ev),a)
+        with self.assertRaisesRegex(ValueError,'ALIAS_MAPPING_CONFLICT'):
+            c.legacy_team(self.db,'exact-token',999,ev)

@@ -104,7 +104,7 @@ def associate_failure(db, task, header):
     result=c.reconcile(db,dict(domain='CLUB',provider=header['provider'],provider_match_id=str(header['provider_match_id']),home_key=fixture['home_key'],away_key=fixture['away_key'],competition_key=comp,fields=dict(kickoff=kick,**c.score_fields(header.get('score'))),evidence=proof))
     key=task['match_key'];reason=task.get('last_error') or task.get('failure_classification')
     db.execute('UPDATE match_retry_queue SET canonical_match_id=? WHERE match_key=?',(result['match_id'],key))
-    db.execute('INSERT OR REPLACE INTO canonical_source_issues VALUES(?,?,?,?,?,?,?)',(key,'CLUB',result['match_id'],header['provider'],reason,'SOURCE_ONLY;PLAYER_IDENTITY_UNRESOLVED',c.encoded(task)))
+    db.execute('INSERT OR REPLACE INTO canonical_source_issues VALUES(?,?,?,?,?,?,?)',(key,'CLUB',result['match_id'],header['provider'],reason,'SOURCE_ONLY;PLAYER_IDENTITY_UNRESOLVED',c.encoded({k:task.get(k) for k in ('match_key','provider','provider_match_id','url','state','failure_classification','last_error')})))
     return dict(result,state='ASSOCIATED_NOT_RESOLVED',player_issues_preserved=True)
 
 

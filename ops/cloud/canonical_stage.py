@@ -67,6 +67,7 @@ def main():
     subprocess.run(['python','-c',"import sys,json;from squad_pipeline.cloud.all_match_export import export_all_matches;export_all_matches(sys.argv[1],sys.argv[2],'BASELINE',json.loads(sys.argv[3]),'2026-11-02',True)",str(baseline),str(work/'baseline-export'),json.dumps(baseline_pointer)],cwd=baseline_source,env=env,check=True)
     baseline_export=json.loads((work/'baseline-export/data/browser.json').read_text())
     db=sqlite3.connect(working);db.row_factory=sqlite3.Row;db.execute('PRAGMA foreign_keys=ON');before=state(db);legacy_ids=[r[0] for r in db.execute('SELECT match_id FROM matches ORDER BY match_id')];bootstrap(db,SNAPSHOT_SHA)
+    seeded=db.serialize();operations=[]
     tar,bodies,rawmeta=archive(store,'daily-evidence-41317204106',work/'club-raw.tar.gz');associations=[];replays=[]
     # Every retained source task whose response is archived goes through the same generic adapter.
     for row in db.execute('SELECT * FROM match_retry_queue').fetchall():
@@ -79,13 +80,13 @@ def main():
         seen=catalogs(directory[1].decode('utf-8','replace'),'Sky',task['club_id'],task['match_date'])
         exact=[x for x in seen if x.get('catalog_provider_id')==task['provider_match_id']]
         if len(exact)!=1 or exact[0]['catalog_team_labels']!=candidate['catalog_team_labels']:raise ValueError('DIRECTORY_ID_SIDE_EVIDENCE_MISMATCH')
-        header=sky_metadata(raw.decode('utf-8','replace'),source,candidate);result=associate_failure(db,task,header);associations.append(dict(task=task['match_key'],result=result))
+        header=sky_metadata(raw.decode('utf-8','replace'),source,candidate);operations.append(('failure',task,header));result=associate_failure(db,task,header);associations.append(dict(task=task['match_key'],result=result))
         if result.get('match_id'):
             assert_alias(db,'COMPETITION','Sky',header['competition_label'],str(header['competition_id']),header['evidence'])
     # Parse every accepted archived Torlytics fixture, not only the two reported cases.
     for doc in db.execute("SELECT * FROM live_documents WHERE provider='Torlytics'").fetchall():
         if doc['url'] not in bodies:continue
-        source,raw=bodies[doc['url']];f,sheets=torly_detail(raw.decode('utf-8','replace'),source)
+        source,raw=bodies[doc['url']];f,sheets=torly_detail(raw.decode('utf-8','replace'),source);operations.append(('fixture',json.loads(json.dumps(f)),f['source_evidence'][0]))
         result=observe_fixture(db,f,f['source_evidence'][0],create=False)
         if result['match_id']!=doc['match_id']:raise ValueError('HISTORICAL_CANONICAL_ID_CHANGED')
         own=next(s for s in sheets if s['club_id']==doc['club_id'])
@@ -108,6 +109,22 @@ def main():
             key=info[side+'_team_id'];label=f['source_team_names'][side]
             assert_alias(db,'TEAM','Torlytics',label,key,dict(sha256=source['sha256'],url=source['url'],canonical_match_id=result['match_id']))
             if key.startswith('legacy-team:'):db.execute("UPDATE canonical_entities SET name=? WHERE kind='TEAM' AND entity_id=?",(label,key))
+    # Replay the actual archived observations in both orders on the same verified seed.
+    order_results=[]
+    for sequence in (operations,list(reversed(operations))):
+        clone=sqlite3.connect(':memory:');clone.deserialize(seeded);clone.row_factory=sqlite3.Row
+        def apply(op):
+            kind,item,context=op
+            return associate_failure(clone,item,context) if kind=='failure' else observe_fixture(clone,item,context,create=False)
+        for op in sequence:apply(op)
+        def counters():return {t:clone.execute('SELECT COUNT(*) FROM '+t).fetchone()[0] for t in ['canonical_fixtures','canonical_observations','canonical_field_claims','canonical_reconciliation_events']}
+        counts=counters()
+        for op in sequence:apply(op)
+        assert counters()==counts,'ARCHIVED_REPLAY_NOT_IDEMPOTENT'
+        signature=[list(r) for r in clone.execute('SELECT match_id,field,value_json,state FROM canonical_field_values ORDER BY match_id,field')]
+        bindings=[list(r) for r in clone.execute('SELECT domain,provider,provider_match_id,match_id FROM canonical_fixture_sources ORDER BY domain,provider,provider_match_id')]
+        order_results.append(dict(field_hash=digest(signature),binding_hash=digest(bindings),counts=counts));clone.close()
+    assert order_results[0]==order_results[1],'ARCHIVED_SOURCE_ORDER_CHANGED_CANONICAL_RESULT'
     changes=revalidate(db,datetime.fromisoformat('2026-11-02T08:00:00+00:00'))
     db.commit();after=state(db)
     assert before==after,'PRE_EXISTING_FACT_OR_SOURCE_TABLE_CHANGED'
@@ -124,7 +141,7 @@ def main():
     before_pending=sum(bool(r.get('pending')) for rs in baseline_export['records'].values() for r in rs)
     metadata_metrics=dict(club_appearance_rows_before=sum(r.get('match_type')=='CLUB' and not r.get('pending') for rs in baseline_export['records'].values() for r in rs),club_appearance_rows_after=facts,synthetic_timeline_rows_before=before_pending,synthetic_timeline_rows_after=0,verified_score_matches_before=len({r['match_id'] for rs in baseline_export['records'].values() for r in rs if r.get('match_type')=='CLUB' and r.get('home_score') is not None}),verified_score_matches_after=len({r['match_id'] for rs in data['records'].values() for r in rs if r.get('match_type')=='CLUB' and r.get('score_state')=='VERIFIED'}))
     assert production.head()[0]==production_head,'PRODUCTION_CHANGED_DURING_ISOLATION;REVIEW_EXTERNAL_UPDATE'
-    result=dict(status='ARCHIVED_STAGING_REPLAY_PASS',code=code,ref=ref,head=head,current=pointer['current'],baseline_sha256=SNAPSHOT_SHA,all_preexisting_fact_source_tables_unchanged=True,canonical_ids_unchanged=True,player_facts=facts,national_facts=494,raw=rawmeta,source_associations=associations,raw_replays=replays,automatic_revalidations=changes,source_issues=len(data['source_issues']),metadata_metrics=metadata_metrics,synthetic_timeline_rows_after=0,duplicate_appearance_keys_after=0,production_unchanged=True)
+    result=dict(status='ARCHIVED_STAGING_REPLAY_PASS',code=code,ref=ref,head=head,current=pointer['current'],baseline_sha256=SNAPSHOT_SHA,all_preexisting_fact_source_tables_unchanged=True,canonical_ids_unchanged=True,player_facts=facts,national_facts=494,raw=rawmeta,source_associations=associations,raw_replays=replays,source_order_and_idempotency=order_results,automatic_revalidations=changes,source_issues=len(data['source_issues']),metadata_metrics=metadata_metrics,synthetic_timeline_rows_after=0,duplicate_appearance_keys_after=0,production_unchanged=True)
     (work/'staging-result.json').write_text(json.dumps(result,ensure_ascii=False,indent=2));store.upload(pointer['current']['release_id'],work/'staging-result.json');print('STAGING_RESULT '+json.dumps(result,ensure_ascii=False))
     return result
 if __name__=='__main__':main()

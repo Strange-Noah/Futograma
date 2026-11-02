@@ -6,6 +6,7 @@ from .canonical_fixture import digest,encoded,migrate
 
 
 def inspect_match(raw, expected, source):
+    if isinstance(raw, bytes):raw=raw.decode('utf-8','replace')
     parts=urlsplit(source.get('url',''));result=dict(expected_id=str(expected),source_url=source.get('url'),request_url_without_fragment=parts._replace(fragment='').geturl(),fragment_id=parts.fragment,query=parse_qs(parts.query),body_sha256=source.get('sha256'),actual_id=None,lineup_id=None,ssr_path=None)
     try:
         page=payload(raw);result['actual_id']=str((page.get('general') or {}).get('matchId')) if (page.get('general') or {}).get('matchId') is not None else None

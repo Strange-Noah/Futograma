@@ -189,7 +189,8 @@ def score_fields(score):
 
 
 def legacy_team(db, token, known_id, evidence):
-    key = 'club:' + str(known_id) if known_id is not None else 'legacy-team:' + digest(token)[:24]
+    existing = resolve_entity(db, 'TEAM', 'LEGACY_ACCEPTED', token)
+    key = 'club:' + str(known_id) if known_id is not None else existing or 'legacy-team:' + digest(token)[:24]
     entity(db, 'TEAM', key, token)
     assert_alias(db, 'TEAM', 'LEGACY_ACCEPTED', token, key, evidence)
     return key
@@ -207,7 +208,15 @@ def bootstrap(db, snapshot_sha256='RETAINED_DATABASE'):
             assert_alias(db, 'COMPETITION', 'LEGACY_ACCEPTED', name, str(cid), ev)
     if exists(db, 'matches'):
         db.row_factory = __import__('sqlite3').Row
-        for r in db.execute('SELECT * FROM matches').fetchall():
+        rows = db.execute('SELECT * FROM matches').fetchall()
+        # Seed exact retained tokens with known IDs before importing nullable rows.
+        # Conflicting non-null IDs still fail; no display-name similarity is used.
+        for r in rows:
+            m = json.loads(r['metadata_json'] or '{}')
+            for side in ('home', 'away'):
+                if m.get(side+'_team') and r[side+'_id'] is not None:
+                    legacy_team(db, m[side+'_team'], r[side+'_id'], ev)
+        for r in rows:
             if 'metadata_json' not in r.keys():
                 continue
             m = json.loads(r['metadata_json'] or '{}')
