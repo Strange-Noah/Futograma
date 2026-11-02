@@ -72,7 +72,7 @@ class CanonicalFixtureTests(unittest.TestCase):
         self.assertEqual(c.club_period('2027-01-02')[0],'2026-27_H2')
         self.assertEqual(c.club_period('2025-10-03')[0],'2025-26_H1')
     def test_20_two_competitions_not_same_fixture(self):
-        a=self.put(create=True);b=self.put(dict(self.obs,competition_key='CUP',provider_match_id='cup'),create=True)
+        c.entity(self.db,'COMPETITION','CUP','Cup');a=self.put(create=True);b=self.put(dict(self.obs,competition_key='CUP',provider_match_id='cup'),create=True)
         self.assertNotEqual(a['match_id'],b['match_id'])
 
     def test_21_bytes_diagnostics_match_text(self):
@@ -85,3 +85,9 @@ class CanonicalFixtureTests(unittest.TestCase):
         self.assertEqual(c.legacy_team(self.db,'exact-token',None,ev),a)
         with self.assertRaisesRegex(ValueError,'ALIAS_MAPPING_CONFLICT'):
             c.legacy_team(self.db,'exact-token',999,ev)
+
+    def test_23_unknown_entity_cannot_create_fixture(self):
+        with self.assertRaisesRegex(ValueError,'CANONICAL_ENTITY_REQUIRED'):
+            self.put(dict(self.obs,away_key='unverified'),create=True)
+    def test_24_wrong_event_is_not_player_identity_conflict(self):
+        self.assertEqual(classify(dict(status='VALIDATION_FAILED',error='ValueError:RETURNED_MATCH_ID_MISMATCH'),{})[0],'SOURCE_MATCH_ID_MISMATCH')

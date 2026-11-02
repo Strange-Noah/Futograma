@@ -67,6 +67,13 @@ def main():
     subprocess.run(['python','-c',"import sys,json;from squad_pipeline.cloud.all_match_export import export_all_matches;export_all_matches(sys.argv[1],sys.argv[2],'BASELINE',json.loads(sys.argv[3]),'2026-11-02',True)",str(baseline),str(work/'baseline-export'),json.dumps(baseline_pointer)],cwd=baseline_source,env=env,check=True)
     baseline_export=json.loads((work/'baseline-export/data/browser.json').read_text())
     db=sqlite3.connect(working);db.row_factory=sqlite3.Row;db.execute('PRAGMA foreign_keys=ON');before=state(db);legacy_ids=[r[0] for r in db.execute('SELECT match_id FROM matches ORDER BY match_id')];bootstrap(db,SNAPSHOT_SHA)
+    from squad_pipeline.international_store import team as national_team,put_match as national_match
+    national_replayed=0
+    for r in db.execute('SELECT p.*,t.display_name,t.level FROM football_team_provider_ids p JOIN football_teams t USING(team_key)').fetchall():
+        assert national_team(db,r['display_name'],r['level'],r['evidence_id'],r['provider'],r['provider_team_id'])==r['team_key']
+    for r in db.execute('SELECT * FROM international_match_provider_ids').fetchall():
+        m=dict(db.execute('SELECT * FROM international_matches WHERE match_id=?',(r['match_id'],)).fetchone())
+        assert national_match(db,m,r['provider'],r['provider_match_id'],r['evidence_id'])==r['match_id'];national_replayed+=1
     seeded=db.serialize();operations=[]
     tar,bodies,rawmeta=archive(store,'daily-evidence-41317204106',work/'club-raw.tar.gz');associations=[];replays=[]
     # Every retained source task whose response is archived goes through the same generic adapter.
@@ -125,7 +132,23 @@ def main():
         bindings=[list(r) for r in clone.execute('SELECT domain,provider,provider_match_id,match_id FROM canonical_fixture_sources ORDER BY domain,provider,provider_match_id')]
         order_results.append(dict(field_hash=digest(signature),binding_hash=digest(bindings),counts=counts));clone.close()
     assert order_results[0]==order_results[1],'ARCHIVED_SOURCE_ORDER_CHANGED_CANONICAL_RESULT'
+    queue_before={t:{r[0]:r[1] for r in db.execute('SELECT state,COUNT(*) FROM '+t+' GROUP BY state')} for t in ('match_retry_queue','international_acquisition_queue')}
     changes=revalidate(db,datetime.fromisoformat('2026-11-02T08:00:00+00:00'))
+    recovery_attempts=[]
+    for row in db.execute("SELECT * FROM match_retry_queue WHERE state='PENDING'").fetchall():
+        task=dict(row)
+        if task['url'] not in bodies:continue
+        source,raw=bodies[task['url']];source=dict(source,catalog_candidate=json.loads(task['candidate_json']))
+        clone=sqlite3.connect(':memory:');clone.deserialize(db.serialize());clone.row_factory=sqlite3.Row
+        try:
+            from squad_pipeline.live_ingest import apply_sheet
+            f,sheets=sky_detail(raw.decode('utf-8','replace'),source)
+            own=next(s for s in sheets if s['club_id']==task['club_id'])
+            result=apply_sheet(clone,f,own,'CANONICAL_ARCHIVED_RECOVERY','2026-11-02',dry=True)
+            recovery_attempts.append(dict(task_key=task['match_key'],result=result))
+        except Exception as exc:recovery_attempts.append(dict(task_key=task['match_key'],error=type(exc).__name__+':'+str(exc),resolved=False))
+        finally:clone.close()
+    queue_after={t:[dict(r) for r in db.execute('SELECT state,failure_classification,COUNT(*) AS count FROM '+t+' GROUP BY state,failure_classification')] for t in queue_before}
     db.commit();after=state(db)
     assert before==after,'PRE_EXISTING_FACT_OR_SOURCE_TABLE_CHANGED'
     assert legacy_ids==[r[0] for r in db.execute('SELECT match_id FROM matches ORDER BY match_id')]
@@ -141,7 +164,7 @@ def main():
     before_pending=sum(bool(r.get('pending')) for rs in baseline_export['records'].values() for r in rs)
     metadata_metrics=dict(club_appearance_rows_before=sum(r.get('match_type')=='CLUB' and not r.get('pending') for rs in baseline_export['records'].values() for r in rs),club_appearance_rows_after=facts,synthetic_timeline_rows_before=before_pending,synthetic_timeline_rows_after=0,verified_score_matches_before=len({r['match_id'] for rs in baseline_export['records'].values() for r in rs if r.get('match_type')=='CLUB' and r.get('home_score') is not None}),verified_score_matches_after=len({r['match_id'] for rs in data['records'].values() for r in rs if r.get('match_type')=='CLUB' and r.get('score_state')=='VERIFIED'}))
     assert production.head()[0]==production_head,'PRODUCTION_CHANGED_DURING_ISOLATION;REVIEW_EXTERNAL_UPDATE'
-    result=dict(status='ARCHIVED_STAGING_REPLAY_PASS',code=code,ref=ref,head=head,current=pointer['current'],baseline_sha256=SNAPSHOT_SHA,all_preexisting_fact_source_tables_unchanged=True,canonical_ids_unchanged=True,player_facts=facts,national_facts=494,raw=rawmeta,source_associations=associations,raw_replays=replays,source_order_and_idempotency=order_results,automatic_revalidations=changes,source_issues=len(data['source_issues']),metadata_metrics=metadata_metrics,synthetic_timeline_rows_after=0,duplicate_appearance_keys_after=0,production_unchanged=True)
+    result=dict(status='ARCHIVED_STAGING_REPLAY_PASS',code=code,ref=ref,head=head,current=pointer['current'],baseline_sha256=SNAPSHOT_SHA,all_preexisting_fact_source_tables_unchanged=True,canonical_ids_unchanged=True,player_facts=facts,national_facts=494,national_provider_records_replayed=national_replayed,queue_before=queue_before,queue_after=queue_after,recovery_attempts=recovery_attempts,raw=rawmeta,source_associations=associations,raw_replays=replays,source_order_and_idempotency=order_results,automatic_revalidations=changes,source_issues=len(data['source_issues']),metadata_metrics=metadata_metrics,synthetic_timeline_rows_after=0,duplicate_appearance_keys_after=0,production_unchanged=True)
     (work/'staging-result.json').write_text(json.dumps(result,ensure_ascii=False,indent=2));store.upload(pointer['current']['release_id'],work/'staging-result.json');print('STAGING_RESULT '+json.dumps(result,ensure_ascii=False))
     return result
 if __name__=='__main__':main()

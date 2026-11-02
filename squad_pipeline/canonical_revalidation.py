@@ -16,6 +16,18 @@ def revalidate(db, at=None):
             if table=='international_acquisition_queue':
                 history=db.execute('SELECT result_json FROM international_acquisition_history WHERE task_key=? ORDER BY observed_at DESC,event_id DESC LIMIT 1',(task,)).fetchone()
                 error=(json.loads(history[0]).get('error') or '') if history else ''
+            # Correct diagnostic scope while retaining quarantine and every task.
+            wrong_source=any(x in error for x in ('RETURNED_MATCH_ID_MISMATCH','LINEUP_MATCH_ID_MISMATCH'))
+            fixture_conflict=any(x in error for x in ('PHYSICAL_MATCH_IDENTITY_CONFLICT','ORDERED_TEAM_ID_MISMATCH','MATCH_KICKOFF_MISMATCH','MATCH_COMPETITION_ID_MISMATCH'))
+            if wrong_source or fixture_conflict:
+                classification='SOURCE_MATCH_ID_MISMATCH' if wrong_source else 'FIXTURE_IDENTITY_CONFLICT'
+                if r['failure_classification']!=classification:
+                    evidence=dict(rule=c.VERSION,original_error=error,reason='DIAGNOSTIC_SCOPE_ONLY;NO_RESOLUTION_OR_RETRY')
+                    event=c.digest([table,task,classification,'CLASSIFY_ONLY'])
+                    db.execute('INSERT OR IGNORE INTO canonical_revalidation_events VALUES(?,?,?,?,?,?,?)',(event,table,task,r['failure_classification'],classification,'CLASSIFY_ONLY',c.encoded(evidence)))
+                    db.execute('UPDATE '+table+' SET failure_classification=? WHERE '+keycol+'=?',(classification,task))
+                    out.append(dict(queue=table,task_key=task,action='CLASSIFY_ONLY',classification=classification))
+                continue
             reason=None
             if error.startswith('ParseError:UNSUPPORTED_COMPETITION') and candidate.get('catalog_competition') in COMP:
                 reason='VERIFIED_COMPETITION_ALIAS_ADAPTER_AVAILABLE';classification='TEMPORARY_SOURCE_INCOMPLETE'

@@ -126,6 +126,8 @@ def reconcile(db, observation, create=False, registered_id=None):
     required = ('domain', 'provider', 'provider_match_id', 'home_key', 'away_key', 'competition_key')
     if any(o.get(k) is None or o.get(k) == '' for k in required):
         raise ValueError('CANONICAL_FIXTURE_IDENTITIES_REQUIRED')
+    for kind,key in [('TEAM',o['home_key']),('TEAM',o['away_key']),('COMPETITION',str(o['competition_key']))]:
+        if not db.execute('SELECT 1 FROM canonical_entities WHERE kind=? AND entity_id=?',(kind,key)).fetchone():raise ValueError('CANONICAL_ENTITY_REQUIRED')
     if o['home_key'] == o['away_key']:
         raise ValueError('DISTINCT_ORDERED_TEAMS_REQUIRED')
     fields = {k: v for k, v in o.get('fields', {}).items() if v is not None}
