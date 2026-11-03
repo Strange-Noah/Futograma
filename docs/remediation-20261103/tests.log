@@ -228,6 +228,6 @@ test_actual_profile_names_become_reusable_with_same_stable_id (test_verified_pro
 test_profile_cannot_reassign_canonical_identity (test_verified_profile_alias_refresh.VerifiedProfileAliasTests.test_profile_cannot_reassign_canonical_identity) ... ok
 
 ----------------------------------------------------------------------
-Ran 228 tests in 0.057s
+Ran 228 tests in 0.059s
 
 OK (skipped=58)

@@ -1,0 +1,2043 @@
+{
+  "snapshot_sha256": "53ff7ca40a3955158c3eeef601ce8e85dd7737bc99bcb3c6c3dc0b478b018486",
+  "integrity": "ok",
+  "foreign_key_errors": 0,
+  "national_fact_count": 494,
+  "archive_hashes": {},
+  "tasks": 202,
+  "response_classes": {
+    "ARCHIVE_UNAVAILABLE": 202
+  },
+  "fact_categories": {
+    "EXISTING_FIXTURE_VERIFICATION_DEBT": 35,
+    "EXISTING_PLAYER_FACT_VERIFICATION_DEBT": 117,
+    "NO_CANONICAL_SOURCE_UNVERIFIED": 32,
+    "EXISTING_FIXTURE_PLAYER_FACT_UNVERIFIED": 18
+  },
+  "records": [
+    {
+      "task_key": "cdc2f2f611f9ffc95454d79a92b400910a97fed91d830af272fc4baf69640890",
+      "entity_type": "MATCH",
+      "expected_id": "5181788",
+      "canonical_match_id": "nt_fotmob_5181788",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "dcc3537fdefaac476056995ca1da9e7299217213dc365699c30982022d37dc0d",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181788",
+      "canonical_match_id": "nt_fotmob_5181788",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "d08c50cfd7053c66108e237fa894c588d432536e58c24ee4cebf5c85ab281aad",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181788",
+      "canonical_match_id": "nt_fotmob_5181788",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "7780fde3d835f7dcb3fb48fecefeec8fb6f3b4806b94e618352a18c01ba93d65",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181788",
+      "canonical_match_id": "nt_fotmob_5181788",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "8ffff161528fd7aa9ee98165fd196b9ed808d36373e2d15998bf9cf9df8e5ab0",
+      "entity_type": "MATCH",
+      "expected_id": "5181789",
+      "canonical_match_id": null,
+      "player_fact_exists": false,
+      "category": "NO_CANONICAL_SOURCE_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "4a80244c8b45cf39a3e7ece5486e477878774531cc69d9470fa696f4b8c04597",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181789",
+      "canonical_match_id": null,
+      "player_fact_exists": false,
+      "category": "NO_CANONICAL_SOURCE_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "de88647f37220ced8398c086936460399ac70c1883cbdca248b1b757b410d586",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181789",
+      "canonical_match_id": null,
+      "player_fact_exists": false,
+      "category": "NO_CANONICAL_SOURCE_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "93ee98e875025916f26eab9cc3120ba3d6b57066c49dc79750ce33d1063a165f",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181789",
+      "canonical_match_id": null,
+      "player_fact_exists": false,
+      "category": "NO_CANONICAL_SOURCE_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "3421572a25f363f44aa823e33f3e9ca47d2288af3cdfde2f25cc64d79837dff6",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181789",
+      "canonical_match_id": null,
+      "player_fact_exists": false,
+      "category": "NO_CANONICAL_SOURCE_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "ab29cf07bd806a8f26b19e8d9ed450d775ab18c2d6f284e2cb393235a4a27bf1",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181789",
+      "canonical_match_id": null,
+      "player_fact_exists": false,
+      "category": "NO_CANONICAL_SOURCE_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "580156600b5f966ccf3e2a5b689eb5507d8653bae677166378b9d084162e65e1",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181789",
+      "canonical_match_id": null,
+      "player_fact_exists": false,
+      "category": "NO_CANONICAL_SOURCE_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "81f1b2fd8bc19a81975eb6589cb60049fc9effddf9caee5d1bafcc2b7dd45107",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181789",
+      "canonical_match_id": null,
+      "player_fact_exists": false,
+      "category": "NO_CANONICAL_SOURCE_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "3f15631996604439643ca31d07f1834b7fe6a0f72e0cecf2c5f919108c31fae2",
+      "entity_type": "MATCH",
+      "expected_id": "5181790",
+      "canonical_match_id": "nt_fotmob_5181790",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "15e82818b6872734f78452b8a9053e514de7df951a6a4aa04e50a836cfc8ee1f",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181790",
+      "canonical_match_id": "nt_fotmob_5181790",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "036ef2d53b927e08f135e48d7f3ce1cac07c12e42e2a9414e72efe01070f5838",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181790",
+      "canonical_match_id": "nt_fotmob_5181790",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "b15b9828199c5b81b96274e5ecc272c43b2ac551268fb76f5425f650acfda48d",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181790",
+      "canonical_match_id": "nt_fotmob_5181790",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "aa6fdc584f21a49f39a95e85a9e672903c70dc7771fb478fcb36b1d70d2edd33",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181790",
+      "canonical_match_id": "nt_fotmob_5181790",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "f78e4578397e4f015192938a7a63e0f977949f9adcc3a9ea2e772a1d39e953e1",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181790",
+      "canonical_match_id": "nt_fotmob_5181790",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_PLAYER_FACT_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "cba59a2610cb5c9f25dba8376e76d827ce24b4324724bd077b1c1bda74a0a3a4",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181790",
+      "canonical_match_id": "nt_fotmob_5181790",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "dab5964be260cc1cee74ed1c0d58d63c024a0c2945265278f9079bb5ab17b3d4",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181790",
+      "canonical_match_id": "nt_fotmob_5181790",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "b5ffed5baac29158a582589d30f895c5259199fd4295700b5f13e26206935d69",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181790",
+      "canonical_match_id": "nt_fotmob_5181790",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "550bd708591b98c8b15510453d88595790ccf09084d139937a898f27a16ba861",
+      "entity_type": "MATCH",
+      "expected_id": "5181791",
+      "canonical_match_id": null,
+      "player_fact_exists": false,
+      "category": "NO_CANONICAL_SOURCE_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "360a657fd05b4b01645531c35ddb986565566f530d1670be573018c1e7b00ae2",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181791",
+      "canonical_match_id": null,
+      "player_fact_exists": false,
+      "category": "NO_CANONICAL_SOURCE_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "247af133734932c43ec7376c8cb28e0da1d66a004910b79e2622f9271d65a97b",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181791",
+      "canonical_match_id": null,
+      "player_fact_exists": false,
+      "category": "NO_CANONICAL_SOURCE_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "28b4bfa2b3407afb532ef113639310dab47fa1a44f190d3f22a2fd218cb34b00",
+      "entity_type": "MATCH",
+      "expected_id": "5181792",
+      "canonical_match_id": null,
+      "player_fact_exists": false,
+      "category": "NO_CANONICAL_SOURCE_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "4082babcdc459cea06d2d7810c9dbb4193f0292567dec57a5e85e437b3beb3e7",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181792",
+      "canonical_match_id": null,
+      "player_fact_exists": false,
+      "category": "NO_CANONICAL_SOURCE_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "76a1731881e3d5130566cce54392caf6c50d92f81762bbb94b4bd035351309a3",
+      "entity_type": "MATCH",
+      "expected_id": "5181793",
+      "canonical_match_id": "nt_fotmob_5181793",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "5535f564867a5f777565bc8c955b70cf405b8175bb29790aac3ea165373b5874",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181793",
+      "canonical_match_id": "nt_fotmob_5181793",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "9c3616652ba38a53c7c3df02cd65a68c6113d017948051e84442f088a821a227",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181793",
+      "canonical_match_id": "nt_fotmob_5181793",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "d46f3c721fac69d033df50251962596b04e81d5a1d485e907673d1bc3a7c8ee9",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181793",
+      "canonical_match_id": "nt_fotmob_5181793",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "b661af1f50db3a469593b973682ca35c003068350f4211ef32752947044f9f9a",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181793",
+      "canonical_match_id": "nt_fotmob_5181793",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "6ba1fd659c124f313fe75cb96b28048e4580ea119c8d1c45bb28b40e68edac9f",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181793",
+      "canonical_match_id": "nt_fotmob_5181793",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "ce827e3898ebe04bf87e97ac5595ad8fb00210b769f59ef4e79391e399734b88",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181793",
+      "canonical_match_id": "nt_fotmob_5181793",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_PLAYER_FACT_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "622bee3172d0a5201501dcfade30639522e546f0abd42fce474d1cf194dd4e57",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181793",
+      "canonical_match_id": "nt_fotmob_5181793",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "ca67af73f22c6a9b1b549e7b710bba7fcd64f47c6d5a863203d3fed4d4487636",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181793",
+      "canonical_match_id": "nt_fotmob_5181793",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "940f0f4065add2a65708b54593b654e36ae299a2a363b4c8fc6ce2400c4323a6",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181793",
+      "canonical_match_id": "nt_fotmob_5181793",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "f7c89b6b0659a2316baba94d146758f1be522361fcc096c47130062f40472477",
+      "entity_type": "MATCH",
+      "expected_id": "5181800",
+      "canonical_match_id": "nt_fotmob_5181800",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "5feae7f52c0a88fe547b0494edaeed136ba24a675b2ec08867ba1914b9584ea4",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181800",
+      "canonical_match_id": "nt_fotmob_5181800",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "bf87472d5962851a4459bdbfd5df7c7559459e4470e219299cabf87b88f5da39",
+      "entity_type": "MATCH",
+      "expected_id": "5181801",
+      "canonical_match_id": "nt_fotmob_5181801",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "2ff2f00eab52cd308cb2cac7fb0d32cdbe976902e1477fc50ecfc807f57c42e6",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181801",
+      "canonical_match_id": "nt_fotmob_5181801",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "2506ea2b2754556ef7d5e7e1d62f52b739c93f1bdd77498e5161f93313342ac0",
+      "entity_type": "MATCH",
+      "expected_id": "5181802",
+      "canonical_match_id": "nt_fotmob_5181802",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "f62f5f3fb316d2d82b9f7d1f3d8ff03160582e5413656c7420e43b289973ec29",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181802",
+      "canonical_match_id": "nt_fotmob_5181802",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "f2f176368091f81fbadccc74d6a4b293f898f08c019f66e7f1ec0cbdb7a82001",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181802",
+      "canonical_match_id": "nt_fotmob_5181802",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "222c7a77921aef33301da1f5977f5f5a8997579bc0aa9df1ff1541499cb175f7",
+      "entity_type": "MATCH",
+      "expected_id": "5181804",
+      "canonical_match_id": "nt_fotmob_5181804",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "6d1a7f8bfa224df597fac317499e3389506384d87885e92b60567e2dbd9f34e9",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181804",
+      "canonical_match_id": "nt_fotmob_5181804",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "988b208c7a73444c1d95aeea9cfc78f295fb7bb36261af896506370c54d218df",
+      "entity_type": "MATCH",
+      "expected_id": "5181805",
+      "canonical_match_id": "nt_fotmob_5181805",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "508bae669c295bb38b30c9659b173a7329507d9b9d3751d215a62a48fe3ce78b",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181805",
+      "canonical_match_id": "nt_fotmob_5181805",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "2d611d356c8284d3ab4c2fd74a1bd568a25e26a44c50851f96606c72d89080cb",
+      "entity_type": "MATCH",
+      "expected_id": "5181812",
+      "canonical_match_id": "nt_fotmob_5181812",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "871fbb1a99ea262944e638d30c3c54e23daa7d4511d70aeabfa866a0bc7a1757",
+      "entity_type": "MATCH",
+      "expected_id": "5181814",
+      "canonical_match_id": "nt_fotmob_5181814",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "32d7e5ac08adcdbcb8662c672bfe42767956e2e4c57d3681b8602b896c81bcae",
+      "entity_type": "MATCH",
+      "expected_id": "5181817",
+      "canonical_match_id": null,
+      "player_fact_exists": false,
+      "category": "NO_CANONICAL_SOURCE_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "7d239566e5fb4f4364a52c844dab0503fdfa071503bc601293b25c826d1b6992",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181817",
+      "canonical_match_id": null,
+      "player_fact_exists": false,
+      "category": "NO_CANONICAL_SOURCE_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "3bdd398b8104507f6495fdc6c8d785c89c43162d4d0a58f8864bf705c5f5f38a",
+      "entity_type": "MATCH",
+      "expected_id": "5181825",
+      "canonical_match_id": "nt_fotmob_5181825",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "e3412b74847c6159c9bea48ce2e611043b7971084dff93ba1caf8ebe0283ec40",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181825",
+      "canonical_match_id": "nt_fotmob_5181825",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "beb72fc72d5d8ed3e60814c2714dbc0372a88a7c30a769f8cb141bffec79018f",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181825",
+      "canonical_match_id": "nt_fotmob_5181825",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "fda493fcb36bbe3cb1046e8fc1591230bc576a6b43e91aaf67ade95f3d53aa27",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181825",
+      "canonical_match_id": "nt_fotmob_5181825",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "11c576546f2585cb835e2f35721fc535b8f3fbe295ae366af64e099ef312121e",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181825",
+      "canonical_match_id": "nt_fotmob_5181825",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "e4c8b4d57ddc89fbeaf69b8a737ba25bcb2657281b6ba3acc32c8d37063e3c7f",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181825",
+      "canonical_match_id": "nt_fotmob_5181825",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "7d69d3bd40c8262fa1efc7912304ebc99f48b452a450299a7b803a6dee834e9f",
+      "entity_type": "MATCH",
+      "expected_id": "5181826",
+      "canonical_match_id": "nt_fotmob_5181826",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "8680890a16d2560aace724d39a159e94539fc58fd6e4cf0cffe55ff300a0c460",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181826",
+      "canonical_match_id": "nt_fotmob_5181826",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "e3633451760594a3ccfe2be503b80c77f0267c588a4302ed964b7bce3950d879",
+      "entity_type": "MATCH",
+      "expected_id": "5181827",
+      "canonical_match_id": "nt_fotmob_5181827",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "d0153c3ca5e38967979e2c3c5a703d1ca07153535ad1f577792aa6ae506dbe05",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181827",
+      "canonical_match_id": "nt_fotmob_5181827",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "3795b87f1ea23240b7d2422410edcce215eae2ea394492c7b7ae22524a6177b7",
+      "entity_type": "MATCH",
+      "expected_id": "5181828",
+      "canonical_match_id": "nt_fotmob_5181828",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "8f62a799e10520b9ad9b079480ad824262202f8e1b3fa6f51c0b5539995b9897",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181828",
+      "canonical_match_id": "nt_fotmob_5181828",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "4c7040d2d147ee3c244b223f767d1950216fa10b38aa4f2e20d17956029f7012",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181828",
+      "canonical_match_id": "nt_fotmob_5181828",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "54d3e5f97f822ee19bc522bfef03ee7ab015ce443ab86b0d43cea21109b531e6",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181828",
+      "canonical_match_id": "nt_fotmob_5181828",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "215bde91a0c9115dbd7b2af2ad21b93c97d7ade9914dcedb3b8a22a2a66ab78a",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181828",
+      "canonical_match_id": "nt_fotmob_5181828",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "6b95cbb9013133ad6962b7e471ba321d1e522e1f31e6785ea69ca168e860ecb1",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181828",
+      "canonical_match_id": "nt_fotmob_5181828",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "771e1181261c752bb4a90d46c3f8af44618fdff55db77319f41d311e534799c8",
+      "entity_type": "MATCH",
+      "expected_id": "5181829",
+      "canonical_match_id": "nt_fotmob_5181829",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "e7902aaea21d39d0d96684d311376d0489e7f7513b241bec43db93d649d312c8",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181829",
+      "canonical_match_id": "nt_fotmob_5181829",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "7439aba3da79e5911fc18a05de7f4a9afbb26361b24107ae20018444d8ab55bc",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181829",
+      "canonical_match_id": "nt_fotmob_5181829",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "84fcf4f035e54d271c495fb863a013b7feda00f1943b60c0bb7ec633fb18cbc9",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181829",
+      "canonical_match_id": "nt_fotmob_5181829",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "68a375e0f79ca5c9401711f5acb884e9b15100033f5a3e2f30d611b3e837ff12",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181829",
+      "canonical_match_id": "nt_fotmob_5181829",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "2a5e6b1d4b2a7557458e589e4e02889cfdc60b99b712ae8ffe32290f9a2d8c8c",
+      "entity_type": "MATCH",
+      "expected_id": "5181830",
+      "canonical_match_id": "nt_fotmob_5181830",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "1cf193550c1e02c99c723d8b704ce72efa578cfffcc3cc83991fcffc909d57c9",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181830",
+      "canonical_match_id": "nt_fotmob_5181830",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "e80c5c91358fe5e700e419faf797f6fbab98a9a067e8db914b4d89a8c224470d",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181830",
+      "canonical_match_id": "nt_fotmob_5181830",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "df42b85cf5169dd3f09698f3bf259aa048d9152c1535ee3bab966e59277435b6",
+      "entity_type": "MATCH",
+      "expected_id": "5181838",
+      "canonical_match_id": "nt_fotmob_5181838",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "647177dd8a156d5316fd0847647bcb2f414e9d064a5e021a594aa5246b04c768",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181838",
+      "canonical_match_id": "nt_fotmob_5181838",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "f5740d86d6bac53140baba7c7ee0d21c7138232da985fc38082b8545cdc7d149",
+      "entity_type": "MATCH",
+      "expected_id": "5181840",
+      "canonical_match_id": "nt_fotmob_5181840",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "29850e1c8b30b0df29c3bf6934fd65f4c27f9cf22ce01376b805c7b3deec4d13",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181840",
+      "canonical_match_id": "nt_fotmob_5181840",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "00e92ab026b578e6645e517baac00427f7a6b690593086d4a931d0b382ceb495",
+      "entity_type": "MATCH",
+      "expected_id": "5181841",
+      "canonical_match_id": "nt_fotmob_5181841",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "c003cae0d5036652d9355d65a959ea3ee861dea8a11262147ce7fa9a03be0923",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181841",
+      "canonical_match_id": "nt_fotmob_5181841",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "5855eb77b7dd7de21b682ede1dc237a06abb544784ce8dfcaf256185ba9a57f6",
+      "entity_type": "MATCH",
+      "expected_id": "5181849",
+      "canonical_match_id": null,
+      "player_fact_exists": false,
+      "category": "NO_CANONICAL_SOURCE_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "9e23f8c8c6ec2db6dce9dfd40fe4505e384379fa4b255176e727782e02406390",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181849",
+      "canonical_match_id": null,
+      "player_fact_exists": false,
+      "category": "NO_CANONICAL_SOURCE_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "91f60e45825547828f3fbeb6d47b4e5adde46edb0b66b5d39c56a33f046249f0",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181849",
+      "canonical_match_id": null,
+      "player_fact_exists": false,
+      "category": "NO_CANONICAL_SOURCE_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "def5b041986ed98192f69a588c4998700e91c653990ccfe6bf3a2d488ff6314e",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181849",
+      "canonical_match_id": null,
+      "player_fact_exists": false,
+      "category": "NO_CANONICAL_SOURCE_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "69c0b09f69aabb29b3190fbfacca462f0ae93543a20092d982debd9fe56108d0",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181849",
+      "canonical_match_id": null,
+      "player_fact_exists": false,
+      "category": "NO_CANONICAL_SOURCE_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "84482e841b740857e35875dcb24572fbe55e718ae1f82de47fa86ff57a590268",
+      "entity_type": "MATCH",
+      "expected_id": "5181850",
+      "canonical_match_id": "nt_m_94aedf175bf2c4bca285004a",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "01888bf51b1d64b01f510c4102313ea6c6d067449b5fa61e9ed068eec0e4e4b8",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181850",
+      "canonical_match_id": "nt_m_94aedf175bf2c4bca285004a",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "5f207c42c667479388b2adcac2853b7f8fbe17f87cc3e72efec642eceb1921df",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181850",
+      "canonical_match_id": "nt_m_94aedf175bf2c4bca285004a",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "cdc814612b206a7bacac7a61a2423274543adefe7c42471e2d3d40192659c080",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181850",
+      "canonical_match_id": "nt_m_94aedf175bf2c4bca285004a",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "dddbb12f3c9c56dbe65f3d9551f09dc13a714f04a5851ce284f27b5786f243f0",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181850",
+      "canonical_match_id": "nt_m_94aedf175bf2c4bca285004a",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_PLAYER_FACT_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "a81062c390af21097ef21081b0ba894c3736c8d5ca3fec8448f2f976e136feb5",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181850",
+      "canonical_match_id": "nt_m_94aedf175bf2c4bca285004a",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "c574f8a9bdb0119d6f7a0b5d49b12ee5e8cdcbd50af445ebbc4710a76895c0ee",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181850",
+      "canonical_match_id": "nt_m_94aedf175bf2c4bca285004a",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "6ac634b0f5c199badacc0cc4a2bb07299fbdc5449659398c425c0c1c7d70fa72",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181850",
+      "canonical_match_id": "nt_m_94aedf175bf2c4bca285004a",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "f4264293fb8b9b9685c5463ed2359a15e1e49affd126d7cdb26660ac3545dc02",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181850",
+      "canonical_match_id": "nt_m_94aedf175bf2c4bca285004a",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "21179c3e68c08b807a5ee929150badc0004335d489c81ee3ecc189003e571817",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181850",
+      "canonical_match_id": "nt_m_94aedf175bf2c4bca285004a",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "3db1d9cc748b4d21207af0c220563e54cce8b1839a6e13faa201fb163d0648ae",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181850",
+      "canonical_match_id": "nt_m_94aedf175bf2c4bca285004a",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "534d4ee0c8b34ef9d64cd507822cbfdef82554f0a226aabd988495530497b365",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181850",
+      "canonical_match_id": "nt_m_94aedf175bf2c4bca285004a",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "796ed852ccffd3887f43662c8a467a579d6835e32d09aec27b3e815f0dcc776d",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181850",
+      "canonical_match_id": "nt_m_94aedf175bf2c4bca285004a",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_PLAYER_FACT_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "387d981508bb81778c9d28b48fae3707cd85c49f7f6b6b75382df75b1226ce5a",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181850",
+      "canonical_match_id": "nt_m_94aedf175bf2c4bca285004a",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "88349537c54dde2a7669c07db51d939be9093b1eb0ad471180236c0ba23aef41",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181850",
+      "canonical_match_id": "nt_m_94aedf175bf2c4bca285004a",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "34d49c895e65e8f18cb9f18745a47a5034f26575427463406f5b0a2980b4d706",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181850",
+      "canonical_match_id": "nt_m_94aedf175bf2c4bca285004a",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "081cdf6d120deb65618a12d31e0c133089faae335eeb657c837c3b5ca60e867d",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181850",
+      "canonical_match_id": "nt_m_94aedf175bf2c4bca285004a",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "df8e56cfb73a4ed3501451c9904d3c03601490287000e78de238e7ed759668fe",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181850",
+      "canonical_match_id": "nt_m_94aedf175bf2c4bca285004a",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "cc39a4362233e7d8a83c7f2c2e643ee5536ad261594279eadc541a3b608fb950",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181850",
+      "canonical_match_id": "nt_m_94aedf175bf2c4bca285004a",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "980550eab3e1e2fb565f2ba8caf9b93f362ec72812230c1258c502859053b59b",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181850",
+      "canonical_match_id": "nt_m_94aedf175bf2c4bca285004a",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "acc40f5381e632b72465098a6a8a946ef988e286671a3d3ce3a1fc6e25cd3925",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181850",
+      "canonical_match_id": "nt_m_94aedf175bf2c4bca285004a",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "4768b835d5acfd9c017210c74763ca1959a150b6e859aeeec477630042bb7c36",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181850",
+      "canonical_match_id": "nt_m_94aedf175bf2c4bca285004a",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "0793cb886c3b48ba7569b4427b4006b31c15bfe4952a35b3090840cc6f1ceff1",
+      "entity_type": "MATCH",
+      "expected_id": "5181851",
+      "canonical_match_id": "nt_m_18680c1509579a39dbc377de",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "a7ded1103a5184bfc484efd340fe95b7dd752f5d6dede6e95c8aa5abc6e94c00",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181851",
+      "canonical_match_id": "nt_m_18680c1509579a39dbc377de",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_PLAYER_FACT_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "2e448f521ce36990a493b0508e18a561537d34e2051cd2085862838558a290d1",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181851",
+      "canonical_match_id": "nt_m_18680c1509579a39dbc377de",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_PLAYER_FACT_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "143bdb37a24e450973a7e1e3ee457294b28489acb7e9cd5503e8e65a2b6e81f2",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181851",
+      "canonical_match_id": "nt_m_18680c1509579a39dbc377de",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_PLAYER_FACT_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "77599fff99be7e70b744bde1ee62f26d78b456593aecec04f2720f6a00d21269",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181851",
+      "canonical_match_id": "nt_m_18680c1509579a39dbc377de",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_PLAYER_FACT_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "866519add0359b3667370e2fcab12722da3414b294b63ed5cb45a274450581ba",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181851",
+      "canonical_match_id": "nt_m_18680c1509579a39dbc377de",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_PLAYER_FACT_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "0102adb6f019d4f1c46c39292cfd9f1d0ed146d7cf676a8636b5d429e3d9e2da",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181851",
+      "canonical_match_id": "nt_m_18680c1509579a39dbc377de",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_PLAYER_FACT_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "07609b771c2324c3f7e72b9d13d0e80c0a938ccdfb4df5bcd83ff4475f622c3f",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181851",
+      "canonical_match_id": "nt_m_18680c1509579a39dbc377de",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_PLAYER_FACT_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "09b3fdbcf3f13acd26328408245ceac20c572153e6ad0de9b8d20baf9fbeab48",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181851",
+      "canonical_match_id": "nt_m_18680c1509579a39dbc377de",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_PLAYER_FACT_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "0d3b9c5829c7b2e83d57933a627fac889a338d0a1e65d2808f176c8a1d822824",
+      "entity_type": "MATCH",
+      "expected_id": "5181852",
+      "canonical_match_id": "nt_fotmob_5181852",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "ebdd0d4840ca44c92b79efbf3f27b6f3ac42db76d7faca9c6d90ff1f71a0d15e",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181852",
+      "canonical_match_id": "nt_fotmob_5181852",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "2efd86189156c58794860f584bc58476d33abda82d9475123ceb6f9442e9453b",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181852",
+      "canonical_match_id": "nt_fotmob_5181852",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "91f9d69d21490da1a63ce1995992382267e7ee3bbfd5ccc19489055533da7e6c",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181852",
+      "canonical_match_id": "nt_fotmob_5181852",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "e478f4d2f0ae5d7cc0c756439aecffb2a65f9a72a6701a872121783b6d49a10d",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181852",
+      "canonical_match_id": "nt_fotmob_5181852",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "a033e10e1c9e56f7cc368759a1387562e8e73614bada525ded838a843dd7e24f",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181852",
+      "canonical_match_id": "nt_fotmob_5181852",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_PLAYER_FACT_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "7f9fb4718878c7f3fb753b59e1344ec20d1511cbcd0373fd9758804e9847372a",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181852",
+      "canonical_match_id": "nt_fotmob_5181852",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "33a5c10062b82caed1e63f5d6fa14e4eb3dee351762ec93e44baa1ad05663fb4",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181852",
+      "canonical_match_id": "nt_fotmob_5181852",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "b08a43a5a6e4309992be9fbfbbc80479ba35227b4339d0a16748dc67b4c80f1c",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181852",
+      "canonical_match_id": "nt_fotmob_5181852",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "b9ef4f589b32cfca849aa020ec19605aa4b380903663357f8fa11603117c45f7",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181852",
+      "canonical_match_id": "nt_fotmob_5181852",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "5e92fde4fafe67bff28967e5f51b2e07aa7caeccbd96f42cf78b17a2aacde811",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181852",
+      "canonical_match_id": "nt_fotmob_5181852",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "e3653abce5c72cfd9d49f0f4b53b636318955f99e952a29738ef7c80d823c49b",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181852",
+      "canonical_match_id": "nt_fotmob_5181852",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "ca479037f0e9f43c2b110d5c97f332018336bf7c560738d90c14dd828a69b0ce",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181852",
+      "canonical_match_id": "nt_fotmob_5181852",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "7949ebc3f3925f198f834d80944212cc44829b6a71b6e6d63ce3be06de2452c6",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181852",
+      "canonical_match_id": "nt_fotmob_5181852",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "c59d30d50cee9d1d9cd4197b5d88f84389794916abcaa120f1f74eb8feaa8ae9",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181852",
+      "canonical_match_id": "nt_fotmob_5181852",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "de421387bc87904c253b65442f330a48600631448d9dfe2e08b884c9f3277cd1",
+      "entity_type": "MATCH",
+      "expected_id": "5181853",
+      "canonical_match_id": "nt_m_f65d60b423f1f5c8ae1978d5",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "17c7406403e584f8172eac14126b0a141b9c500987cd1daa0fea895c44017729",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181853",
+      "canonical_match_id": "nt_m_f65d60b423f1f5c8ae1978d5",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "d91454305dd4fed90ed73836f36281f4c868fb5202c06124b729048ec677442c",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181853",
+      "canonical_match_id": "nt_m_f65d60b423f1f5c8ae1978d5",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "f090c24971ef47d7ddf554338691c3d780c874664eca22bc1d6df98bee3e2d7e",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181853",
+      "canonical_match_id": "nt_m_f65d60b423f1f5c8ae1978d5",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "f78dcbef2b8cda706dfef1bbd81064748176192cc4b6f1c67d8b72f18e7b1d89",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181853",
+      "canonical_match_id": "nt_m_f65d60b423f1f5c8ae1978d5",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "74d8b679a3f51fee5fd17ef45cd05d2ae23345e826c3fad22dd0a34105be560a",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181853",
+      "canonical_match_id": "nt_m_f65d60b423f1f5c8ae1978d5",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "bb1a84b3719a4796594bb57900f9c31051a5f8bf25a29367052040c8c89d8bff",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181853",
+      "canonical_match_id": "nt_m_f65d60b423f1f5c8ae1978d5",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "a340964a8808b6befa0ec3220f03ead731106656fe4d7efd245106043015981d",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181853",
+      "canonical_match_id": "nt_m_f65d60b423f1f5c8ae1978d5",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "5d0a3cde8c2ec67b5360b2021c90f98a964eccaef14750d309d7709ac6a83229",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181853",
+      "canonical_match_id": "nt_m_f65d60b423f1f5c8ae1978d5",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "4bbf48b1897f02641210de0b8b88a54614da33ba72bb6983dfe078758730ee6b",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181853",
+      "canonical_match_id": "nt_m_f65d60b423f1f5c8ae1978d5",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "a712f2f4df07b15d53a5be6d98fec3bb9f8ff72b3fe28369bb861b0dd1a58c3c",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181853",
+      "canonical_match_id": "nt_m_f65d60b423f1f5c8ae1978d5",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "7220482c6f32f390c95c21748ca189c7963879d9dbb05c3c84cb4f43ad31efa9",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181853",
+      "canonical_match_id": "nt_m_f65d60b423f1f5c8ae1978d5",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "fce842f5809cd9fcee81bad6c00b1d3fdd24a15ef6a9dc59925ac5b77dc52f73",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181853",
+      "canonical_match_id": "nt_m_f65d60b423f1f5c8ae1978d5",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "17b9c7d38501cb244b9bc639c2d18a2a6f79e0d351aba560b4c128bdddd36b21",
+      "entity_type": "MATCH",
+      "expected_id": "5181854",
+      "canonical_match_id": null,
+      "player_fact_exists": false,
+      "category": "NO_CANONICAL_SOURCE_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "2aaee9cdfb6a2b90aed7388038305e048f59dd4542cc48b74b0bb861bb2a1ff7",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181854",
+      "canonical_match_id": null,
+      "player_fact_exists": false,
+      "category": "NO_CANONICAL_SOURCE_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "6419cafeeaca38c483e562a166e0820d14e751ddd4122054e70c8198b2f981d6",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181854",
+      "canonical_match_id": null,
+      "player_fact_exists": false,
+      "category": "NO_CANONICAL_SOURCE_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "704a27c9c2822e2517ce1d404ddcc486c2321a9d6d1a3ae0fd8079390ede97a4",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181854",
+      "canonical_match_id": null,
+      "player_fact_exists": false,
+      "category": "NO_CANONICAL_SOURCE_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "46053fead4449ce95a57680381d6a9f4ceafa4b956f6a7dda6325f99cb3de02b",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181854",
+      "canonical_match_id": null,
+      "player_fact_exists": false,
+      "category": "NO_CANONICAL_SOURCE_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "277928befdd0499d87c28841b6e8e104b6fd9492d6d69ed10c7a5752abbab7aa",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181854",
+      "canonical_match_id": null,
+      "player_fact_exists": false,
+      "category": "NO_CANONICAL_SOURCE_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "bd394ee45aa4f4d72bbe060577f6c5f66e05c1b89931c0e83a78bce544bd4565",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181854",
+      "canonical_match_id": null,
+      "player_fact_exists": false,
+      "category": "NO_CANONICAL_SOURCE_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "9de34b470023c87d5c34a119c511a9ab50345705244d37c40f57a7663e9043b6",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181854",
+      "canonical_match_id": null,
+      "player_fact_exists": false,
+      "category": "NO_CANONICAL_SOURCE_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "04d9c3332449c1243c1863fe550a96c1aeba683deec147bd6458cc0a9a95b965",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181854",
+      "canonical_match_id": null,
+      "player_fact_exists": false,
+      "category": "NO_CANONICAL_SOURCE_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "33fbb7e8dd090b7fcd2593976a8a510a13f3433b32107d2ffaa584ebe69d4216",
+      "entity_type": "MATCH",
+      "expected_id": "5181861",
+      "canonical_match_id": "nt_m_aa32eb1f962b21ada9b3303d",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "195f6a2acb40d71e94a15890a80cab4f8af3c6f2e232f540e3c99df706b78cad",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181861",
+      "canonical_match_id": "nt_m_aa32eb1f962b21ada9b3303d",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_PLAYER_FACT_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "4747fc5c4f5344e75223b59f8651b9244257a33082643b972d23848297c3f3c1",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181861",
+      "canonical_match_id": "nt_m_aa32eb1f962b21ada9b3303d",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "e480254b088fe7f792b98ea5be6914cdafeb3ebeb4ef3e97c5015343fc3569ef",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181861",
+      "canonical_match_id": "nt_m_aa32eb1f962b21ada9b3303d",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "8111341a0f574b695d050df2409829a6fbc0dbe5c1204b7366ffe0e319813597",
+      "entity_type": "MATCH",
+      "expected_id": "5181862",
+      "canonical_match_id": "nt_fotmob_5181862",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "445b0eccbdefbfaaccd710e14520fe449b4c74e7587e51d8390f745cea4c95e0",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181862",
+      "canonical_match_id": "nt_fotmob_5181862",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "2e12517204634fdcea99e0d4cc0d76c354ef50e7a7ff9a8687bf6e569762ab4b",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181862",
+      "canonical_match_id": "nt_fotmob_5181862",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_PLAYER_FACT_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "b3925278b66a0414ddd19c7e98599ae2f74a85c8c122732c9f6edd03d92a7ef3",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181862",
+      "canonical_match_id": "nt_fotmob_5181862",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "9282e8b40ce6d7156ed032b6dd35edad8cd2ca1e2d0414c808d0c1b8e16eb4eb",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181862",
+      "canonical_match_id": "nt_fotmob_5181862",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "5af5d6337c1bd77e9ec077a5c5787f5b0abf6787b9057fe0a011ea164e6d9099",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181862",
+      "canonical_match_id": "nt_fotmob_5181862",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "0734b3bf1f9d2468df9fe076ba3ee67bf6d89dcdca597d315a5f21aa16960f88",
+      "entity_type": "MATCH",
+      "expected_id": "5181863",
+      "canonical_match_id": "nt_fotmob_5181863",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "84ae7717a0fd2c1f99e3166fd31b25cf31ed7563220f233daeda9157f22e8ddd",
+      "entity_type": "MATCH",
+      "expected_id": "5181864",
+      "canonical_match_id": "nt_m_b9c48ef6949478c4f16303e2",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "76c42b7590b846290d1ee540977794bc06d7b6b4f62c52481121d454c2338d8e",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181864",
+      "canonical_match_id": "nt_m_b9c48ef6949478c4f16303e2",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "df6e5d47b785f9c3f3de3390fbe5ae53e13f254daad13f598004f4b7cde056a3",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181864",
+      "canonical_match_id": "nt_m_b9c48ef6949478c4f16303e2",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "98a83a32d86515a1c5e05f7565db005d0b678836163aa3be03461363a1784bf8",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181864",
+      "canonical_match_id": "nt_m_b9c48ef6949478c4f16303e2",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_PLAYER_FACT_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "73d28817d7d4963878e2eab7e5349cd5457a4e39823cf77c9bb4134b9c271aaf",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181864",
+      "canonical_match_id": "nt_m_b9c48ef6949478c4f16303e2",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "324f535cbe15f6d189f51f5b996951081af40239f070c53c4c82c3ba365b87a4",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181864",
+      "canonical_match_id": "nt_m_b9c48ef6949478c4f16303e2",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "8c9df2a5e3e3f4b3cfdf50941bfd1ff4b22a443c72230c39eca4dc73eb6691a4",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181864",
+      "canonical_match_id": "nt_m_b9c48ef6949478c4f16303e2",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "21400728e567d69fa3e44faea63d967cd4c54c0325ea229829a032fe4f885cd1",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181864",
+      "canonical_match_id": "nt_m_b9c48ef6949478c4f16303e2",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "4728a3df48edb28cbcf9f8d1526fae525ca1f970e1f6ad9b17359a15bb4b7b62",
+      "entity_type": "MATCH",
+      "expected_id": "5181865",
+      "canonical_match_id": "nt_fotmob_5181865",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "408641e8fef867fcd375c4463d55aa45586f7026c12ea8d0467b84fa1d364380",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181865",
+      "canonical_match_id": "nt_fotmob_5181865",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "2f744ccaa258a13f3ab415ae7864bc713e12ac1774cb111ca22194432737ca5a",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181865",
+      "canonical_match_id": "nt_fotmob_5181865",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_PLAYER_FACT_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "a687c7c7565c709f23f8df8aa8e0c6f32b3283403ab220ae5277718213880a5b",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181865",
+      "canonical_match_id": "nt_fotmob_5181865",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_PLAYER_FACT_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "e0f1aac7e6d0fc3afb894e53ba7d798caf2386cb1295f9b6a77c541c88f23d2f",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181865",
+      "canonical_match_id": "nt_fotmob_5181865",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "e8f14a0abffd709d1eaeaeebca50270b20674e775839bdba16dffb7602e46805",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181865",
+      "canonical_match_id": "nt_fotmob_5181865",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "ba5bf168093c6f6811b65ccad141b659c209249bf0e2e2aa69e9fb7594c127c2",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181865",
+      "canonical_match_id": "nt_fotmob_5181865",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "90f86c5fc15895b1d5943722be39b6d70bb26a14cfd5d4a97ebb404f672d7da6",
+      "entity_type": "MATCH",
+      "expected_id": "5181866",
+      "canonical_match_id": "nt_m_9a1b1d569ddc8a111c90be72",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "20cb9c925a9cdd087ccf538446473fdde34119400f2f5b96f997b6331a48aaca",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181866",
+      "canonical_match_id": "nt_m_9a1b1d569ddc8a111c90be72",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "c10cb57b81a105209b08cb792d3516edceb7583522127bcd529b4119523e3494",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181866",
+      "canonical_match_id": "nt_m_9a1b1d569ddc8a111c90be72",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "ff42fa715987111f2555a0d9b5897a6f530d39964dce0d39a6e3aaf0091325f0",
+      "entity_type": "MATCH",
+      "expected_id": "5344660",
+      "canonical_match_id": null,
+      "player_fact_exists": false,
+      "category": "NO_CANONICAL_SOURCE_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "037d88a4031c73799e005caf2e60899fa1fb6d731411d33374fc5b54ed26107d",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5344660",
+      "canonical_match_id": null,
+      "player_fact_exists": false,
+      "category": "NO_CANONICAL_SOURCE_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "9c3ed0ceed6e7d68bfa77535d52857c5c24b4dc46f472af09e1d1a4030f8101a",
+      "entity_type": "MATCH",
+      "expected_id": "5924776",
+      "canonical_match_id": "nt_m_0357bd98172404dc70a4889f",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "416da802f69ab57fa3b740aeacf4d331c1fa79915a85518987bea6ecb6215b34",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5924776",
+      "canonical_match_id": "nt_m_0357bd98172404dc70a4889f",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "37b80d2b49e6fce2d243827d3661215525eee00a25c3ab424a797b97ddd94937",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5924776",
+      "canonical_match_id": "nt_m_0357bd98172404dc70a4889f",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "7574ceb9f0842a04d030b029a562eb0c7cea7c12743284e167e795c59e8ef29d",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5924776",
+      "canonical_match_id": "nt_m_0357bd98172404dc70a4889f",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "22e3c54bb0fff82006027e9a4d280af8a89daa0e900b76253f734563c2106550",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5924776",
+      "canonical_match_id": "nt_m_0357bd98172404dc70a4889f",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "af8c2116bcfdedb687158910a663b46db9122ca6577594da34a451994b38488a",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5924776",
+      "canonical_match_id": "nt_m_0357bd98172404dc70a4889f",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "8105cfe79d71b56a5d1444c374f897aa9e4616c988300e4dc73492e8a8872183",
+      "entity_type": "MATCH",
+      "expected_id": "6280451",
+      "canonical_match_id": null,
+      "player_fact_exists": false,
+      "category": "NO_CANONICAL_SOURCE_UNVERIFIED",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "dede743fbdee3c4cfb9824c84f82700344a9a2d83debf13897791bfabee1c206",
+      "entity_type": "MATCH",
+      "expected_id": "5181777",
+      "canonical_match_id": "nt_fotmob_5181777",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "9964434bd4d7cd49e069908957d3b403898ad7758a7a70b9d5cdb33191f85c81",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181777",
+      "canonical_match_id": "nt_fotmob_5181777",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "c027cbb570562a2dabf6cb037f8bacffe76b905a85cc10dad83044baf2ad8924",
+      "entity_type": "MATCH",
+      "expected_id": "5181778",
+      "canonical_match_id": "nt_fotmob_5181778",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "f2439e1b8a4dd937b166d03665486c0e56f593f0ce9c16108ccf6a5e61c9f867",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181778",
+      "canonical_match_id": "nt_fotmob_5181778",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "4300b743f6b91a7045354ebb4ba5be905264f72b89912a3dcf89b80904c4e9d8",
+      "entity_type": "MATCH",
+      "expected_id": "5181781",
+      "canonical_match_id": "nt_fotmob_5181781",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "ba83b4ee16f2bf88853537e7b53144156bf01d39a6fe79f90f413ae25b149737",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181781",
+      "canonical_match_id": "nt_fotmob_5181781",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "7168f6c0c7587c4f630e5c45046be3bbd3294a538ccabbaf8a91419456ada070",
+      "entity_type": "MATCH",
+      "expected_id": "5181837",
+      "canonical_match_id": "nt_fotmob_5181837",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "3f3ff5f4d653e73ec60a071ab07ef7c3e02f9059307289340768fcc8ecfc224b",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181837",
+      "canonical_match_id": "nt_fotmob_5181837",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "c701750dc1000b48d9c6cc54a450c4a7168f9a6d4eb8c14dfdc2cb34b82627d9",
+      "entity_type": "MATCH",
+      "expected_id": "5181842",
+      "canonical_match_id": "nt_fotmob_5181842",
+      "player_fact_exists": false,
+      "category": "EXISTING_FIXTURE_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    },
+    {
+      "task_key": "7896373bfa757819a5a175f1c230e9df9a09f6dc24bf39fca05f5ab5ffc81e2d",
+      "entity_type": "PLAYER_MATCH",
+      "expected_id": "5181842",
+      "canonical_match_id": "nt_fotmob_5181842",
+      "player_fact_exists": true,
+      "category": "EXISTING_PLAYER_FACT_VERIFICATION_DEBT",
+      "classification": "ARCHIVE_UNAVAILABLE",
+      "diagnostic": null
+    }
+  ],
+  "routes": [],
+  "resolved_tasks": 0,
+  "facts_changed": 0,
+  "local_compress_restore_pass": true
+}
