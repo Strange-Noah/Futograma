@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "timelines": {
+    "Futograma": [
+      {
+        "run_id": 41503011354,
+        "expected_trigger": "2026-11-02T10:30:00+00:00",
+        "created_at": "2026-11-02T18:41:49+00:00",
+        "first_job_start": "2026-11-02T18:41:55+00:00",
+        "last_job_end": "2026-11-02T18:42:39+00:00",
+        "pre_creation_delay_seconds": 29509.0,
+        "created_to_first_job_seconds": 6.0,
+        "execution_seconds": 44.0,
+        "attribution": "PRE_CREATION_UNOBSERVABLE;EXPECTED_LATEST_SLOT_INFERRED;MULTISLOT_EVENT_ORIGIN_UNKNOWN"
+      },
+      {
+        "run_id": 41320968679,
+        "expected_trigger": "2026-11-01T10:30:00+00:00",
+        "created_at": "2026-11-01T15:23:17+00:00",
+        "first_job_start": "2026-11-01T15:23:22+00:00",
+        "last_job_end": "2026-11-01T15:24:35+00:00",
+        "pre_creation_delay_seconds": 17597.0,
+        "created_to_first_job_seconds": 5.0,
+        "execution_seconds": 73.0,
+        "attribution": "PRE_CREATION_UNOBSERVABLE;EXPECTED_LATEST_SLOT_INFERRED;MULTISLOT_EVENT_ORIGIN_UNKNOWN"
+      },
+      {
+        "run_id": 41211186129,
+        "expected_trigger": "2026-10-31T10:30:00+00:00",
+        "created_at": "2026-10-31T14:40:02+00:00",
+        "first_job_start": "2026-10-31T14:40:07+00:00",
+        "last_job_end": "2026-10-31T14:40:38+00:00",
+        "pre_creation_delay_seconds": 15002.0,
+        "created_to_first_job_seconds": 5.0,
+        "execution_seconds": 31.0,
+        "attribution": "PRE_CREATION_UNOBSERVABLE;EXPECTED_LATEST_SLOT_INFERRED;MULTISLOT_EVENT_ORIGIN_UNKNOWN"
+      },
+      {
+        "run_id": 41078072191,
+        "expected_trigger": "2026-10-30T10:30:00+00:00",
+        "created_at": "2026-10-30T15:09:25+00:00",
+        "first_job_start": "2026-10-30T15:09:31+00:00",
+        "last_job_end": "2026-10-30T15:09:52+00:00",
+        "pre_creation_delay_seconds": 16765.0,
+        "created_to_first_job_seconds": 6.0,
+        "execution_seconds": 21.0,
+        "attribution": "PRE_CREATION_UNOBSERVABLE;EXPECTED_LATEST_SLOT_INFERRED;MULTISLOT_EVENT_ORIGIN_UNKNOWN"
+      },
+      {
+        "run_id": 40900738026,
+        "expected_trigger": "2026-10-29T10:30:00+00:00",
+        "created_at": "2026-10-29T15:21:34+00:00",
+        "first_job_start": "2026-10-29T15:21:39+00:00",
+        "last_job_end": "2026-10-29T15:22:01+00:00",
+        "pre_creation_delay_seconds": 17494.0,
+        "created_to_first_job_seconds": 5.0,
+        "execution_seconds": 22.0,
+        "attribution": "PRE_CREATION_UNOBSERVABLE;EXPECTED_LATEST_SLOT_INFERRED;MULTISLOT_EVENT_ORIGIN_UNKNOWN"
+      }
+    ],
+    "Futograma-data": [
+      {
+        "run_id": 41493116192,
+        "expected_trigger": "2026-11-02T08:00:00+00:00",
+        "created_at": "2026-11-02T17:38:46+00:00",
+        "first_job_start": "2026-11-02T17:39:01+00:00",
+        "last_job_end": "2026-11-02T17:53:28+00:00",
+        "pre_creation_delay_seconds": 34726.0,
+        "created_to_first_job_seconds": 15.0,
+        "execution_seconds": 867.0,
+        "attribution": "PRE_CREATION_UNOBSERVABLE;EXPECTED_LATEST_SLOT_INFERRED;MULTISLOT_EVENT_ORIGIN_UNKNOWN"
+      },
+      {
+        "run_id": 41317204106,
+        "expected_trigger": "2026-11-01T08:00:00+00:00",
+        "created_at": "2026-11-01T14:38:33+00:00",
+        "first_job_start": "2026-11-01T14:38:37+00:00",
+        "last_job_end": "2026-11-01T14:53:02+00:00",
+        "pre_creation_delay_seconds": 23913.0,
+        "created_to_first_job_seconds": 4.0,
+        "execution_seconds": 865.0,
+        "attribution": "PRE_CREATION_UNOBSERVABLE;EXPECTED_LATEST_SLOT_INFERRED;MULTISLOT_EVENT_ORIGIN_UNKNOWN"
+      },
+      {
+        "run_id": 41208739032,
+        "expected_trigger": "2026-10-31T08:00:00+00:00",
+        "created_at": "2026-10-31T14:08:26+00:00",
+        "first_job_start": "2026-10-31T14:08:30+00:00",
+        "last_job_end": "2026-10-31T14:22:02+00:00",
+        "pre_creation_delay_seconds": 22106.0,
+        "created_to_first_job_seconds": 4.0,
+        "execution_seconds": 812.0,
+        "attribution": "PRE_CREATION_UNOBSERVABLE;EXPECTED_LATEST_SLOT_INFERRED;MULTISLOT_EVENT_ORIGIN_UNKNOWN"
+      },
+      {
+        "run_id": 41074219254,
+        "expected_trigger": "2026-10-30T08:00:00+00:00",
+        "created_at": "2026-10-30T14:43:55+00:00",
+        "first_job_start": "2026-10-30T14:43:56+00:00",
+        "last_job_end": "2026-10-30T14:43:56+00:00",
+        "pre_creation_delay_seconds": 24235.0,
+        "created_to_first_job_seconds": 1.0,
+        "execution_seconds": 0.0,
+        "attribution": "PRE_CREATION_UNOBSERVABLE;EXPECTED_LATEST_SLOT_INFERRED;MULTISLOT_EVENT_ORIGIN_UNKNOWN"
+      },
+      {
+        "run_id": 40895665654,
+        "expected_trigger": "2026-10-29T08:00:00+00:00",
+        "created_at": "2026-10-29T14:51:27+00:00",
+        "first_job_start": "2026-10-29T14:51:28+00:00",
+        "last_job_end": "2026-10-29T14:51:28+00:00",
+        "pre_creation_delay_seconds": 24687.0,
+        "created_to_first_job_seconds": 1.0,
+        "execution_seconds": 0.0,
+        "attribution": "PRE_CREATION_UNOBSERVABLE;EXPECTED_LATEST_SLOT_INFERRED;MULTISLOT_EVENT_ORIGIN_UNKNOWN"
+      }
+    ]
+  },
+  "freshness": {
+    "state": "FRESH",
+    "publication_age_seconds": 64041.0,
+    "action": "NONE",
+    "warning_hours": 26,
+    "slo_hours": 30
+  },
+  "read_only": true
+}

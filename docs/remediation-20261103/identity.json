@@ -1,0 +1,100 @@
+{
+  "current_generation": 8,
+  "current_classes": {
+    "ROSTER_IDENTITY_CONFLICT": 43,
+    "TEMPORARY_SOURCE_UNAVAILABLE": 4,
+    "SOURCE_MATCH_ID_MISMATCH": 202,
+    "FIXTURE_IDENTITY_CONFLICT": 3
+  },
+  "prior_archive_diagnostics": {
+    "task_count": 201,
+    "unique_urls": 42,
+    "weighted_classification": {
+      "RETURNED_OTHER_MATCH": 201
+    },
+    "archives": [
+      {
+        "tag": "phase3-international-evidence-40925476053",
+        "asset_id": 689445026,
+        "sha256": "382e50893c742c665beccb82b72b2db4d31825ac77b409d4e87e73ad2ffe6ba6",
+        "records": 281
+      },
+      {
+        "tag": "phase3-international-evidence-40929244888",
+        "asset_id": 689505342,
+        "sha256": "51de94f860f91798b6a6a13cbd1f6721be9ee5846fd35298d5b1dc01a37b8a54",
+        "records": 293
+      }
+    ]
+  },
+  "prior_coverage_not_recomputed_current_db": {
+    "expected_fixtures_with_canonical": 35,
+    "expected_fixtures_without_canonical": 7,
+    "with_canonical": [
+      "5181788",
+      "5181790",
+      "5181793",
+      "5181800",
+      "5181801",
+      "5181802",
+      "5181804",
+      "5181805",
+      "5181812",
+      "5181814",
+      "5181825",
+      "5181826",
+      "5181827",
+      "5181828",
+      "5181829",
+      "5181830",
+      "5181838",
+      "5181840",
+      "5181841",
+      "5181850",
+      "5181851",
+      "5181852",
+      "5181853",
+      "5181861",
+      "5181862",
+      "5181863",
+      "5181864",
+      "5181865",
+      "5181866",
+      "5924776",
+      "5181777",
+      "5181778",
+      "5181781",
+      "5181837",
+      "5181842"
+    ],
+    "without_canonical": [
+      "5181789",
+      "5181791",
+      "5181792",
+      "5181817",
+      "5181849",
+      "5181854",
+      "5344660"
+    ],
+    "dependent_player_tasks_with_existing_fact": 117,
+    "dependent_player_tasks_without_fact": 42,
+    "warning": "Missing player facts are unresolved observations; not proof that player appeared."
+  },
+  "extra_current_mismatch_tasks": [
+    {
+      "attempt_count": 1,
+      "failure_classification": "SOURCE_MATCH_ID_MISMATCH",
+      "last_attempt_at": "2026-10-29T18:06:31.806275+00:00",
+      "match_id": null,
+      "next_retry_at": null,
+      "player_id": null,
+      "provider": "FotMob",
+      "queue": "international_acquisition_queue",
+      "state": "QUARANTINED",
+      "task_key": "8105cfe79d71b56a5d1444c374f897aa9e4616c988300e4dc73492e8a8872183",
+      "url": "https://www.fotmob.com/matches/syria-vs-uzbekistan/1v61p6#6280451"
+    }
+  ],
+  "safely_resolved_tasks": 0,
+  "canonical_facts_changed": 0
+}

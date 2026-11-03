@@ -31,9 +31,22 @@ def delta(before,after):
     out['TOTAL']={k:sum(out[t][k] for t in ('CLUB','NATIONAL')) for k in ('new','updated','unchanged')}
     return out
 
+def enrich_timing(s,record):
+    # Timing is additive and must never prevent the durable operation receipt.
+    try:
+        from squad_pipeline.production_reliability import timeline
+        run=s.api('GET',s.base+'/actions/runs/'+str(record['run_id']))
+        jobs=s.api('GET',s.base+'/actions/runs/'+str(record['run_id'])+'/jobs?per_page=100')
+        record=dict(record,timing=timeline(dict(run,jobs=jobs['jobs'])))
+    except Exception as exc:
+        record=dict(record,timing=dict(state='UNAVAILABLE',error_type=type(exc).__name__))
+
+    return record
+
 def publish(s,record,ref=REPORT_REF):
     if ref=='main' or not (ref==REPORT_REF or ref.startswith('acceptance/reports-')):raise ValueError('REPORT_ONLY_REF_REQUIRED')
     rid=str(record['run_id']);attempt=str(record.get('run_attempt','1'))
+    record=enrich_timing(s,record)
     if not re.fullmatch('[0-9]+',rid) or not re.fullmatch('[0-9]+',attempt):raise ValueError('NUMERIC_GITHUB_RUN_REQUIRED')
     existing=s.api('GET',s.base+'/git/ref/heads/'+ref,allow404=True);head=existing['object']['sha'] if existing else None
     text=(json.dumps(record,ensure_ascii=False,sort_keys=True,indent=2)+'\n').encode()
