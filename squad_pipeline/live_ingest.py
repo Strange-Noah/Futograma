@@ -80,10 +80,14 @@ def correction_rollups(db,tid,pid,changed_day,asof):
   r=rolling(db,tid,pid,old[0],old[1]);db.execute('UPDATE validation_rolling SET minutes=?,unknown_rows=? WHERE club_id=? AND player_id=? AND as_of=? AND window_days=?',(r['minutes'],r['unknown_rows'],tid,pid,old[0],old[1]))
 
 def stage_sheet(db,f,s):
+ from .quality_live_bridge import require_complete_score
+ require_complete_score(f)
  # Evidence staging is durable even when a contradictory fact transaction is rolled back.
  bound=bind_fixture(db,copy.deepcopy(f),s['source']['url']);candidate=copy.deepcopy(s);candidate['match_id']=bound['match_id'];candidate['acceptance_status']='STRUCTURE_VALIDATED;FACTS_NOT_ACCEPTED';db.execute('INSERT OR IGNORE INTO live_pending_sheets VALUES(?,?,?,?,?,?)',(s['club_id'],bound['match_id'],s['provider'],s['source']['sha256'],encoded(candidate),now()));db.commit()
 
 def apply_sheet(db,f,s,runid,asof,dry=False):
+ from .quality_live_bridge import require_complete_score,audit_legacy_fixture,audit_membership,audit_participation
+ require_complete_score(f)
  tid=s['club_id'];f=bind_fixture(db,copy.deepcopy(f),s['source']['url']);mid=f['match_id'];s=copy.deepcopy(s);s['match_id']=mid
  for p in s['players']:
   try:p['player_id']=resolve_player(db,tid,p)
@@ -95,6 +99,8 @@ def apply_sheet(db,f,s,runid,asof,dry=False):
     except ValueError as reason:raise IdentityError('NEW_SOURCE_IDENTITY_UNRESOLVED:'+p['name']+':'+str(reason)) from reason
    else:raise
  if len({p['player_id'] for p in s['players']})!=len(s['players']):raise IdentityError('POST_MAPPING_DUPLICATE_ID')
+ audit_membership(db,tid,s['players'],dict(s['source'],provider=s['provider']),asof)
+ audit_legacy_fixture(db,f,s,asof)
  # Store latest provider snapshots separately, preserving every source version.
  prior=[json.loads(x[0]) for x in db.execute('SELECT payload_json FROM validation_match_sheets WHERE club_id=? AND match_id=?',(tid,mid)) if json.loads(x[0])['provider']!=s['provider']]
  other={}
@@ -130,6 +136,7 @@ def apply_sheet(db,f,s,runid,asof,dry=False):
     if semantic(old)==(row['status'],row['minutes']):pass
     elif old['participation_status']!=row['status']:raise Conflict('PARTICIPATION_STATUS_CHANGE_REQUIRES_REVIEW')
    elif len({v['provider'] for v in fresh})<2 or any((v['status'],v['minutes'])!=(row['status'],row['minutes']) for v in votes):raise Conflict('ACCEPTED_FACT_CHANGE_REQUIRES_CURRENT_CORROBORATION:'+str(pid))
+  audit_participation(db,mid,row,s['players'],dict(s['source'],provider=s['provider']),asof)
   rows.append((row,old))
  if dry:return dict(status='UNCHANGED' if not new else 'VALIDATED_DRY_RUN',match_id=mid,club_id=tid,players=len(s['players']),dry_run=True)
  existing=db.execute('SELECT * FROM matches WHERE match_id=?',(mid,)).fetchone()

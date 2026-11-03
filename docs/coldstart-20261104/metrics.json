@@ -1,0 +1,74 @@
+{
+  "team_id": 8633,
+  "season": "2026/27",
+  "as_of": "2026-11-04",
+  "reference_sha256": "1e1e72176bd32eb45a1b84e9db34fea653c1602ecf483384642950d556d7c1c0",
+  "old_row_losses": {},
+  "derived_provenance_updates": {
+    "canonical_field_values": 8
+  },
+  "canonical_duplicates_before": [],
+  "canonical_duplicates_after": [],
+  "integrity": "ok",
+  "foreign_key_errors": 0,
+  "expected_source_fixtures": 47,
+  "completed_source_fixtures": 14,
+  "official_roster_expected": 26,
+  "verified_current_members": 26,
+  "encountered_unique_players": 31,
+  "quality_states": {
+    "PENDING_VERIFICATION": 32,
+    "STABLE": 14,
+    "VERIFIED": 437
+  },
+  "exported_player_records": 319,
+  "known_minutes": 319,
+  "fixture_export_count": 47,
+  "repeat_full_fixture_parses_skipped": 14,
+  "idempotence": {
+    "fact_count_equal": true,
+    "fixture_count_equal": true,
+    "transition_count_equal": true
+  },
+  "historical_membership_start_verified": false,
+  "roster_current_scope": {
+    "managed_count": 26,
+    "youth_count": 6,
+    "unknown_count": 1
+  },
+  "all_membership_decisions": {
+    "UNKNOWN": 14,
+    "INCLUDED": 26,
+    "YOUTH": 6
+  },
+  "national_runs": [
+    {
+      "fixtures_discovered": 52,
+      "selected_players": 26,
+      "blocked_existing_quarantines": 18,
+      "accepted_fixtures": 34,
+      "new_matches": 0,
+      "new_player_facts": 52,
+      "existing_player_facts_preserved": 0,
+      "known_minutes": 52,
+      "unknown_minutes": 0,
+      "source_failures": [],
+      "old_rows_updated": 0
+    },
+    {
+      "fixtures_discovered": 52,
+      "selected_players": 26,
+      "blocked_existing_quarantines": 18,
+      "accepted_fixtures": 34,
+      "new_matches": 0,
+      "new_player_facts": 0,
+      "existing_player_facts_preserved": 52,
+      "known_minutes": 52,
+      "unknown_minutes": 0,
+      "source_failures": [],
+      "old_rows_updated": 0
+    }
+  ],
+  "source_fixture_expectation": "Provider-enumerated announced fixtures; not an independent all-season completeness certificate",
+  "production_changed": false
+}

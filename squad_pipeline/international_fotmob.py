@@ -11,7 +11,8 @@ def numeric(value,duration=None):
     if duration is not None and value>duration:raise ValueError('MINUTES_EXCEED_MATCH_DURATION')
     return int(value)
 
-def parse_public_match(raw,source,fixture,history_claims=None):
+def parse_public_match(raw,source,fixture,history_claims=None,domain="NATIONAL"):
+    if domain not in ("NATIONAL","CLUB"):raise ValueError("UNSUPPORTED_MATCH_DOMAIN")
     d=payload(raw);g=d.get('general') or {};header=d.get('header') or {};content=d.get('content') or {};expected=str(fixture['provider_match_id'])
     if str(g.get('matchId'))!=expected:
         from .match_diagnostics import inspect_match,MatchIdentityMismatch
@@ -26,7 +27,7 @@ def parse_public_match(raw,source,fixture,history_claims=None):
     comp=str(g.get('parentLeagueId') or g.get('leagueId') or '')
     if comp!=str(fixture['competition_key']):raise ValueError('MATCH_COMPETITION_ID_MISMATCH')
     levels={level(g[s+'Team']['name']) for s in ('home','away')}
-    if levels!={fixture['level']}:raise ValueError('NATIONAL_TEAM_LEVEL_MISMATCH')
+    if domain=='NATIONAL' and levels!={fixture['level']}:raise ValueError('NATIONAL_TEAM_LEVEL_MISMATCH')
     lineup=content.get('lineup') or {}
     if str(lineup.get('matchId'))!=expected:
         from .match_diagnostics import inspect_match,MatchIdentityMismatch
@@ -59,6 +60,7 @@ def parse_public_match(raw,source,fixture,history_claims=None):
                     if str(h.get('provider_match_id'))!=expected or str(c.get('id'))!=expected or str(c.get('teamId'))!=tid or instant(c['matchDate']['utcTime'])!=kick:raise ValueError('PERSONAL_HISTORY_IDENTITY_MISMATCH')
                     if (str(c['teamId']),str(c['opponentTeamId']))!=(tid,str(fixture['away' if side=='home' else 'home']['id'])):raise ValueError('PERSONAL_HISTORY_OPPONENT_MISMATCH')
                     if bool(c.get('isHomeTeam'))!=(side=='home'):raise ValueError('PERSONAL_HISTORY_SIDE_MISMATCH')
+                    if role=='starters' and c.get('playedInMatch') is False:raise ValueError('PERSONAL_HISTORY_LINEUP_PARTICIPATION_CONFLICT')
                     if c.get('minutesPlayed') is not None:explicit.append((numeric(c['minutesPlayed'],duration),c,h))
                 minute_observations=[]
                 for value,c,h in explicit:
@@ -82,3 +84,8 @@ def parse_public_match(raw,source,fixture,history_claims=None):
                 players.append(dict(provider_player_id=pid,name=p['name'],shirt=p.get('shirtNumber'),role=role,represented_team_provider_id=tid,participation_status=participation,minutes=reported,reported_minutes=reported,derived_minutes=None,minutes_precision='SOURCE_REPORTED_INTEGER' if reported is not None else 'UNKNOWN',verification_status=verification,evidence_scope=scope,source=source,history_source=claim_ref.get('source') if claim_ref else None,minute_observations=minute_observations,source_path=f'$.props.pageProps.content.lineup.{side}Team.{key}[{i}]'))
         sheets.append(dict(side=side,provider_team_id=tid,name=t['name'],players=players,complete_squad=not any(x['side']==side for x in identity_issues)))
     return dict(provider='FotMob',provider_match_id=expected,kickoff_utc=kick.isoformat(),madrid_date=kick.astimezone(ZoneInfo('Europe/Madrid')).date().isoformat(),competition_key=comp,competition_label=g.get('leagueName'),level=fixture['level'],duration_minutes=duration,extra_time_status='VERIFIED_120' if duration==120 else 'VERIFIED_90' if duration==90 else 'UNKNOWN',score=status.get('scoreStr'),identity_issues=identity_issues,full_squad_identity_status='INCOMPLETE' if identity_issues else 'UNIQUE_PROVIDER_IDS',shootout_minutes=0,sheets=sheets,source=source)
+
+
+def parse_public_club_match(raw,source,fixture,history_claims=None):
+    """Same strict match/lineup/minute checks; no national-team level inference."""
+    return parse_public_match(raw,source,dict(fixture,level='SENIOR'),history_claims,domain='CLUB')

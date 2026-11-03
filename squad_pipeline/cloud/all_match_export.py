@@ -13,6 +13,9 @@ def export_all_matches(database,out,data_head,pointer,as_of,acceptance=True):
         pid=str(row['player_id']);meta=json.loads(row['match_metadata']);source=db.execute('SELECT e.source_url FROM international_fact_evidence f JOIN persistent_source_evidence e USING(evidence_id) WHERE f.match_id=? AND f.player_id=? AND e.source_url LIKE ? ORDER BY f.evidence_id LIMIT 1',(row['match_id'],row['player_id'],'https://%')).fetchone();fixture=db.execute('SELECT home_team_key,away_team_key FROM international_matches WHERE match_id=?',(row['match_id'],)).fetchone();opponent_key=fixture['away_team_key'] if fixture['home_team_key']==row['represented_team_key'] else fixture['home_team_key'];opponent=db.execute('SELECT display_name FROM football_teams WHERE team_key=?',(opponent_key,)).fetchone()[0]
         minutes=row['minutes'];result['records'].setdefault(pid,[]).append(dict(match_id=row['match_id'],date=row['madrid_date'],kickoff_utc=row['kickoff_utc'],competition=meta.get('competition') or row['competition_key'],opponent=opponent,club_id=None,club=row['display_name'],represented_team=row['display_name'],match_type='NATIONAL',team_level=row['level'],managing_club=None,management_relation='REPRESENTATIVE_APPEARANCE_DOES_NOT_CHANGE_CLUB_MANAGEMENT',minutes=minutes,minute_state='UNKNOWN' if minutes is None else 'CONFIRMED_ZERO' if minutes==0 else 'RECORDED_MINUTES',participation_status=row['participation_status'],verification_status=row['verification_status'],evidence_scope=row['evidence_scope'],source_url=source[0] if source else None,pending=False))
     result.setdefault('source_issues',[])
+    from .quality_context_export import issues as quality_issues
+    result['quality_issues']=quality_issues(db)
+
     for task in db.execute("SELECT * FROM international_acquisition_queue WHERE state<>'RESOLVED'"):
         result['source_issues'].append(dict(task_key=task['task_key'],scope=task['entity_type'],player_id=task['player_id'],canonical_match_id=task['match_id'],provider=task['provider'],source_url=task['url'],state=task['state'],failure_classification=task['failure_classification'],next_retry_at=task['next_retry_at']))
     from .canonical_export import enrich_records
@@ -33,6 +36,13 @@ def export_all_matches(database,out,data_head,pointer,as_of,acceptance=True):
             if db.execute("SELECT 1 FROM sqlite_master WHERE name='minute_policy_decisions'").fetchone():
                 decisions=[json.loads(r[0]) for r in db.execute('SELECT payload_json FROM minute_policy_decisions WHERE match_id=? AND player_id=?',(record['match_id'],int(pid)))]
                 if decisions:record['minute_source_decisions']=decisions
+    # New contract-ledger datasets expose fixture facts independently of player
+    # appearances. Legacy datasets retain their exact previous output shape.
+    if db.execute("SELECT 1 FROM sqlite_master WHERE name='quality_fixture_acceptance'").fetchone():
+        from squad_pipeline.quality_fixture import export_accepted_catalogue
+        catalogue=export_accepted_catalogue(db)
+        result['fixture_catalogue']=catalogue['accepted']
+        result['fixture_pending']=catalogue['pending']
     result.update(international_discovery_policy='ACTUAL_APPEARANCES;NO_CONTINUOUS_CALENDAR_REQUIREMENT',schema_version=3,scope='RECORDED_CLUB_AND_NATIONAL_MATCHES;SEE_PLAYER_COVERAGE',national_history_complete=False)
     data=out/'data';data.mkdir(parents=True,exist_ok=False);body=json.dumps(result,ensure_ascii=False,separators=(',',':')).encode()
     with (data/'browser.json').open('xb') as f:f.write(body)
