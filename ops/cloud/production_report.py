@@ -34,7 +34,13 @@ def delta(before,after):
 def enrich_timing(s,record):
     # Timing is additive and must never prevent the durable operation receipt.
     try:
-        from squad_pipeline.production_reliability import timeline
+        # Reporting checkout has its own pin; do not import an application module
+        # from the separately pinned PYTHONPATH checkout.
+        import importlib.util
+        policy_path=Path(__file__).resolve().parents[2]/'squad_pipeline/production_reliability.py'
+        spec=importlib.util.spec_from_file_location('report_timing_policy',policy_path)
+        policy=importlib.util.module_from_spec(spec);spec.loader.exec_module(policy)
+        timeline=policy.timeline
         run=s.api('GET',s.base+'/actions/runs/'+str(record['run_id']))
         jobs=s.api('GET',s.base+'/actions/runs/'+str(record['run_id'])+'/jobs?per_page=100')
         record=dict(record,timing=timeline(dict(run,jobs=jobs['jobs'])))
