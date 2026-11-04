@@ -160,3 +160,17 @@ def record_source_issue(db,scope,provider_match_id,reason,payload,on):
  status='CONFLICTED' if any(s in reason for s in ('MISMATCH','CONFLICT','DIFFERENCE')) else 'MISSING'
  obligation={'provider_fixture_identity':lifecycle.obligation(status,refs,reason)};entity='source-debt:'+scope+':'+str(provider_match_id)+':'+key
  lifecycle.persist(db,entity,lifecycle.evaluate(obligation,list(obligation),key),on+'T00:00:00+00:00');return key
+
+
+def persist_player_certificates(db,certificates,on):
+ """Reuse independently verified onboarding identities in ordinary updates."""
+ from .identity_pipeline import Record,Candidate,verify_identity,persist_verified_alias,DDL
+ for statement in DDL.split(';'):
+  if statement.strip():db.execute(statement)
+ for certificate in certificates:
+  pid=int(certificate['player_id']);provider=Record(**certificate['provider_record']);official=Record(**certificate['official_record']);verification=verify_identity(provider,Candidate(pid,official.names,[official]))
+  if not verification['verified']:raise ValueError('UNVERIFIED_ONBOARDING_IDENTITY_CERTIFICATE')
+  result=dict(identity_status='VERIFIED',player_id=str(pid),identity_proof=verification['proof'],source_record=provider.evidence());persist_verified_alias(db,provider,result,on)
+  official.provider_ids=dict(official.provider_ids,OfficialClubProfile=official.source_url)
+  persist_verified_alias(db,official,dict(result,source_record=official.evidence()),on)
+ return len(certificates)

@@ -60,7 +60,7 @@ def build_observations(fotmob_html,fotmob_source,official_html,official_source,d
  for pid,p in sorted(players.items()):
   rec=Record(source_url=fotmob_source['url'],source_sha256=fotmob_source['sha256'],locator='team-'+str(club_id)+'.squad.members.id='+str(pid),provider='FotMob',names=[p['name']],provider_ids={'FotMob':str(pid)},birth_date=p.get('dateOfBirth'),official_clubs=[str(club_id)],scope='PROVIDER_SQUAD',observed_on=on)
   records[pid]=rec;candidates.append(Candidate(pid,[p['name']],[rec]))
- observations=[];matches=[];unresolved=[];matched=set()
+ observations=[];matches=[];unresolved=[];matched=set();certificates=[]
  for slug,card in sorted(official.items()):
   if slug not in profiles:unresolved.append(dict(slug=slug,reason='OFFICIAL_PROFILE_NOT_ACQUIRED'));continue
   profile,source=profiles[slug]
@@ -71,6 +71,7 @@ def build_observations(fotmob_html,fotmob_source,official_html,official_source,d
   if len(verified)!=1:unresolved.append(dict(slug=slug,reason='IDENTITY_BRIDGE_NOT_UNIQUE' if verified else 'IDENTITY_BRIDGE_INSUFFICIENT',provider_candidate_ids=[c.player_id for c,_ in verified]));continue
   candidate,proof=verified[0];pid=candidate.player_id
   if pid in matched:unresolved.append(dict(slug=slug,reason='DUPLICATE_OFFICIAL_PROVIDER_BINDING'));continue
+  certificates.append(dict(player_id=pid,provider_record=records[pid].evidence(),official_record=rec.evidence()))
   matched.add(pid);evidence=[source_ref(fotmob_source,'FotMob'),source_ref(official_source,'OfficialClub'),source_ref(source,'OfficialClub')]
   observations.append(dict(player_id=pid,club_id=club_id,assertion='FIRST_TEAM',identity_status='VERIFIED',verification_status='VERIFIED',source_scope='OFFICIAL_ROSTER',effective_from=None,observed_on=on,evidence=evidence,date_precision='OBSERVED_SNAPSHOT',identity_proof=proof,official_slug=slug))
   matches.append(dict(player_id=pid,official_slug=slug,proof=proof))
@@ -85,7 +86,7 @@ def build_observations(fotmob_html,fotmob_source,official_html,official_source,d
    if not isinstance(pid,int):continue
    assertion=('LOAN_OUT' if p.get('onLoan') else 'TRANSFERRED_OUT') if direction=='Players out' else ('LOAN_IN' if p.get('onLoan') else 'FIRST_TEAM') if direction=='Players in' else None
    item=dict(player_id=pid,direction=direction,assertion=assertion,on_loan=p.get('onLoan'),provider_transfer_type=p.get('transferType'),provider_contract_from=p.get('fromDate'),provider_contract_until=p.get('toDate'),name=p.get('name'),effective_from=(p.get('transferDate') or '')[:10] or None,from_club_id=p.get('fromClubId'),to_club_id=p.get('toClubId'),verification_status='PROVIDER_ASSERTED',evidence=[source_ref(fotmob_source,'FotMob')]);transfers.append(item)
- return dict(players=[dict(player_id=pid,name=p['name'],birth_date=p.get('dateOfBirth'),provider='FotMob') for pid,p in sorted(players.items())],observations=observations,identity_matches=matches,official_expected_count=len(official),official_profile_count=len(profiles),provider_squad_count=len(players),verified_membership_count=len(matched),unresolved_official_members=unresolved,provider_transfer_claims=transfers,historical_membership_start_verified=False)
+ return dict(identity_certificates=certificates,players=[dict(player_id=pid,name=p['name'],birth_date=p.get('dateOfBirth'),provider='FotMob') for pid,p in sorted(players.items())],observations=observations,identity_matches=matches,official_expected_count=len(official),official_profile_count=len(profiles),provider_squad_count=len(players),verified_membership_count=len(matched),unresolved_official_members=unresolved,provider_transfer_claims=transfers,historical_membership_start_verified=False)
 
 def build_academy_observations(provider_profiles,academy_rosters,official_profiles,club_id,on):
  """Identity bridge + official academy membership, not age or bench inference."""
@@ -111,7 +112,7 @@ def build_academy_observations(provider_profiles,academy_rosters,official_profil
     if card.get('_path') and p.get('_path') and cms_identity(card['_path'])!=cms_identity(p['_path']):continue
     rec=Record(source_url=url,source_sha256=source['sha256'],locator='playerList.items.slug='+slug,provider='OfficialClub',names=list(dict.fromkeys([fullname(p),p.get('nickname','').strip()])),birth_date=p.get('birthDate'),official_clubs=[str(club_id)],scope='OFFICIAL_ACADEMY',observed_on=on,authority='OFFICIAL')
     official.append((rec,source,roster_source,slug))
- observations=[];unresolved=[];matches=[]
+ observations=[];unresolved=[];matches=[];certificates=[]
  for source,raw in provider_profiles:
   text=checked(raw,source);capture=dict(source,url=source.get('url') or source.get('source_url'),status=source.get('status','SUCCESS'))
   provider=fotmob(text,capture)[0];pid=int(provider.provider_ids['FotMob']);verified=[]
@@ -123,7 +124,8 @@ def build_academy_observations(provider_profiles,academy_rosters,official_profil
   if len(unique)!=1:
    unresolved.append(dict(player_id=pid,reason='IDENTITY_BRIDGE_NOT_UNIQUE' if unique else 'ACADEMY_IDENTITY_BRIDGE_INSUFFICIENT',provider_identity=dict(names=provider.names,birth_date=provider.birth_date,provider_ids=provider.provider_ids,primary_team=provider.raw_fields.get('primary_team'),career_club_ids=provider.raw_fields.get('career_clubs')),official_profile_obligations=[dict(slug=slug,names=rec.names,birth_date=rec.birth_date,verification=verify_identity(provider,Candidate(pid,rec.names,[rec])),source=source_ref(detail_source,'OfficialClub')) for rec,detail_source,roster_source,slug in official if rec.birth_date==provider.birth_date]));continue
   rec,detail_source,roster_source,slug,proof=next(iter(unique.values()))
+  certificates.append(dict(player_id=pid,provider_record=provider.evidence(),official_record=rec.evidence()))
   evidence=[source_ref(source,'FotMob'),source_ref(roster_source,'OfficialClub'),source_ref(detail_source,'OfficialClub')]
   observations.append(dict(player_id=pid,club_id=club_id,assertion='YOUTH',identity_status='VERIFIED',verification_status='VERIFIED',source_scope='OFFICIAL_ROSTER',effective_from=None,observed_on=on,evidence=evidence,date_precision='OBSERVED_SNAPSHOT',identity_proof=proof,official_slug=slug))
   matches.append(dict(player_id=pid,official_slug=slug,proof=proof))
- return dict(observations=observations,identity_matches=matches,provider_profile_count=len(provider_profiles),official_profile_count=len(official),verified_youth_count=len(observations),unresolved=unresolved,historical_membership_start_verified=False)
+ return dict(identity_certificates=certificates,observations=observations,identity_matches=matches,provider_profile_count=len(provider_profiles),official_profile_count=len(official),verified_youth_count=len(observations),unresolved=unresolved,historical_membership_start_verified=False)

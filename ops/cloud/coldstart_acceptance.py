@@ -91,6 +91,7 @@ def run(reference,seed_manifest,detail_manifest,work,team_id,on,season,academy_m
 
  verified_ids={m['player_id'] for m in roster['identity_matches']}
  for player in roster['players']:db.execute('INSERT OR IGNORE INTO players VALUES(?,?,?)',(player['player_id'],player['name'],'VERIFIED_PROVIDER_AND_OFFICIAL_IDENTITY' if player['player_id'] in verified_ids else 'VERIFIED_SOURCE_ENTITY;INDEPENDENT_IDENTITY_PENDING'))
+ pipeline.persist_player_certificates(db,roster.get('identity_certificates',[]),source_on)
  observations=list(roster['observations'])
  academy=None
  if academy_manifests:
@@ -111,6 +112,7 @@ def run(reference,seed_manifest,detail_manifest,work,team_id,on,season,academy_m
      for claim in extract_club_history(raw,source,team_id):history_claims.setdefault(claim['provider_match_id'],[]).append(claim)
     except (ValueError,KeyError,TypeError) as exc:history_errors.append(dict(source_url=source['url'],error=type(exc).__name__+':'+str(exc)))
 
+ if academy:pipeline.persist_player_certificates(db,academy.get('identity_certificates',[]),on)
  for claim in roster['provider_transfer_claims']:
   if not claim.get('assertion'):continue
   db.execute('INSERT OR IGNORE INTO players VALUES(?,?,?)',(claim['player_id'],claim.get('name') or str(claim['player_id']),'VERIFIED_SOURCE_ENTITY;MEMBERSHIP_UNVERIFIED'))

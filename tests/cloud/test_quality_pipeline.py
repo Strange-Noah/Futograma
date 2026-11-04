@@ -73,3 +73,11 @@ class IntegratedPipeline(unittest.TestCase):
   legacy=dict(domain='CLUB',provider='LEGACY_ACCEPTED',provider_match_id='retained',home_key='A',away_key='B',competition_key='L',edition='2026/27')
   self.db.execute('insert into canonical_observations values(?,?,?,?,?,?,?)',('000000','CLUB','LEGACY_ACCEPTED','retained','new-id',json.dumps(legacy),json.dumps({'snapshot_sha256':'c'*64})))
   result=quality_fixture.export_accepted_catalogue(self.db);self.assertEqual(len(result['accepted']),1);self.assertEqual(result['accepted'][0]['provider'],'P')
+
+ def test_onboarding_identity_is_reusable_by_live_registry(self):
+  from squad_pipeline.identity_pipeline import Record
+  from squad_pipeline.identity_registry import lookup
+  provider=Record('https://provider.example/players/1','a'*64,'p','FotMob',['Controlled Player'],{'FotMob':'1'},birth_date='2000-01-01',official_clubs=['99'])
+  official=Record('https://official.example/players/p','b'*64,'p','OfficialClub',['Controlled Player'],birth_date='2000-01-01',official_clubs=['99'],authority='OFFICIAL')
+  p.persist_player_certificates(self.db,[dict(player_id=1,provider_record=provider.evidence(),official_record=official.evidence())],'2026-11-03')
+  self.assertEqual(lookup(self.db,99,dict(provider_key='fotmob:1',name='Controlled Player')),1)
