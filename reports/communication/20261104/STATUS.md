@@ -1,14 +1,19 @@
 # Communication index — Gate B investigation
-Updated 2026-11-05 (Asia/Shanghai). Checkpoint 2: execution and failure inventory reproduced; final per-club analysis in progress.
+Updated 2026-11-05 (Asia/Shanghai). Checkpoint 3: investigation complete; reconstruction remains incomplete.
 
-This personal branch contains sanitized communication/audit reports only. Its base is the verified public main commit 666255afe5bb565f82156ba9908713a5bcbab8ed; no reconstruction development commits are ancestors of its new reporting commits. Do not merge this branch into production or development.
+This personal reporting-only branch starts from public main 666255afe5bb565f82156ba9908713a5bcbab8ed. It does not contain fc82acf development history in its new commits and must not be merged into development or production. The preserved development candidate remains unchanged; its separate publication denial has not been bypassed.
 
-Preserved development candidate: fc82acf41df1c0b843aeb16827abe4c75dc69bc9. Gate A remained incomplete. Prior Gate B label is under independent investigation, not accepted as a conclusion merely because the probe printed FAIL. Fresh Real Madrid onboarding and production deployment remain prohibited.
+- [Exact failure inventory and B1–B6 reassessment](GATE_B_FAILURE_INVENTORY.md)
+- [R1–R6 implementation versus execution](R1_R6_EXECUTION_AUDIT.md)
+- [Per-club scope, denominators and coverage](SIX_CLUB_COVERAGE.md)
+- [Root causes and prioritized remediation](ROOT_CAUSE_AND_REMEDIATION.md)
+- [Why execution stopped prematurely](PREMATURE_STOP_ANALYSIS.md)
+- [Reproduction procedure and count definitions](REPRODUCTION.md)
+- [Sanitized aggregate evidence](AGGREGATES.json)
+- [Development continuation handoff](HANDOFF.md)
 
-Planned reports: GATE_B_FAILURE_INVENTORY.md, R1_R6_EXECUTION_AUDIT.md, SIX_CLUB_COVERAGE.md, ROOT_CAUSE_AND_REMEDIATION.md, PREMATURE_STOP_ANALYSIS.md, HANDOFF.md. Links will be added when each report is completed; missing files are not completed deliverables.
+Main findings: Gate B's old FAIL string was hardcoded. Required audit coverage and genuine multi-source R6 execution still fail independently: only 15/79 sheets and 108 target-fixture opportunities entered the core. Nine season/parent competition-ID differences and eleven filename predicates are not demonstrated football conflicts. Evidence-contract adaptation also suppresses managed populations and the authorized manual exception. The 156 resolver callbacks were 39 FOUND labels over six bodies plus 117 empty-index UNAVAILABLE results, not 156 searches. Twelve of thirteen absence candidates have raw-source/alias support; one remains unproven. Accepted facts are preserved, and a new lifecycle A→B→A transition-history defect was reproduced separately.
 
-Initial verified finding: reconstruction_probe.probe returns a hardcoded six_club_gate failure string. It does not calculate B1–B6. The investigation will separate preservation, audit execution, active-resolution execution and actual source completeness, using code paths and retained database/probe evidence. No gate is waived.
+B1 PASS in tested scope; B2/B3 FAIL; B4 mixed with candidate-proof failure; B5 unchanged-repeat/export PASS but broader lifecycle not accepted; B6 UNKNOWN/not accepted. Zero Pending never substitutes for uncovered scope. No fresh Real Madrid onboarding or production activity. Production NO-GO.
 
-No raw responses, datasets, player-level evidence, credentials or sensitive local configuration belong here. Original work, evidence and 47 isolated conflicts remain preserved. Production NO-GO.
-
-Completed: [Gate B failure inventory](GATE_B_FAILURE_INVENTORY.md), [R1–R6 execution audit](R1_R6_EXECUTION_AUDIT.md). B1 preservation passes in tested scope; B2/B3 fail for execution/implementation reasons, not merely unresolved football evidence.
+Publication checkpoints: initial index, failure/execution audit, then final per-club/root-cause/reproduction/handoff reports. Git history preserves those revisions. Reports omit private databases, player-level evidence, raw responses, credentials and sensitive paths. A full private-data rerun requires authorized local inputs; public aggregate reports are not represented as a downloadable evidence archive.

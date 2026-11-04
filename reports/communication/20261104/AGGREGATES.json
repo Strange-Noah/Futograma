@@ -1,0 +1,837 @@
+{
+  "investigation_date": "2026-11-05",
+  "frozen_cutoff": "2026-11-04",
+  "development_commit": "fc82acf41df1c0b843aeb16827abe4c75dc69bc9",
+  "audit_days": 127,
+  "old_tables_preserved": 90,
+  "clubs": [
+    {
+      "club": "Manchester City",
+      "membership_event_players": 30,
+      "legacy_club_associated_union": 30,
+      "certified_member_players": 18,
+      "membership_coverage": {
+        "managed_days": 1008,
+        "uncertified_managed_days": 2294,
+        "unknown_membership_days": 0,
+        "raw_sheets": 13,
+        "verified_source_sheets": 8,
+        "national_membership": "UNAVAILABLE;NOT_INFERRED_FROM_NATIONALITY_OR_APPEARANCES",
+        "broad_discovery": "RETAINED_CLUB_SHEETS_ONLY;PLAYER_TEAM_NATIONAL_LIVE_ADAPTERS_REQUIRED",
+        "unsupported_html_adapter": 1
+      },
+      "baseline_fixtures": 15,
+      "baseline_record_rows": 413,
+      "baseline_status": {
+        "NOT_IN_MATCHDAY_SQUAD": 125,
+        "STARTER": 154,
+        "SUBSTITUTE_USED": 53,
+        "UNUSED_SUBSTITUTE": 81
+      },
+      "baseline_club_associated_national_rows": 85,
+      "baseline_club_associated_national_fixtures": 49,
+      "admitted_fixtures": 8,
+      "input_status": {
+        "STARTER": 88,
+        "SUBSTITUTE_USED": 31,
+        "UNUSED_SUBSTITUTE": 42
+      },
+      "official_windows": 2,
+      "observed_national_windows": 0,
+      "diagnostic_legacy_managed_opportunity_pairs": 364,
+      "first_metrics": {
+        "opportunities": 90,
+        "r3_triggers": 5,
+        "r4_triggers": 10,
+        "resolved": 10,
+        "final_gap_count": 0,
+        "recovered_status_candidates": 10,
+        "recovered_appearance_rows": 0,
+        "pending": 0,
+        "conflicts": 0,
+        "attempts": 120,
+        "reused": 0,
+        "supported_absences": 0
+      },
+      "repeat_metrics": {
+        "opportunities": 90,
+        "r3_triggers": 5,
+        "r4_triggers": 10,
+        "resolved": 10,
+        "final_gap_count": 0,
+        "recovered_status_candidates": 10,
+        "recovered_appearance_rows": 0,
+        "pending": 0,
+        "conflicts": 0,
+        "attempts": 0,
+        "reused": 10,
+        "supported_absences": 0
+      },
+      "trace": [
+        "discover",
+        "windows",
+        "opportunities",
+        "gaps",
+        "opportunities",
+        "gaps"
+      ],
+      "filter_reasons": {
+        "competition_mismatch": 3,
+        "unsupported_html": 1,
+        "admitted": 8,
+        "filename_returned_id_mismatch": 1
+      },
+      "source_formats": {
+        "FotMob:JSON": 12,
+        "Torlytics:HTML": 1
+      },
+      "r6_by_path": [
+        {
+          "path": "announcements",
+          "outcome": "UNAVAILABLE",
+          "count": 10
+        },
+        {
+          "path": "disciplinary",
+          "outcome": "UNAVAILABLE",
+          "count": 10
+        },
+        {
+          "path": "fixture_details",
+          "outcome": "FOUND",
+          "count": 10
+        },
+        {
+          "path": "identity_archives",
+          "outcome": "UNAVAILABLE",
+          "count": 10
+        },
+        {
+          "path": "injury_availability",
+          "outcome": "UNAVAILABLE",
+          "count": 10
+        },
+        {
+          "path": "match_reports",
+          "outcome": "UNAVAILABLE",
+          "count": 10
+        },
+        {
+          "path": "official_squad",
+          "outcome": "FOUND",
+          "count": 10
+        },
+        {
+          "path": "player_history",
+          "outcome": "UNAVAILABLE",
+          "count": 10
+        },
+        {
+          "path": "press_conference",
+          "outcome": "UNAVAILABLE",
+          "count": 10
+        },
+        {
+          "path": "substitutions",
+          "outcome": "FOUND",
+          "count": 10
+        },
+        {
+          "path": "team_history",
+          "outcome": "UNAVAILABLE",
+          "count": 10
+        },
+        {
+          "path": "transfer_academy",
+          "outcome": "UNAVAILABLE",
+          "count": 10
+        }
+      ],
+      "r6_distinct_bodies": 5,
+      "staged_absence_candidates": 10,
+      "independently_confirmed_absences": null,
+      "national_adapter_input_count": 0,
+      "all_club_required_opportunities": null
+    },
+    {
+      "club": "FC Barcelona",
+      "membership_event_players": 29,
+      "legacy_club_associated_union": 30,
+      "certified_member_players": 0,
+      "membership_coverage": {
+        "managed_days": 0,
+        "uncertified_managed_days": 3186,
+        "unknown_membership_days": 122,
+        "raw_sheets": 13,
+        "verified_source_sheets": 1,
+        "national_membership": "UNAVAILABLE;NOT_INFERRED_FROM_NATIONALITY_OR_APPEARANCES",
+        "broad_discovery": "RETAINED_CLUB_SHEETS_ONLY;PLAYER_TEAM_NATIONAL_LIVE_ADAPTERS_REQUIRED",
+        "unsupported_html_adapter": 9,
+        "unsupported_provider_adapter": 2
+      },
+      "baseline_fixtures": 14,
+      "baseline_record_rows": 397,
+      "baseline_status": {
+        "NOT_IN_MATCHDAY_SQUAD": 89,
+        "STARTER": 154,
+        "SUBSTITUTE_USED": 70,
+        "UNUSED_SUBSTITUTE": 84
+      },
+      "baseline_club_associated_national_rows": 102,
+      "baseline_club_associated_national_fixtures": 42,
+      "admitted_fixtures": 1,
+      "input_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 7
+      },
+      "official_windows": 2,
+      "observed_national_windows": 0,
+      "diagnostic_legacy_managed_opportunity_pairs": 352,
+      "first_metrics": {
+        "opportunities": 0,
+        "r3_triggers": 0,
+        "r4_triggers": 0,
+        "resolved": 0,
+        "final_gap_count": 0,
+        "recovered_status_candidates": 0,
+        "recovered_appearance_rows": 0,
+        "pending": 0,
+        "conflicts": 0,
+        "attempts": 0,
+        "reused": 0,
+        "supported_absences": 0
+      },
+      "repeat_metrics": {
+        "opportunities": 0,
+        "r3_triggers": 0,
+        "r4_triggers": 0,
+        "resolved": 0,
+        "final_gap_count": 0,
+        "recovered_status_candidates": 0,
+        "recovered_appearance_rows": 0,
+        "pending": 0,
+        "conflicts": 0,
+        "attempts": 0,
+        "reused": 0,
+        "supported_absences": 0
+      },
+      "trace": [
+        "discover",
+        "windows",
+        "opportunities",
+        "gaps",
+        "opportunities",
+        "gaps"
+      ],
+      "filter_reasons": {
+        "unsupported_html": 9,
+        "unsupported_provider": 2,
+        "competition_mismatch": 1,
+        "admitted": 1
+      },
+      "source_formats": {
+        "Torlytics:HTML": 9,
+        "VI:JSON": 1,
+        "FotMob:JSON": 2,
+        "Sky:JSON": 1
+      },
+      "r6_by_path": [],
+      "r6_distinct_bodies": 0,
+      "staged_absence_candidates": 0,
+      "independently_confirmed_absences": null,
+      "national_adapter_input_count": 0,
+      "all_club_required_opportunities": null
+    },
+    {
+      "club": "Inter Milan",
+      "membership_event_players": 24,
+      "legacy_club_associated_union": 28,
+      "certified_member_players": 0,
+      "membership_coverage": {
+        "managed_days": 0,
+        "uncertified_managed_days": 3048,
+        "unknown_membership_days": 0,
+        "raw_sheets": 11,
+        "verified_source_sheets": 0,
+        "national_membership": "UNAVAILABLE;NOT_INFERRED_FROM_NATIONALITY_OR_APPEARANCES",
+        "broad_discovery": "RETAINED_CLUB_SHEETS_ONLY;PLAYER_TEAM_NATIONAL_LIVE_ADAPTERS_REQUIRED",
+        "unsupported_html_adapter": 8,
+        "unsupported_provider_adapter": 3
+      },
+      "baseline_fixtures": 12,
+      "baseline_record_rows": 308,
+      "baseline_status": {
+        "NOT_IN_MATCHDAY_SQUAD": 64,
+        "STARTER": 121,
+        "SUBSTITUTE_USED": 55,
+        "UNUSED_SUBSTITUTE": 68
+      },
+      "baseline_club_associated_national_rows": 58,
+      "baseline_club_associated_national_fixtures": 44,
+      "admitted_fixtures": 0,
+      "input_status": {},
+      "official_windows": 2,
+      "observed_national_windows": 0,
+      "diagnostic_legacy_managed_opportunity_pairs": 264,
+      "first_metrics": {
+        "opportunities": 0,
+        "r3_triggers": 0,
+        "r4_triggers": 0,
+        "resolved": 0,
+        "final_gap_count": 0,
+        "recovered_status_candidates": 0,
+        "recovered_appearance_rows": 0,
+        "pending": 0,
+        "conflicts": 0,
+        "attempts": 0,
+        "reused": 0,
+        "supported_absences": 0
+      },
+      "repeat_metrics": {
+        "opportunities": 0,
+        "r3_triggers": 0,
+        "r4_triggers": 0,
+        "resolved": 0,
+        "final_gap_count": 0,
+        "recovered_status_candidates": 0,
+        "recovered_appearance_rows": 0,
+        "pending": 0,
+        "conflicts": 0,
+        "attempts": 0,
+        "reused": 0,
+        "supported_absences": 0
+      },
+      "trace": [
+        "discover",
+        "windows",
+        "opportunities",
+        "gaps",
+        "opportunities",
+        "gaps"
+      ],
+      "filter_reasons": {
+        "unsupported_html": 8,
+        "unsupported_provider": 3
+      },
+      "source_formats": {
+        "Torlytics:HTML": 8,
+        "Sky:JSON": 3
+      },
+      "r6_by_path": [],
+      "r6_distinct_bodies": 0,
+      "staged_absence_candidates": 0,
+      "independently_confirmed_absences": null,
+      "national_adapter_input_count": 0,
+      "all_club_required_opportunities": null
+    },
+    {
+      "club": "Bayern M\u00fcnchen",
+      "membership_event_players": 24,
+      "legacy_club_associated_union": 29,
+      "certified_member_players": 0,
+      "membership_coverage": {
+        "managed_days": 0,
+        "uncertified_managed_days": 2921,
+        "unknown_membership_days": 0,
+        "raw_sheets": 12,
+        "verified_source_sheets": 1,
+        "national_membership": "UNAVAILABLE;NOT_INFERRED_FROM_NATIONALITY_OR_APPEARANCES",
+        "broad_discovery": "RETAINED_CLUB_SHEETS_ONLY;PLAYER_TEAM_NATIONAL_LIVE_ADAPTERS_REQUIRED",
+        "unsupported_provider_adapter": 5,
+        "unsupported_html_adapter": 6
+      },
+      "baseline_fixtures": 14,
+      "baseline_record_rows": 388,
+      "baseline_status": {
+        "NOT_IN_MATCHDAY_SQUAD": 104,
+        "STARTER": 154,
+        "SUBSTITUTE_USED": 62,
+        "UNUSED_SUBSTITUTE": 68
+      },
+      "baseline_club_associated_national_rows": 62,
+      "baseline_club_associated_national_fixtures": 39,
+      "admitted_fixtures": 1,
+      "input_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 4
+      },
+      "official_windows": 2,
+      "observed_national_windows": 0,
+      "diagnostic_legacy_managed_opportunity_pairs": 322,
+      "first_metrics": {
+        "opportunities": 0,
+        "r3_triggers": 0,
+        "r4_triggers": 0,
+        "resolved": 0,
+        "final_gap_count": 0,
+        "recovered_status_candidates": 0,
+        "recovered_appearance_rows": 0,
+        "pending": 0,
+        "conflicts": 0,
+        "attempts": 0,
+        "reused": 0,
+        "supported_absences": 0
+      },
+      "repeat_metrics": {
+        "opportunities": 0,
+        "r3_triggers": 0,
+        "r4_triggers": 0,
+        "resolved": 0,
+        "final_gap_count": 0,
+        "recovered_status_candidates": 0,
+        "recovered_appearance_rows": 0,
+        "pending": 0,
+        "conflicts": 0,
+        "attempts": 0,
+        "reused": 0,
+        "supported_absences": 0
+      },
+      "trace": [
+        "discover",
+        "windows",
+        "opportunities",
+        "gaps",
+        "opportunities",
+        "gaps"
+      ],
+      "filter_reasons": {
+        "unsupported_provider": 5,
+        "unsupported_html": 6,
+        "admitted": 1
+      },
+      "source_formats": {
+        "Sky:JSON": 4,
+        "Torlytics:HTML": 6,
+        "FotMob:JSON": 1,
+        "BVB official:JSON": 1
+      },
+      "r6_by_path": [],
+      "r6_distinct_bodies": 0,
+      "staged_absence_candidates": 0,
+      "independently_confirmed_absences": null,
+      "national_adapter_input_count": 0,
+      "all_club_required_opportunities": null
+    },
+    {
+      "club": "Arsenal",
+      "membership_event_players": 25,
+      "legacy_club_associated_union": 32,
+      "certified_member_players": 18,
+      "membership_coverage": {
+        "managed_days": 1079,
+        "uncertified_managed_days": 1969,
+        "unknown_membership_days": 0,
+        "raw_sheets": 17,
+        "verified_source_sheets": 4,
+        "national_membership": "UNAVAILABLE;NOT_INFERRED_FROM_NATIONALITY_OR_APPEARANCES",
+        "broad_discovery": "RETAINED_CLUB_SHEETS_ONLY;PLAYER_TEAM_NATIONAL_LIVE_ADAPTERS_REQUIRED",
+        "unsupported_html_adapter": 8,
+        "unsupported_provider_adapter": 5
+      },
+      "baseline_fixtures": 15,
+      "baseline_record_rows": 472,
+      "baseline_status": {
+        "NOT_IN_MATCHDAY_SQUAD": 166,
+        "STARTER": 165,
+        "SUBSTITUTE_USED": 73,
+        "UNUSED_SUBSTITUTE": 68
+      },
+      "baseline_club_associated_national_rows": 97,
+      "baseline_club_associated_national_fixtures": 40,
+      "admitted_fixtures": 4,
+      "input_status": {
+        "STARTER": 44,
+        "SUBSTITUTE_USED": 21,
+        "UNUSED_SUBSTITUTE": 15
+      },
+      "official_windows": 2,
+      "observed_national_windows": 0,
+      "diagnostic_legacy_managed_opportunity_pairs": 360,
+      "first_metrics": {
+        "opportunities": 18,
+        "r3_triggers": 3,
+        "r4_triggers": 3,
+        "resolved": 3,
+        "final_gap_count": 0,
+        "recovered_status_candidates": 3,
+        "recovered_appearance_rows": 0,
+        "pending": 0,
+        "conflicts": 0,
+        "attempts": 36,
+        "reused": 0,
+        "supported_absences": 0
+      },
+      "repeat_metrics": {
+        "opportunities": 18,
+        "r3_triggers": 3,
+        "r4_triggers": 3,
+        "resolved": 3,
+        "final_gap_count": 0,
+        "recovered_status_candidates": 3,
+        "recovered_appearance_rows": 0,
+        "pending": 0,
+        "conflicts": 0,
+        "attempts": 0,
+        "reused": 3,
+        "supported_absences": 0
+      },
+      "trace": [
+        "discover",
+        "windows",
+        "opportunities",
+        "gaps",
+        "opportunities",
+        "gaps"
+      ],
+      "filter_reasons": {
+        "admitted": 4,
+        "unsupported_html": 8,
+        "unsupported_provider": 5
+      },
+      "source_formats": {
+        "FotMob:JSON": 4,
+        "Torlytics:HTML": 8,
+        "Sky:JSON": 5
+      },
+      "r6_by_path": [
+        {
+          "path": "announcements",
+          "outcome": "UNAVAILABLE",
+          "count": 3
+        },
+        {
+          "path": "disciplinary",
+          "outcome": "UNAVAILABLE",
+          "count": 3
+        },
+        {
+          "path": "fixture_details",
+          "outcome": "FOUND",
+          "count": 3
+        },
+        {
+          "path": "identity_archives",
+          "outcome": "UNAVAILABLE",
+          "count": 3
+        },
+        {
+          "path": "injury_availability",
+          "outcome": "UNAVAILABLE",
+          "count": 3
+        },
+        {
+          "path": "match_reports",
+          "outcome": "UNAVAILABLE",
+          "count": 3
+        },
+        {
+          "path": "official_squad",
+          "outcome": "FOUND",
+          "count": 3
+        },
+        {
+          "path": "player_history",
+          "outcome": "UNAVAILABLE",
+          "count": 3
+        },
+        {
+          "path": "press_conference",
+          "outcome": "UNAVAILABLE",
+          "count": 3
+        },
+        {
+          "path": "substitutions",
+          "outcome": "FOUND",
+          "count": 3
+        },
+        {
+          "path": "team_history",
+          "outcome": "UNAVAILABLE",
+          "count": 3
+        },
+        {
+          "path": "transfer_academy",
+          "outcome": "UNAVAILABLE",
+          "count": 3
+        }
+      ],
+      "r6_distinct_bodies": 1,
+      "staged_absence_candidates": 3,
+      "independently_confirmed_absences": null,
+      "national_adapter_input_count": 0,
+      "all_club_required_opportunities": null
+    },
+    {
+      "club": "Paris Saint-Germain",
+      "membership_event_players": 26,
+      "legacy_club_associated_union": 28,
+      "certified_member_players": 0,
+      "membership_coverage": {
+        "managed_days": 0,
+        "uncertified_managed_days": 3048,
+        "unknown_membership_days": 0,
+        "raw_sheets": 13,
+        "verified_source_sheets": 1,
+        "national_membership": "UNAVAILABLE;NOT_INFERRED_FROM_NATIONALITY_OR_APPEARANCES",
+        "broad_discovery": "RETAINED_CLUB_SHEETS_ONLY;PLAYER_TEAM_NATIONAL_LIVE_ADAPTERS_REQUIRED",
+        "unsupported_html_adapter": 1
+      },
+      "baseline_fixtures": 14,
+      "baseline_record_rows": 371,
+      "baseline_status": {
+        "NOT_IN_MATCHDAY_SQUAD": 80,
+        "STARTER": 154,
+        "SUBSTITUTE_USED": 67,
+        "UNUSED_SUBSTITUTE": 70
+      },
+      "baseline_club_associated_national_rows": 90,
+      "baseline_club_associated_national_fixtures": 41,
+      "admitted_fixtures": 1,
+      "input_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 4
+      },
+      "official_windows": 2,
+      "observed_national_windows": 0,
+      "diagnostic_legacy_managed_opportunity_pairs": 336,
+      "first_metrics": {
+        "opportunities": 0,
+        "r3_triggers": 0,
+        "r4_triggers": 0,
+        "resolved": 0,
+        "final_gap_count": 0,
+        "recovered_status_candidates": 0,
+        "recovered_appearance_rows": 0,
+        "pending": 0,
+        "conflicts": 0,
+        "attempts": 0,
+        "reused": 0,
+        "supported_absences": 0
+      },
+      "repeat_metrics": {
+        "opportunities": 0,
+        "r3_triggers": 0,
+        "r4_triggers": 0,
+        "resolved": 0,
+        "final_gap_count": 0,
+        "recovered_status_candidates": 0,
+        "recovered_appearance_rows": 0,
+        "pending": 0,
+        "conflicts": 0,
+        "attempts": 0,
+        "reused": 0,
+        "supported_absences": 0
+      },
+      "trace": [
+        "discover",
+        "windows",
+        "opportunities",
+        "gaps",
+        "opportunities",
+        "gaps"
+      ],
+      "filter_reasons": {
+        "filename_returned_id_mismatch": 10,
+        "competition_mismatch": 1,
+        "unsupported_html": 1,
+        "admitted": 1
+      },
+      "source_formats": {
+        "FotMob:JSON": 12,
+        "Torlytics:HTML": 1
+      },
+      "r6_by_path": [],
+      "r6_distinct_bodies": 0,
+      "staged_absence_candidates": 0,
+      "independently_confirmed_absences": null,
+      "national_adapter_input_count": 0,
+      "all_club_required_opportunities": null
+    }
+  ],
+  "candidate_check": {
+    "candidate_check": {
+      "candidates": 13,
+      "candidate_target_absent_in_raw_squad_with_retained_alias": 12,
+      "unmapped_sheet_slots": 0,
+      "raw_squad_size_sum": 260,
+      "sheet_size_sum": 260,
+      "target_provider_alias_unavailable": 1
+    },
+    "unique_candidate_bodies": 6,
+    "attempts": [
+      {
+        "path": "announcements",
+        "outcome": "UNAVAILABLE",
+        "count": 13
+      },
+      {
+        "path": "disciplinary",
+        "outcome": "UNAVAILABLE",
+        "count": 13
+      },
+      {
+        "path": "fixture_details",
+        "outcome": "FOUND",
+        "count": 13
+      },
+      {
+        "path": "identity_archives",
+        "outcome": "UNAVAILABLE",
+        "count": 13
+      },
+      {
+        "path": "injury_availability",
+        "outcome": "UNAVAILABLE",
+        "count": 13
+      },
+      {
+        "path": "match_reports",
+        "outcome": "UNAVAILABLE",
+        "count": 13
+      },
+      {
+        "path": "official_squad",
+        "outcome": "FOUND",
+        "count": 13
+      },
+      {
+        "path": "player_history",
+        "outcome": "UNAVAILABLE",
+        "count": 13
+      },
+      {
+        "path": "press_conference",
+        "outcome": "UNAVAILABLE",
+        "count": 13
+      },
+      {
+        "path": "substitutions",
+        "outcome": "FOUND",
+        "count": 13
+      },
+      {
+        "path": "team_history",
+        "outcome": "UNAVAILABLE",
+        "count": 13
+      },
+      {
+        "path": "transfer_academy",
+        "outcome": "UNAVAILABLE",
+        "count": 13
+      }
+    ],
+    "note": "Retained alias/raw-squad check is not independent publisher corroboration and does not establish cause of absence"
+  },
+  "lifecycle": {
+    "synthetic_only": true,
+    "claim_evaluations": 3,
+    "expected_state_sequence": [
+      "PENDING",
+      "RESOLVED",
+      "PENDING"
+    ],
+    "persisted_transitions": 2,
+    "current_state": "PENDING",
+    "conclusion": "A-to-B-to-A evaluation reuses first transition key and loses third history entry; current finding still updates correctly; no accepted facts affected"
+  },
+  "membership_contract_mismatches": [
+    {
+      "club_id": 9825,
+      "counts": {
+        "raw_captures_rejected_due_unrecognized_response_timestamp": 3,
+        "source_records": 31,
+        "source_records_with_asset_reference": 30
+      }
+    },
+    {
+      "club_id": 8634,
+      "counts": {
+        "raw_captures_rejected_due_unrecognized_response_timestamp": 1,
+        "source_records": 149,
+        "source_records_with_asset_reference": 44,
+        "bardghji_authorized_exception_source_rejected_by_http_only_shape": 1
+      }
+    },
+    {
+      "club_id": 9823,
+      "counts": {
+        "raw_captures_rejected_due_unrecognized_response_timestamp": 1,
+        "source_records": 43,
+        "source_records_with_asset_reference": 22
+      }
+    },
+    {
+      "club_id": 8636,
+      "counts": {
+        "source_records": 147,
+        "source_records_with_asset_reference": 42
+      }
+    },
+    {
+      "club_id": 8456,
+      "counts": {
+        "raw_captures_rejected_due_unrecognized_response_timestamp": 8,
+        "source_records": 212,
+        "source_records_with_asset_reference": 54
+      }
+    },
+    {
+      "club_id": 9847,
+      "counts": {
+        "raw_captures_rejected_due_unrecognized_response_timestamp": 2,
+        "source_records": 173,
+        "source_records_with_asset_reference": 45
+      }
+    }
+  ],
+  "source_record_manifest_lookup": [
+    {
+      "club_id": 9825,
+      "counts": {
+        "source_record_unique": 31,
+        "body_not_found_in_manifests": 22,
+        "body_found_via_manifest": 9
+      }
+    },
+    {
+      "club_id": 8634,
+      "counts": {
+        "source_record_unique": 149,
+        "body_not_found_in_manifests": 149
+      }
+    },
+    {
+      "club_id": 9823,
+      "counts": {
+        "source_record_unique": 43,
+        "body_not_found_in_manifests": 43
+      }
+    },
+    {
+      "club_id": 8636,
+      "counts": {
+        "source_record_unique": 147,
+        "body_not_found_in_manifests": 147
+      }
+    },
+    {
+      "club_id": 8456,
+      "counts": {
+        "source_record_unique": 212,
+        "body_not_found_in_manifests": 205,
+        "body_found_via_manifest": 7
+      }
+    },
+    {
+      "club_id": 9847,
+      "counts": {
+        "source_record_unique": 173,
+        "body_not_found_in_manifests": 173
+      }
+    }
+  ],
+  "source_scope": "Private reference identifiers/body hashes/paths and all player-level claims intentionally omitted"
+}

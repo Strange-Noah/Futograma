@@ -1,0 +1,59 @@
+{
+  "branch": "codex/communication-20261104",
+  "purpose": "Communication and audit reports only",
+  "base": "666255afe5bb565f82156ba9908713a5bcbab8ed",
+  "preserved_development_commit": "fc82acf41df1c0b843aeb16827abe4c75dc69bc9",
+  "investigation_date": "2026-11-05",
+  "review": "PASS: all files individually inspected; aggregate only, no private player records, databases, raw bodies, credentials or sensitive paths; no development code files",
+  "files": [
+    {
+      "path": "reports/communication/20261104/AGGREGATES.json",
+      "bytes": 23050,
+      "sha256": "e2acbdc0c522d5cedcf06aeb39f74797004b0af51ee09e91ca4ada08d24c7741"
+    },
+    {
+      "path": "reports/communication/20261104/GATE_B_FAILURE_INVENTORY.md",
+      "bytes": 4838,
+      "sha256": "cca09af4cb32b0603d8fdb6a516f0cccbce6c72afb20ed800f616c53aeac437e"
+    },
+    {
+      "path": "reports/communication/20261104/HANDOFF.md",
+      "bytes": 2239,
+      "sha256": "53cb39545ad41b9578fdab87b83635ba206aec0e173c5db44a2d41d6a10cc8ed"
+    },
+    {
+      "path": "reports/communication/20261104/PREMATURE_STOP_ANALYSIS.md",
+      "bytes": 3526,
+      "sha256": "869860dbfb161526a2256146032c31ba5c92e623e708ffe06a6f9cf1d1d928a2"
+    },
+    {
+      "path": "reports/communication/20261104/R1_R6_EXECUTION_AUDIT.md",
+      "bytes": 6375,
+      "sha256": "d665a6dd4a22f6ad2bcd16e7252edfeb12b32c1560dd766c889d0a854a683843"
+    },
+    {
+      "path": "reports/communication/20261104/REPRODUCTION.md",
+      "bytes": 4849,
+      "sha256": "74a7e57cb70a64ed28195b3e50b142ba1be9a0182c1a63bfafac979ee4c2a518"
+    },
+    {
+      "path": "reports/communication/20261104/ROOT_CAUSE_AND_REMEDIATION.md",
+      "bytes": 6335,
+      "sha256": "3488b71e72472736e2cdb6f8d20a375155aead4fc6e0725ba6ce3cd2f7655158"
+    },
+    {
+      "path": "reports/communication/20261104/SIX_CLUB_COVERAGE.md",
+      "bytes": 8481,
+      "sha256": "1cc4c6aebacc475b1db8c29c27231928cd9fcf259d7738e7d57b44b1ef1ea321"
+    },
+    {
+      "path": "reports/communication/20261104/STATUS.md",
+      "bytes": 2489,
+      "sha256": "3492b163e73edf0d757f1d66e3dc68ee09afdbcaea86114e07e71da0e9ac0c03"
+    }
+  ],
+  "self_hash": "excluded",
+  "unpublished_inputs": "Full reproducibility requires authorized frozen code and private retained inputs; aggregate JSON and reporting procedure are public",
+  "code_modified": false,
+  "production": "NO-GO"
+}

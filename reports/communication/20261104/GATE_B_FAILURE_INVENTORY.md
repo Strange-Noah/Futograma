@@ -25,3 +25,6 @@ Do not remove identity checks wholesale. Replace storage-layout assumptions with
 
 ## Corrections to prior interpretation
 Zero opportunities for four clubs is execution starvation, not absence of teammate fixtures. Zero Pending is not success: missing populations never enter the finding namespace and one unresolved alias case was labeled RESOLVED. R6 path-name count is not independent-source coverage. No external transport/permission failure prevented continued authorized local implementation.
+
+## Checkpoint 3 refinement
+Membership coverage loss includes implementation mismatches, not merely unavailable evidence: 15 valid retained captures use an ignored response_timestamp field; SourceRecord schema/asset resolution is unhandled; the explicit Bardghji authorization needs a separate manual-authority contract. Twelve absence candidates now have independently checked raw-source/alias support; one lacks an alias and remains unproven. No new final football facts were persisted. A synthetic A→B→A lifecycle probe demonstrates only two stored transitions for three evaluations. See ROOT_CAUSE_AND_REMEDIATION and AGGREGATES.
