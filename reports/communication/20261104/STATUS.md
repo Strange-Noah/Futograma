@@ -26,3 +26,6 @@ Publication checkpoints: initial index, failure/execution audit, then final per-
 
 ## Gate S accepted after exact authorized publication
 [Source commit](https://github.com/Strange-Noah/Futograma/commit/53ace3a29596263ca57f39370e39f1243160fcdc) independently verified against the seven-file manifest. [Hosted run](https://github.com/Strange-Noah/Futograma/actions/runs/41885610724): 433 pass, zero failures/skips; all 58 previously skipped tests and all 79 source tests execute. [Current Gate S acceptance](source-infrastructure/GATE_S_ACCEPTANCE.md), [S6 evidence](source-infrastructure/HOSTED_S6_ACCEPTANCE.json). This supersedes the prior blocker. R1–R6 reintegration resumes; Gate B remains unaccepted and production NO-GO.
+
+## R1–R6 resumed after Gate S
+[Reintegration progress](source-infrastructure/R1_R6_REINTEGRATION_PROGRESS.md), [quantitative probe](source-infrastructure/R1_R6_REINTEGRATION_PROGRESS.json). Source-backed callers, national-fixture context and precise unperformed-path semantics are implemented locally; 476 local tests, 418 pass/58 skips. All 90 original tables and frozen reference remain unchanged. Gate B is not accepted; no production authority changed. Gate S and its published 433-test hosted acceptance remain anchored to the original approved seven-file commit.

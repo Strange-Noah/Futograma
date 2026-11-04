@@ -48,8 +48,8 @@
     },
     {
       "path": "reports/communication/20261104/STATUS.md",
-      "bytes": 4244,
-      "sha256": "4298fd3c001ca00baa65406df9e33d400945a91e2283f96d5877c63be7158a79"
+      "bytes": 4816,
+      "sha256": "55d87a621f8ca7944aea81112b1c31cb54eecc80274555463f45a0f4e9261ead"
     },
     {
       "path": "reports/communication/20261104/source-infrastructure/ARCHIVED_SOURCE_DISPOSITIONS.json",
@@ -63,8 +63,8 @@
     },
     {
       "path": "reports/communication/20261104/source-infrastructure/HANDOFF.md",
-      "bytes": 2307,
-      "sha256": "84a5739e111d83b371cfe7622cc236b4b7cb284fce45b9a885f79b9a9cba9bbd"
+      "bytes": 2754,
+      "sha256": "56a1389d4903d7e918116052e5731519eb205152c1d74053bfcaff68aac6ce00"
     },
     {
       "path": "reports/communication/20261104/source-infrastructure/HISTORICAL_COMPATIBILITY.json",
@@ -77,14 +77,24 @@
       "sha256": "9bc88b5c32df21458126966d26379d70a9ca8fec7ef4031ad8cc1c8774799974"
     },
     {
+      "path": "reports/communication/20261104/source-infrastructure/R1_R6_REINTEGRATION_PROGRESS.json",
+      "bytes": 11010,
+      "sha256": "048be1a86d046670c5191f8ad20c95cbf50cf543c8a70fc07e69a3f22ee7d523"
+    },
+    {
+      "path": "reports/communication/20261104/source-infrastructure/R1_R6_REINTEGRATION_PROGRESS.md",
+      "bytes": 3872,
+      "sha256": "a30d77330fcf678ec9f12bf6e8ca0d4876c67ee507291294aef964f2b9fa5fdd"
+    },
+    {
       "path": "reports/communication/20261104/source-infrastructure/SOURCE_CONTRACT_AND_COMPATIBILITY.md",
       "bytes": 2996,
       "sha256": "68bf7c5fa99e70edfd05fe69e4ac914ba5ad9eff88aff5cf7c3b820db3b13960"
     },
     {
       "path": "reports/communication/20261104/source-infrastructure/SOURCE_IMPLEMENTATION_REGISTRY.md",
-      "bytes": 6872,
-      "sha256": "6fda36f03087bb55ca5d70ecdd3cbf05f64e057740a37bb7920fcde73f5561bb"
+      "bytes": 7595,
+      "sha256": "f8db3f8732d35abeaec7433d3a5c63b677daa9e5f8dacc971a185a27aa220d48"
     },
     {
       "path": "reports/communication/20261104/source-infrastructure/SOURCE_PUBLICATION_MANIFEST.json",
