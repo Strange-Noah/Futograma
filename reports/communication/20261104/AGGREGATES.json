@@ -833,5 +833,21 @@
       }
     }
   ],
-  "source_scope": "Private reference identifiers/body hashes/paths and all player-level claims intentionally omitted"
+  "source_scope": "Private reference identifiers/body hashes/paths and all player-level claims intentionally omitted",
+  "per_club_candidate_validation": [
+    {
+      "club": "Manchester City",
+      "claims": 10,
+      "raw_alias_supported": 10,
+      "unproven": 0,
+      "full_unresolved": null
+    },
+    {
+      "club": "Arsenal",
+      "claims": 3,
+      "raw_alias_supported": 2,
+      "unproven": 1,
+      "full_unresolved": null
+    }
+  ]
 }

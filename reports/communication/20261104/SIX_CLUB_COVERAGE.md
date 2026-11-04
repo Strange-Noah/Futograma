@@ -63,3 +63,15 @@ All six adapter runs invoke R5 and receive two official windows overlapping the 
 
 ## State vocabulary
 NOT IMPLEMENTED: broad/live discovery, national adapter, recovery persistence, several retained provider paths. NOT EXECUTED: national R3/R4/R6 and populated archive/live path searches. NOT OBSERVED: new conflicts within emitted subset; not a claim about all evidence. NOT APPLICABLE: a genuinely outside-cutoff fixture under the frozen scope, not an unimplemented club. UNKNOWN: full relevant populations, missing fixtures, independently corroborated absences and unresolved causes. Missing telemetry never means zero.
+
+## Per-club candidate resolution versus unresolved scope (final refinement)
+| Club | Emitted R4 claims | Raw-squad/alias-supported exclusion candidates | Emitted candidates still unproven | Full unresolved completeness denominator |
+|---|---:|---:|---:|---|
+| Manchester City | 10 | 10 | 0 of 10 | UNKNOWN |
+| Barcelona | 0 (scope starved) | 0 emitted | NOT EVALUATED | UNKNOWN |
+| Inter | 0 (scope starved) | 0 emitted | NOT EVALUATED | UNKNOWN |
+| Bayern | 0 (scope starved) | 0 emitted | NOT EVALUATED | UNKNOWN |
+| Arsenal | 3 | 2 | 1 of 3: target alias unavailable | UNKNOWN |
+| PSG | 0 (scope starved) | 0 emitted | NOT EVALUATED | UNKNOWN |
+
+All numbers concern the 13 emitted claims only. Source-backed exclusions are not independent-publisher corroboration, persistent appearance rows or medical explanations. The missing Arsenal alias must remain unresolved despite the frozen engine labeling its candidate RESOLVED. No claimed zero for a whole club's unresolved football evidence is supported.

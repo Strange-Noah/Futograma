@@ -8,8 +8,8 @@
   "files": [
     {
       "path": "reports/communication/20261104/AGGREGATES.json",
-      "bytes": 23050,
-      "sha256": "e2acbdc0c522d5cedcf06aeb39f74797004b0af51ee09e91ca4ada08d24c7741"
+      "bytes": 23381,
+      "sha256": "6498cf9f3b7377c6005a83a7773faf2c3d9197ff027906d726f1a4999e441b30"
     },
     {
       "path": "reports/communication/20261104/GATE_B_FAILURE_INVENTORY.md",
@@ -43,8 +43,8 @@
     },
     {
       "path": "reports/communication/20261104/SIX_CLUB_COVERAGE.md",
-      "bytes": 8481,
-      "sha256": "1cc4c6aebacc475b1db8c29c27231928cd9fcf259d7738e7d57b44b1ef1ea321"
+      "bytes": 9487,
+      "sha256": "16f7c095124b3ed7077ce40a093ad1445cac0e1346033972e549517930b3e8b1"
     },
     {
       "path": "reports/communication/20261104/STATUS.md",
