@@ -48,8 +48,13 @@
     },
     {
       "path": "reports/communication/20261104/STATUS.md",
-      "bytes": 2489,
-      "sha256": "3492b163e73edf0d757f1d66e3dc68ee09afdbcaea86114e07e71da0e9ac0c03"
+      "bytes": 2863,
+      "sha256": "9f20a500895f8109b37b3661f7a449109e6d8bd5af223599043f23f1954300dc"
+    },
+    {
+      "path": "reports/communication/20261104/source-infrastructure/SOURCE_IMPLEMENTATION_REGISTRY.md",
+      "bytes": 5873,
+      "sha256": "35b25a18cd580e18a7b66b45ded74318088159a5242d9f33b82339d35e52a29f"
     }
   ],
   "self_hash": "excluded",
