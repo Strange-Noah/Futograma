@@ -4,7 +4,7 @@
   "base": "666255afe5bb565f82156ba9908713a5bcbab8ed",
   "preserved_development_commit": "fc82acf41df1c0b843aeb16827abe4c75dc69bc9",
   "investigation_date": "2026-11-05",
-  "review": "PASS: all files individually inspected; aggregate only, no private player records, databases, raw bodies, credentials or sensitive paths; no development code files",
+  "review": "PASS: reporting-only sanitized aggregate payload; manually reviewed all new documents and disposition strings; no private records, raw content, asset IDs, sensitive paths, credentials, code or denied development history",
   "files": [
     {
       "path": "reports/communication/20261104/AGGREGATES.json",
@@ -48,13 +48,43 @@
     },
     {
       "path": "reports/communication/20261104/STATUS.md",
-      "bytes": 2863,
-      "sha256": "9f20a500895f8109b37b3661f7a449109e6d8bd5af223599043f23f1954300dc"
+      "bytes": 3597,
+      "sha256": "23748d556f2b604a355b9b66937f1498571f804a21215341384b8a570be5656a"
+    },
+    {
+      "path": "reports/communication/20261104/source-infrastructure/ARCHIVED_SOURCE_DISPOSITIONS.json",
+      "bytes": 85988,
+      "sha256": "e5d0c67012de9b5b7c265ef43d7e4d29ae66a53d252405101e56c41688062a19"
+    },
+    {
+      "path": "reports/communication/20261104/source-infrastructure/GATE_S_ACCEPTANCE.md",
+      "bytes": 2596,
+      "sha256": "8a2ea535afdf9195d4646b8332e7d43537f8ef417bd336d4caaa1a8f9bec4e5c"
+    },
+    {
+      "path": "reports/communication/20261104/source-infrastructure/HANDOFF.md",
+      "bytes": 2896,
+      "sha256": "707a22ed624d6fc4e71f4f2a79fffd940abeb79fd8dc63395f87b23b4e050409"
+    },
+    {
+      "path": "reports/communication/20261104/source-infrastructure/HISTORICAL_COMPATIBILITY.json",
+      "bytes": 294,
+      "sha256": "eb2da824c559d696877fee09698bb4abd64613d9118db927db36decaef478f8b"
+    },
+    {
+      "path": "reports/communication/20261104/source-infrastructure/SOURCE_CONTRACT_AND_COMPATIBILITY.md",
+      "bytes": 2996,
+      "sha256": "68bf7c5fa99e70edfd05fe69e4ac914ba5ad9eff88aff5cf7c3b820db3b13960"
     },
     {
       "path": "reports/communication/20261104/source-infrastructure/SOURCE_IMPLEMENTATION_REGISTRY.md",
-      "bytes": 5873,
-      "sha256": "35b25a18cd580e18a7b66b45ded74318088159a5242d9f33b82339d35e52a29f"
+      "bytes": 6763,
+      "sha256": "cfa9bd5f06921947a176440704a3d2963828012cd249705b2c05e06e60143150"
+    },
+    {
+      "path": "reports/communication/20261104/source-infrastructure/SOURCE_PUBLICATION_MANIFEST.json",
+      "bytes": 1984,
+      "sha256": "06ff3005d3e27099c35d7530913786183c99067f97a257517d53d581706bd151"
     }
   ],
   "self_hash": "excluded",

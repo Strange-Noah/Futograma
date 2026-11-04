@@ -1,0 +1,16 @@
+{
+  "records": 755,
+  "unique_parse_requests": 60,
+  "acquisitions": {
+    "FOUND": 755
+  },
+  "parses": {
+    "PARSED": 755
+  },
+  "comparisons": {
+    "NATIVE_EQUAL": 751,
+    "DOWNSTREAM_IDENTITY_BRIDGE_NOT_REINFERRED": 4
+  },
+  "reference_unchanged": true,
+  "canonical_facts_written": 0
+}

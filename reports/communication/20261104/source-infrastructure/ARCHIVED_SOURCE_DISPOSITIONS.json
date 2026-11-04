@@ -1,0 +1,3049 @@
+{
+  "source_count": 79,
+  "dispositions": {
+    "INCOMPLETE": 47,
+    "PARSED": 32
+  },
+  "provider_counts": {
+    "FotMob": 31,
+    "Torlytics": 33,
+    "VI": 1,
+    "Sky": 13,
+    "BVB official": 1
+  },
+  "rows": [
+    {
+      "sequence": 1,
+      "provider": "FotMob",
+      "club_id": 8456,
+      "outcome": "INCOMPLETE",
+      "parser": "international_fotmob.parse_public_club_match@source-parser/1",
+      "uncertainties": [
+        "Unknown minutes or bench participation retained"
+      ],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "applicable_minutes": false
+      },
+      "old_players": 22,
+      "parsed_own_players": 22,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 6
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "BENCH_PARTICIPATION_UNKNOWN": 6
+      },
+      "comparison": {
+        "reported_minutes_equal": 16,
+        "participation_equal": 16,
+        "current_minutes_unknown": 6,
+        "participation_difference": 6
+      },
+      "unknown_transitions": {
+        "UNUSED_SUBSTITUTE->BENCH_PARTICIPATION_UNKNOWN": 6
+      },
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": true
+    },
+    {
+      "sequence": 2,
+      "provider": "Torlytics",
+      "club_id": 8456,
+      "outcome": "PARSED",
+      "parser": "squad_pipeline.live_parse.torly_detail@source-parser/1",
+      "uncertainties": [],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "events": true,
+        "reported_minutes": false
+      },
+      "old_players": 20,
+      "parsed_own_players": 20,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 3,
+        "UNUSED_SUBSTITUTE": 6
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 3,
+        "UNUSED_SUBSTITUTE": 6
+      },
+      "comparison": {
+        "reported_minutes_equal": 20,
+        "participation_equal": 20
+      },
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 3,
+      "provider": "FotMob",
+      "club_id": 8456,
+      "outcome": "INCOMPLETE",
+      "parser": "international_fotmob.parse_public_club_match@source-parser/1",
+      "uncertainties": [
+        "Unknown minutes or bench participation retained"
+      ],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "applicable_minutes": false
+      },
+      "old_players": 20,
+      "parsed_own_players": 20,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 2,
+        "UNUSED_SUBSTITUTE": 7
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 2,
+        "BENCH_PARTICIPATION_UNKNOWN": 7
+      },
+      "comparison": {
+        "reported_minutes_equal": 13,
+        "participation_equal": 13,
+        "current_minutes_unknown": 7,
+        "participation_difference": 7
+      },
+      "unknown_transitions": {
+        "UNUSED_SUBSTITUTE->BENCH_PARTICIPATION_UNKNOWN": 7
+      },
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": true
+    },
+    {
+      "sequence": 4,
+      "provider": "FotMob",
+      "club_id": 8456,
+      "outcome": "INCOMPLETE",
+      "parser": "international_fotmob.parse_public_club_match@source-parser/1",
+      "uncertainties": [
+        "Unknown minutes or bench participation retained"
+      ],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "applicable_minutes": false
+      },
+      "old_players": 20,
+      "parsed_own_players": 20,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 4,
+        "UNUSED_SUBSTITUTE": 5
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 4,
+        "BENCH_PARTICIPATION_UNKNOWN": 5
+      },
+      "comparison": {
+        "reported_minutes_equal": 15,
+        "participation_equal": 15,
+        "current_minutes_unknown": 5,
+        "participation_difference": 5
+      },
+      "unknown_transitions": {
+        "UNUSED_SUBSTITUTE->BENCH_PARTICIPATION_UNKNOWN": 5
+      },
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": true
+    },
+    {
+      "sequence": 5,
+      "provider": "FotMob",
+      "club_id": 8456,
+      "outcome": "INCOMPLETE",
+      "parser": "international_fotmob.parse_public_club_match@source-parser/1",
+      "uncertainties": [
+        "Unknown minutes or bench participation retained"
+      ],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "applicable_minutes": false
+      },
+      "old_players": 21,
+      "parsed_own_players": 21,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 6,
+        "UNUSED_SUBSTITUTE": 4
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 6,
+        "BENCH_PARTICIPATION_UNKNOWN": 4
+      },
+      "comparison": {
+        "reported_minutes_equal": 17,
+        "participation_equal": 17,
+        "current_minutes_unknown": 4,
+        "participation_difference": 4
+      },
+      "unknown_transitions": {
+        "UNUSED_SUBSTITUTE->BENCH_PARTICIPATION_UNKNOWN": 4
+      },
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": true
+    },
+    {
+      "sequence": 6,
+      "provider": "FotMob",
+      "club_id": 8456,
+      "outcome": "INCOMPLETE",
+      "parser": "international_fotmob.parse_public_club_match@source-parser/1",
+      "uncertainties": [
+        "Unknown minutes or bench participation retained"
+      ],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "applicable_minutes": false
+      },
+      "old_players": 20,
+      "parsed_own_players": 20,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 4,
+        "UNUSED_SUBSTITUTE": 5
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 4,
+        "BENCH_PARTICIPATION_UNKNOWN": 5
+      },
+      "comparison": {
+        "reported_minutes_equal": 15,
+        "participation_equal": 15,
+        "current_minutes_unknown": 5,
+        "participation_difference": 5
+      },
+      "unknown_transitions": {
+        "UNUSED_SUBSTITUTE->BENCH_PARTICIPATION_UNKNOWN": 5
+      },
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": true
+    },
+    {
+      "sequence": 7,
+      "provider": "FotMob",
+      "club_id": 8456,
+      "outcome": "INCOMPLETE",
+      "parser": "international_fotmob.parse_public_club_match@source-parser/1",
+      "uncertainties": [
+        "Unknown minutes or bench participation retained"
+      ],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "applicable_minutes": false
+      },
+      "old_players": 22,
+      "parsed_own_players": 22,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 4,
+        "UNUSED_SUBSTITUTE": 7
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 4,
+        "BENCH_PARTICIPATION_UNKNOWN": 7
+      },
+      "comparison": {
+        "reported_minutes_equal": 15,
+        "participation_equal": 15,
+        "current_minutes_unknown": 7,
+        "participation_difference": 7
+      },
+      "unknown_transitions": {
+        "UNUSED_SUBSTITUTE->BENCH_PARTICIPATION_UNKNOWN": 7
+      },
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": true
+    },
+    {
+      "sequence": 8,
+      "provider": "FotMob",
+      "club_id": 8456,
+      "outcome": "INCOMPLETE",
+      "parser": "international_fotmob.parse_public_club_match@source-parser/1",
+      "uncertainties": [
+        "Independent request/provider ID unavailable; no canonical acceptance",
+        "Unknown minutes or bench participation retained"
+      ],
+      "completeness": {
+        "source_identity": false,
+        "squad": true,
+        "applicable_minutes": false
+      },
+      "old_players": 23,
+      "parsed_own_players": 23,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 4,
+        "UNUSED_SUBSTITUTE": 8
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 4,
+        "BENCH_PARTICIPATION_UNKNOWN": 8
+      },
+      "comparison": {
+        "reported_minutes_equal": 15,
+        "participation_equal": 15,
+        "current_minutes_unknown": 8,
+        "participation_difference": 8
+      },
+      "unknown_transitions": {
+        "UNUSED_SUBSTITUTE->BENCH_PARTICIPATION_UNKNOWN": 8
+      },
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": false,
+      "requested_id_matched": false,
+      "native_parent_relation": true
+    },
+    {
+      "sequence": 9,
+      "provider": "FotMob",
+      "club_id": 8456,
+      "outcome": "INCOMPLETE",
+      "parser": "international_fotmob.parse_public_club_match@source-parser/1",
+      "uncertainties": [
+        "Unknown minutes or bench participation retained"
+      ],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "applicable_minutes": false
+      },
+      "old_players": 20,
+      "parsed_own_players": 20,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 3,
+        "UNUSED_SUBSTITUTE": 6
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 3,
+        "BENCH_PARTICIPATION_UNKNOWN": 6
+      },
+      "comparison": {
+        "reported_minutes_equal": 14,
+        "participation_equal": 14,
+        "current_minutes_unknown": 6,
+        "participation_difference": 6
+      },
+      "unknown_transitions": {
+        "UNUSED_SUBSTITUTE->BENCH_PARTICIPATION_UNKNOWN": 6
+      },
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": true
+    },
+    {
+      "sequence": 10,
+      "provider": "FotMob",
+      "club_id": 8456,
+      "outcome": "INCOMPLETE",
+      "parser": "international_fotmob.parse_public_club_match@source-parser/1",
+      "uncertainties": [
+        "Unknown minutes or bench participation retained"
+      ],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "applicable_minutes": false
+      },
+      "old_players": 20,
+      "parsed_own_players": 20,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 2,
+        "UNUSED_SUBSTITUTE": 7
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 2,
+        "BENCH_PARTICIPATION_UNKNOWN": 7
+      },
+      "comparison": {
+        "reported_minutes_equal": 13,
+        "participation_equal": 13,
+        "current_minutes_unknown": 7,
+        "participation_difference": 7
+      },
+      "unknown_transitions": {
+        "UNUSED_SUBSTITUTE->BENCH_PARTICIPATION_UNKNOWN": 7
+      },
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": true
+    },
+    {
+      "sequence": 11,
+      "provider": "FotMob",
+      "club_id": 8456,
+      "outcome": "INCOMPLETE",
+      "parser": "international_fotmob.parse_public_club_match@source-parser/1",
+      "uncertainties": [
+        "Unknown minutes or bench participation retained"
+      ],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "applicable_minutes": false
+      },
+      "old_players": 20,
+      "parsed_own_players": 20,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 2,
+        "UNUSED_SUBSTITUTE": 7
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 2,
+        "BENCH_PARTICIPATION_UNKNOWN": 7
+      },
+      "comparison": {
+        "reported_minutes_equal": 13,
+        "participation_equal": 13,
+        "current_minutes_unknown": 7,
+        "participation_difference": 7
+      },
+      "unknown_transitions": {
+        "UNUSED_SUBSTITUTE->BENCH_PARTICIPATION_UNKNOWN": 7
+      },
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": true
+    },
+    {
+      "sequence": 12,
+      "provider": "FotMob",
+      "club_id": 8456,
+      "outcome": "INCOMPLETE",
+      "parser": "international_fotmob.parse_public_club_match@source-parser/1",
+      "uncertainties": [
+        "Unknown minutes or bench participation retained"
+      ],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "applicable_minutes": false
+      },
+      "old_players": 20,
+      "parsed_own_players": 20,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 4
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "BENCH_PARTICIPATION_UNKNOWN": 4
+      },
+      "comparison": {
+        "reported_minutes_equal": 16,
+        "participation_equal": 16,
+        "current_minutes_unknown": 4,
+        "participation_difference": 4
+      },
+      "unknown_transitions": {
+        "UNUSED_SUBSTITUTE->BENCH_PARTICIPATION_UNKNOWN": 4
+      },
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": true
+    },
+    {
+      "sequence": 13,
+      "provider": "FotMob",
+      "club_id": 8456,
+      "outcome": "INCOMPLETE",
+      "parser": "international_fotmob.parse_public_club_match@source-parser/1",
+      "uncertainties": [
+        "Unknown minutes or bench participation retained"
+      ],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "applicable_minutes": false
+      },
+      "old_players": 20,
+      "parsed_own_players": 20,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 4
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "BENCH_PARTICIPATION_UNKNOWN": 4
+      },
+      "comparison": {
+        "reported_minutes_equal": 16,
+        "participation_equal": 16,
+        "current_minutes_unknown": 4,
+        "participation_difference": 4
+      },
+      "unknown_transitions": {
+        "UNUSED_SUBSTITUTE->BENCH_PARTICIPATION_UNKNOWN": 4
+      },
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": true
+    },
+    {
+      "sequence": 14,
+      "provider": "Torlytics",
+      "club_id": 8634,
+      "outcome": "PARSED",
+      "parser": "squad_pipeline.live_parse.torly_detail@source-parser/1",
+      "uncertainties": [],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "events": true,
+        "reported_minutes": false
+      },
+      "old_players": 23,
+      "parsed_own_players": 23,
+      "old_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 7,
+        "SUBSTITUTE_USED": 5
+      },
+      "new_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 7,
+        "SUBSTITUTE_USED": 5
+      },
+      "comparison": {
+        "reported_minutes_equal": 23,
+        "participation_equal": 23
+      },
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 15,
+      "provider": "VI",
+      "club_id": 8634,
+      "outcome": "INCOMPLETE",
+      "parser": "archived-excerpt@source-parser/1",
+      "uncertainties": [
+        "Retained excerpt is not full native response; canonical/typed minute adjudication still required"
+      ],
+      "completeness": {
+        "full_http_response": false,
+        "typed_events": false,
+        "reported_minutes": false,
+        "source_identity": false,
+        "roster_structure": false
+      },
+      "old_players": 23,
+      "parsed_own_players": 0,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 7
+      },
+      "new_status": {},
+      "comparison": {},
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": false,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 16,
+      "provider": "FotMob",
+      "club_id": 8634,
+      "outcome": "INCOMPLETE",
+      "parser": "international_fotmob.parse_public_club_match@source-parser/1",
+      "uncertainties": [
+        "Unknown minutes or bench participation retained"
+      ],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "applicable_minutes": false
+      },
+      "old_players": 23,
+      "parsed_own_players": 23,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 7
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "BENCH_PARTICIPATION_UNKNOWN": 7
+      },
+      "comparison": {
+        "reported_minutes_equal": 16,
+        "participation_equal": 16,
+        "current_minutes_unknown": 7,
+        "participation_difference": 7
+      },
+      "unknown_transitions": {
+        "UNUSED_SUBSTITUTE->BENCH_PARTICIPATION_UNKNOWN": 7
+      },
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": true
+    },
+    {
+      "sequence": 17,
+      "provider": "Torlytics",
+      "club_id": 8634,
+      "outcome": "PARSED",
+      "parser": "squad_pipeline.live_parse.torly_detail@source-parser/1",
+      "uncertainties": [],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "events": true,
+        "reported_minutes": false
+      },
+      "old_players": 21,
+      "parsed_own_players": 21,
+      "old_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 5,
+        "SUBSTITUTE_USED": 5
+      },
+      "new_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 5,
+        "SUBSTITUTE_USED": 5
+      },
+      "comparison": {
+        "reported_minutes_equal": 21,
+        "participation_equal": 21
+      },
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 18,
+      "provider": "FotMob",
+      "club_id": 8634,
+      "outcome": "INCOMPLETE",
+      "parser": "international_fotmob.parse_public_club_match@source-parser/1",
+      "uncertainties": [
+        "Unknown minutes or bench participation retained"
+      ],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "applicable_minutes": false
+      },
+      "old_players": 23,
+      "parsed_own_players": 23,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 7
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "BENCH_PARTICIPATION_UNKNOWN": 7
+      },
+      "comparison": {
+        "reported_minutes_equal": 16,
+        "participation_equal": 16,
+        "current_minutes_unknown": 7,
+        "participation_difference": 7
+      },
+      "unknown_transitions": {
+        "UNUSED_SUBSTITUTE->BENCH_PARTICIPATION_UNKNOWN": 7
+      },
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": true
+    },
+    {
+      "sequence": 19,
+      "provider": "Sky",
+      "club_id": 8634,
+      "outcome": "INCOMPLETE",
+      "parser": "multi_hop_reviewed.sky_rosters@source-parser/1",
+      "uncertainties": [
+        "Retained excerpt is not full native response; canonical/typed minute adjudication still required"
+      ],
+      "completeness": {
+        "full_http_response": false,
+        "typed_events": false,
+        "reported_minutes": false,
+        "source_identity": false,
+        "roster_structure": true
+      },
+      "old_players": 22,
+      "parsed_own_players": 0,
+      "old_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 6,
+        "SUBSTITUTE_USED": 5
+      },
+      "new_status": {},
+      "comparison": {},
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": false,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 20,
+      "provider": "Torlytics",
+      "club_id": 8634,
+      "outcome": "PARSED",
+      "parser": "squad_pipeline.live_parse.torly_detail@source-parser/1",
+      "uncertainties": [],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "events": true,
+        "reported_minutes": false
+      },
+      "old_players": 21,
+      "parsed_own_players": 21,
+      "old_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 5,
+        "SUBSTITUTE_USED": 5
+      },
+      "new_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 5,
+        "SUBSTITUTE_USED": 5
+      },
+      "comparison": {
+        "reported_minutes_equal": 21,
+        "participation_equal": 21
+      },
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 21,
+      "provider": "Torlytics",
+      "club_id": 8634,
+      "outcome": "PARSED",
+      "parser": "squad_pipeline.live_parse.torly_detail@source-parser/1",
+      "uncertainties": [],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "events": true,
+        "reported_minutes": false
+      },
+      "old_players": 23,
+      "parsed_own_players": 23,
+      "old_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 7,
+        "SUBSTITUTE_USED": 5
+      },
+      "new_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 7,
+        "SUBSTITUTE_USED": 5
+      },
+      "comparison": {
+        "reported_minutes_equal": 23,
+        "participation_equal": 23
+      },
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 22,
+      "provider": "Torlytics",
+      "club_id": 8634,
+      "outcome": "PARSED",
+      "parser": "squad_pipeline.live_parse.torly_detail@source-parser/1",
+      "uncertainties": [],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "events": true,
+        "reported_minutes": false
+      },
+      "old_players": 22,
+      "parsed_own_players": 22,
+      "old_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 6,
+        "SUBSTITUTE_USED": 5
+      },
+      "new_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 6,
+        "SUBSTITUTE_USED": 5
+      },
+      "comparison": {
+        "reported_minutes_equal": 22,
+        "participation_equal": 22
+      },
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 23,
+      "provider": "Torlytics",
+      "club_id": 8634,
+      "outcome": "PARSED",
+      "parser": "squad_pipeline.live_parse.torly_detail@source-parser/1",
+      "uncertainties": [],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "events": true,
+        "reported_minutes": false
+      },
+      "old_players": 22,
+      "parsed_own_players": 22,
+      "old_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 6,
+        "SUBSTITUTE_USED": 5
+      },
+      "new_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 6,
+        "SUBSTITUTE_USED": 5
+      },
+      "comparison": {
+        "reported_minutes_equal": 22,
+        "participation_equal": 22
+      },
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 24,
+      "provider": "Torlytics",
+      "club_id": 8634,
+      "outcome": "PARSED",
+      "parser": "squad_pipeline.live_parse.torly_detail@source-parser/1",
+      "uncertainties": [],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "events": true,
+        "reported_minutes": false
+      },
+      "old_players": 21,
+      "parsed_own_players": 21,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 5
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 5
+      },
+      "comparison": {
+        "reported_minutes_equal": 21,
+        "participation_equal": 21
+      },
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 25,
+      "provider": "Torlytics",
+      "club_id": 8634,
+      "outcome": "INCOMPLETE",
+      "parser": "squad_pipeline.live_parse.torly_detail@source-parser/1",
+      "uncertainties": [
+        "SIX_PLUS_SUBSTITUTIONS_AUTHORIZATION_UNVERIFIED"
+      ],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "events": true,
+        "reported_minutes": false
+      },
+      "old_players": 23,
+      "parsed_own_players": 23,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 6,
+        "UNUSED_SUBSTITUTE": 6
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 6,
+        "UNUSED_SUBSTITUTE": 6
+      },
+      "comparison": {
+        "reported_minutes_equal": 23,
+        "participation_equal": 23
+      },
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 26,
+      "provider": "Torlytics",
+      "club_id": 8634,
+      "outcome": "PARSED",
+      "parser": "squad_pipeline.live_parse.torly_detail@source-parser/1",
+      "uncertainties": [],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "events": true,
+        "reported_minutes": false
+      },
+      "old_players": 21,
+      "parsed_own_players": 21,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 4,
+        "UNUSED_SUBSTITUTE": 6
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 4,
+        "UNUSED_SUBSTITUTE": 6
+      },
+      "comparison": {
+        "reported_minutes_equal": 21,
+        "participation_equal": 21
+      },
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 27,
+      "provider": "Torlytics",
+      "club_id": 8636,
+      "outcome": "PARSED",
+      "parser": "squad_pipeline.live_parse.torly_detail@source-parser/1",
+      "uncertainties": [],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "events": true,
+        "reported_minutes": false
+      },
+      "old_players": 23,
+      "parsed_own_players": 23,
+      "old_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 7,
+        "SUBSTITUTE_USED": 5
+      },
+      "new_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 7,
+        "SUBSTITUTE_USED": 5
+      },
+      "comparison": {
+        "reported_minutes_equal": 23,
+        "participation_equal": 23
+      },
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 28,
+      "provider": "Torlytics",
+      "club_id": 8636,
+      "outcome": "PARSED",
+      "parser": "squad_pipeline.live_parse.torly_detail@source-parser/1",
+      "uncertainties": [],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "events": true,
+        "reported_minutes": false
+      },
+      "old_players": 21,
+      "parsed_own_players": 21,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 5
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 5
+      },
+      "comparison": {
+        "reported_minutes_equal": 21,
+        "participation_equal": 21
+      },
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 29,
+      "provider": "Sky",
+      "club_id": 8636,
+      "outcome": "INCOMPLETE",
+      "parser": "multi_hop_reviewed.sky_rosters@source-parser/1",
+      "uncertainties": [
+        "Retained excerpt is not full native response; canonical/typed minute adjudication still required"
+      ],
+      "completeness": {
+        "full_http_response": false,
+        "typed_events": false,
+        "reported_minutes": false,
+        "source_identity": false,
+        "roster_structure": true
+      },
+      "old_players": 23,
+      "parsed_own_players": 0,
+      "old_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 7,
+        "SUBSTITUTE_USED": 5
+      },
+      "new_status": {},
+      "comparison": {},
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": false,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 30,
+      "provider": "Torlytics",
+      "club_id": 8636,
+      "outcome": "PARSED",
+      "parser": "squad_pipeline.live_parse.torly_detail@source-parser/1",
+      "uncertainties": [],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "events": true,
+        "reported_minutes": false
+      },
+      "old_players": 21,
+      "parsed_own_players": 21,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 5
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 5
+      },
+      "comparison": {
+        "reported_minutes_equal": 21,
+        "participation_equal": 21
+      },
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 31,
+      "provider": "Torlytics",
+      "club_id": 8636,
+      "outcome": "PARSED",
+      "parser": "squad_pipeline.live_parse.torly_detail@source-parser/1",
+      "uncertainties": [],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "events": true,
+        "reported_minutes": false
+      },
+      "old_players": 22,
+      "parsed_own_players": 22,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 6
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 6
+      },
+      "comparison": {
+        "reported_minutes_equal": 22,
+        "participation_equal": 22
+      },
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 32,
+      "provider": "Torlytics",
+      "club_id": 8636,
+      "outcome": "PARSED",
+      "parser": "squad_pipeline.live_parse.torly_detail@source-parser/1",
+      "uncertainties": [],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "events": true,
+        "reported_minutes": false
+      },
+      "old_players": 23,
+      "parsed_own_players": 23,
+      "old_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 7,
+        "SUBSTITUTE_USED": 5
+      },
+      "new_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 7,
+        "SUBSTITUTE_USED": 5
+      },
+      "comparison": {
+        "reported_minutes_equal": 23,
+        "participation_equal": 23
+      },
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 33,
+      "provider": "Torlytics",
+      "club_id": 8636,
+      "outcome": "PARSED",
+      "parser": "squad_pipeline.live_parse.torly_detail@source-parser/1",
+      "uncertainties": [],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "events": true,
+        "reported_minutes": false
+      },
+      "old_players": 22,
+      "parsed_own_players": 22,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 6
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 6
+      },
+      "comparison": {
+        "reported_minutes_equal": 22,
+        "participation_equal": 22
+      },
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 34,
+      "provider": "Sky",
+      "club_id": 8636,
+      "outcome": "INCOMPLETE",
+      "parser": "multi_hop_reviewed.sky_rosters@source-parser/1",
+      "uncertainties": [
+        "Retained excerpt is not full native response; canonical/typed minute adjudication still required"
+      ],
+      "completeness": {
+        "full_http_response": false,
+        "typed_events": false,
+        "reported_minutes": false,
+        "source_identity": false,
+        "roster_structure": true
+      },
+      "old_players": 22,
+      "parsed_own_players": 0,
+      "old_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 6,
+        "SUBSTITUTE_USED": 5
+      },
+      "new_status": {},
+      "comparison": {},
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": false,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 35,
+      "provider": "Torlytics",
+      "club_id": 8636,
+      "outcome": "PARSED",
+      "parser": "squad_pipeline.live_parse.torly_detail@source-parser/1",
+      "uncertainties": [],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "events": true,
+        "reported_minutes": false
+      },
+      "old_players": 21,
+      "parsed_own_players": 21,
+      "old_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 5,
+        "SUBSTITUTE_USED": 5
+      },
+      "new_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 5,
+        "SUBSTITUTE_USED": 5
+      },
+      "comparison": {
+        "reported_minutes_equal": 21,
+        "participation_equal": 21
+      },
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 36,
+      "provider": "Sky",
+      "club_id": 8636,
+      "outcome": "INCOMPLETE",
+      "parser": "multi_hop_reviewed.sky_rosters@source-parser/1",
+      "uncertainties": [
+        "Retained excerpt is not full native response; canonical/typed minute adjudication still required"
+      ],
+      "completeness": {
+        "full_http_response": false,
+        "typed_events": false,
+        "reported_minutes": false,
+        "source_identity": false,
+        "roster_structure": true
+      },
+      "old_players": 23,
+      "parsed_own_players": 0,
+      "old_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 7,
+        "SUBSTITUTE_USED": 5
+      },
+      "new_status": {},
+      "comparison": {},
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": false,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 37,
+      "provider": "Torlytics",
+      "club_id": 8636,
+      "outcome": "PARSED",
+      "parser": "squad_pipeline.live_parse.torly_detail@source-parser/1",
+      "uncertainties": [],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "events": true,
+        "reported_minutes": false
+      },
+      "old_players": 23,
+      "parsed_own_players": 23,
+      "old_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 7,
+        "SUBSTITUTE_USED": 5
+      },
+      "new_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 7,
+        "SUBSTITUTE_USED": 5
+      },
+      "comparison": {
+        "reported_minutes_equal": 23,
+        "participation_equal": 23
+      },
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 38,
+      "provider": "Sky",
+      "club_id": 9823,
+      "outcome": "INCOMPLETE",
+      "parser": "multi_hop_reviewed.sky_rosters@source-parser/1",
+      "uncertainties": [
+        "Retained excerpt is not full native response; canonical/typed minute adjudication still required"
+      ],
+      "completeness": {
+        "full_http_response": false,
+        "typed_events": false,
+        "reported_minutes": false,
+        "source_identity": false,
+        "roster_structure": true
+      },
+      "old_players": 22,
+      "parsed_own_players": 0,
+      "old_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 6,
+        "SUBSTITUTE_USED": 5
+      },
+      "new_status": {},
+      "comparison": {},
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": false,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 39,
+      "provider": "Torlytics",
+      "club_id": 9823,
+      "outcome": "PARSED",
+      "parser": "squad_pipeline.live_parse.torly_detail@source-parser/1",
+      "uncertainties": [],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "events": true,
+        "reported_minutes": false
+      },
+      "old_players": 20,
+      "parsed_own_players": 20,
+      "old_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 5,
+        "SUBSTITUTE_USED": 4
+      },
+      "new_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 5,
+        "SUBSTITUTE_USED": 4
+      },
+      "comparison": {
+        "reported_minutes_equal": 20,
+        "participation_equal": 20
+      },
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 40,
+      "provider": "FotMob",
+      "club_id": 9823,
+      "outcome": "INCOMPLETE",
+      "parser": "international_fotmob.parse_public_club_match@source-parser/1",
+      "uncertainties": [
+        "Unknown minutes or bench participation retained"
+      ],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "applicable_minutes": false
+      },
+      "old_players": 20,
+      "parsed_own_players": 20,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 4
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "BENCH_PARTICIPATION_UNKNOWN": 4
+      },
+      "comparison": {
+        "reported_minutes_equal": 16,
+        "participation_equal": 16,
+        "current_minutes_unknown": 4,
+        "participation_difference": 4
+      },
+      "unknown_transitions": {
+        "UNUSED_SUBSTITUTE->BENCH_PARTICIPATION_UNKNOWN": 4
+      },
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": true
+    },
+    {
+      "sequence": 41,
+      "provider": "BVB official",
+      "club_id": 9823,
+      "outcome": "INCOMPLETE",
+      "parser": "archived-excerpt@source-parser/1",
+      "uncertainties": [
+        "Retained excerpt is not full native response; canonical/typed minute adjudication still required"
+      ],
+      "completeness": {
+        "full_http_response": false,
+        "typed_events": false,
+        "reported_minutes": false,
+        "source_identity": false,
+        "roster_structure": false
+      },
+      "old_players": 20,
+      "parsed_own_players": 0,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 3,
+        "UNUSED_SUBSTITUTE": 6
+      },
+      "new_status": {},
+      "comparison": {},
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": false,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 42,
+      "provider": "Sky",
+      "club_id": 9823,
+      "outcome": "INCOMPLETE",
+      "parser": "multi_hop_reviewed.sky_rosters@source-parser/1",
+      "uncertainties": [
+        "Retained excerpt is not full native response; canonical/typed minute adjudication still required"
+      ],
+      "completeness": {
+        "full_http_response": false,
+        "typed_events": false,
+        "reported_minutes": false,
+        "source_identity": false,
+        "roster_structure": true
+      },
+      "old_players": 20,
+      "parsed_own_players": 0,
+      "old_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 4,
+        "SUBSTITUTE_USED": 5
+      },
+      "new_status": {},
+      "comparison": {},
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": false,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 43,
+      "provider": "Torlytics",
+      "club_id": 9823,
+      "outcome": "PARSED",
+      "parser": "squad_pipeline.live_parse.torly_detail@source-parser/1",
+      "uncertainties": [],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "events": true,
+        "reported_minutes": false
+      },
+      "old_players": 20,
+      "parsed_own_players": 20,
+      "old_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 4,
+        "SUBSTITUTE_USED": 5
+      },
+      "new_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 4,
+        "SUBSTITUTE_USED": 5
+      },
+      "comparison": {
+        "reported_minutes_equal": 20,
+        "participation_equal": 20
+      },
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 44,
+      "provider": "Sky",
+      "club_id": 9823,
+      "outcome": "INCOMPLETE",
+      "parser": "multi_hop_reviewed.sky_rosters@source-parser/1",
+      "uncertainties": [
+        "Retained excerpt is not full native response; canonical/typed minute adjudication still required"
+      ],
+      "completeness": {
+        "full_http_response": false,
+        "typed_events": false,
+        "reported_minutes": false,
+        "source_identity": false,
+        "roster_structure": true
+      },
+      "old_players": 21,
+      "parsed_own_players": 0,
+      "old_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 5,
+        "SUBSTITUTE_USED": 5
+      },
+      "new_status": {},
+      "comparison": {},
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": false,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 45,
+      "provider": "Torlytics",
+      "club_id": 9823,
+      "outcome": "PARSED",
+      "parser": "squad_pipeline.live_parse.torly_detail@source-parser/1",
+      "uncertainties": [],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "events": true,
+        "reported_minutes": false
+      },
+      "old_players": 20,
+      "parsed_own_players": 20,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 4
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 4
+      },
+      "comparison": {
+        "reported_minutes_equal": 20,
+        "participation_equal": 20
+      },
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 46,
+      "provider": "Torlytics",
+      "club_id": 9823,
+      "outcome": "PARSED",
+      "parser": "squad_pipeline.live_parse.torly_detail@source-parser/1",
+      "uncertainties": [],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "events": true,
+        "reported_minutes": false
+      },
+      "old_players": 20,
+      "parsed_own_players": 20,
+      "old_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 5,
+        "SUBSTITUTE_USED": 4
+      },
+      "new_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 5,
+        "SUBSTITUTE_USED": 4
+      },
+      "comparison": {
+        "reported_minutes_equal": 20,
+        "participation_equal": 20
+      },
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 47,
+      "provider": "Torlytics",
+      "club_id": 9823,
+      "outcome": "PARSED",
+      "parser": "squad_pipeline.live_parse.torly_detail@source-parser/1",
+      "uncertainties": [],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "events": true,
+        "reported_minutes": false
+      },
+      "old_players": 20,
+      "parsed_own_players": 20,
+      "old_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 5,
+        "SUBSTITUTE_USED": 4
+      },
+      "new_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 5,
+        "SUBSTITUTE_USED": 4
+      },
+      "comparison": {
+        "reported_minutes_equal": 20,
+        "participation_equal": 20
+      },
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 48,
+      "provider": "Torlytics",
+      "club_id": 9823,
+      "outcome": "PARSED",
+      "parser": "squad_pipeline.live_parse.torly_detail@source-parser/1",
+      "uncertainties": [],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "events": true,
+        "reported_minutes": false
+      },
+      "old_players": 18,
+      "parsed_own_players": 18,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 4,
+        "UNUSED_SUBSTITUTE": 3
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 4,
+        "UNUSED_SUBSTITUTE": 3
+      },
+      "comparison": {
+        "reported_minutes_equal": 18,
+        "participation_equal": 18
+      },
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 49,
+      "provider": "Sky",
+      "club_id": 9823,
+      "outcome": "INCOMPLETE",
+      "parser": "multi_hop_reviewed.sky_rosters@source-parser/1",
+      "uncertainties": [
+        "Retained excerpt is not full native response; canonical/typed minute adjudication still required"
+      ],
+      "completeness": {
+        "full_http_response": false,
+        "typed_events": false,
+        "reported_minutes": false,
+        "source_identity": false,
+        "roster_structure": true
+      },
+      "old_players": 23,
+      "parsed_own_players": 0,
+      "old_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 7,
+        "SUBSTITUTE_USED": 5
+      },
+      "new_status": {},
+      "comparison": {},
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": false,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 50,
+      "provider": "FotMob",
+      "club_id": 9825,
+      "outcome": "INCOMPLETE",
+      "parser": "international_fotmob.parse_public_club_match@source-parser/1",
+      "uncertainties": [
+        "Unknown minutes or bench participation retained"
+      ],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "applicable_minutes": false
+      },
+      "old_players": 20,
+      "parsed_own_players": 20,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 4
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "BENCH_PARTICIPATION_UNKNOWN": 4
+      },
+      "comparison": {
+        "reported_minutes_equal": 16,
+        "participation_equal": 16,
+        "current_minutes_unknown": 4,
+        "participation_difference": 4
+      },
+      "unknown_transitions": {
+        "UNUSED_SUBSTITUTE->BENCH_PARTICIPATION_UNKNOWN": 4
+      },
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": true
+    },
+    {
+      "sequence": 51,
+      "provider": "Torlytics",
+      "club_id": 9825,
+      "outcome": "PARSED",
+      "parser": "squad_pipeline.live_parse.torly_detail@source-parser/1",
+      "uncertainties": [],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "events": true,
+        "reported_minutes": false
+      },
+      "old_players": 20,
+      "parsed_own_players": 20,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 4
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 4
+      },
+      "comparison": {
+        "reported_minutes_equal": 20,
+        "participation_equal": 20
+      },
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 52,
+      "provider": "FotMob",
+      "club_id": 9825,
+      "outcome": "INCOMPLETE",
+      "parser": "international_fotmob.parse_public_club_match@source-parser/1",
+      "uncertainties": [
+        "Unknown minutes or bench participation retained"
+      ],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "applicable_minutes": false
+      },
+      "old_players": 20,
+      "parsed_own_players": 20,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 4
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "BENCH_PARTICIPATION_UNKNOWN": 4
+      },
+      "comparison": {
+        "reported_minutes_equal": 16,
+        "participation_equal": 16,
+        "current_minutes_unknown": 4,
+        "participation_difference": 4
+      },
+      "unknown_transitions": {
+        "UNUSED_SUBSTITUTE->BENCH_PARTICIPATION_UNKNOWN": 4
+      },
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": true
+    },
+    {
+      "sequence": 53,
+      "provider": "Torlytics",
+      "club_id": 9825,
+      "outcome": "PARSED",
+      "parser": "squad_pipeline.live_parse.torly_detail@source-parser/1",
+      "uncertainties": [],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "events": true,
+        "reported_minutes": false
+      },
+      "old_players": 20,
+      "parsed_own_players": 20,
+      "old_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 4,
+        "SUBSTITUTE_USED": 5
+      },
+      "new_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 4,
+        "SUBSTITUTE_USED": 5
+      },
+      "comparison": {
+        "reported_minutes_equal": 20,
+        "participation_equal": 20
+      },
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 54,
+      "provider": "Torlytics",
+      "club_id": 9825,
+      "outcome": "PARSED",
+      "parser": "squad_pipeline.live_parse.torly_detail@source-parser/1",
+      "uncertainties": [],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "events": true,
+        "reported_minutes": false
+      },
+      "old_players": 20,
+      "parsed_own_players": 20,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 4
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 4
+      },
+      "comparison": {
+        "reported_minutes_equal": 20,
+        "participation_equal": 20
+      },
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 55,
+      "provider": "FotMob",
+      "club_id": 9825,
+      "outcome": "INCOMPLETE",
+      "parser": "international_fotmob.parse_public_club_match@source-parser/1",
+      "uncertainties": [
+        "Unknown minutes or bench participation retained"
+      ],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "applicable_minutes": false
+      },
+      "old_players": 20,
+      "parsed_own_players": 20,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 6,
+        "UNUSED_SUBSTITUTE": 3
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 6,
+        "BENCH_PARTICIPATION_UNKNOWN": 3
+      },
+      "comparison": {
+        "reported_minutes_equal": 17,
+        "participation_equal": 17,
+        "current_minutes_unknown": 3,
+        "participation_difference": 3
+      },
+      "unknown_transitions": {
+        "UNUSED_SUBSTITUTE->BENCH_PARTICIPATION_UNKNOWN": 3
+      },
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": true
+    },
+    {
+      "sequence": 56,
+      "provider": "FotMob",
+      "club_id": 9825,
+      "outcome": "INCOMPLETE",
+      "parser": "international_fotmob.parse_public_club_match@source-parser/1",
+      "uncertainties": [
+        "Unknown minutes or bench participation retained"
+      ],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "applicable_minutes": false
+      },
+      "old_players": 20,
+      "parsed_own_players": 20,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 4
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "BENCH_PARTICIPATION_UNKNOWN": 4
+      },
+      "comparison": {
+        "reported_minutes_equal": 16,
+        "participation_equal": 16,
+        "current_minutes_unknown": 4,
+        "participation_difference": 4
+      },
+      "unknown_transitions": {
+        "UNUSED_SUBSTITUTE->BENCH_PARTICIPATION_UNKNOWN": 4
+      },
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": true
+    },
+    {
+      "sequence": 57,
+      "provider": "Torlytics",
+      "club_id": 9825,
+      "outcome": "PARSED",
+      "parser": "squad_pipeline.live_parse.torly_detail@source-parser/1",
+      "uncertainties": [],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "events": true,
+        "reported_minutes": false
+      },
+      "old_players": 20,
+      "parsed_own_players": 20,
+      "old_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 4,
+        "SUBSTITUTE_USED": 5
+      },
+      "new_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 4,
+        "SUBSTITUTE_USED": 5
+      },
+      "comparison": {
+        "reported_minutes_equal": 20,
+        "participation_equal": 20
+      },
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 58,
+      "provider": "Sky",
+      "club_id": 9825,
+      "outcome": "INCOMPLETE",
+      "parser": "multi_hop_reviewed.sky_rosters@source-parser/1",
+      "uncertainties": [
+        "Retained excerpt is not full native response; canonical/typed minute adjudication still required"
+      ],
+      "completeness": {
+        "full_http_response": false,
+        "typed_events": false,
+        "reported_minutes": false,
+        "source_identity": false,
+        "roster_structure": true
+      },
+      "old_players": 20,
+      "parsed_own_players": 0,
+      "old_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 4,
+        "SUBSTITUTE_USED": 5
+      },
+      "new_status": {},
+      "comparison": {},
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": false,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 59,
+      "provider": "Sky",
+      "club_id": 9825,
+      "outcome": "INCOMPLETE",
+      "parser": "multi_hop_reviewed.sky_rosters@source-parser/1",
+      "uncertainties": [
+        "Retained excerpt is not full native response; canonical/typed minute adjudication still required"
+      ],
+      "completeness": {
+        "full_http_response": false,
+        "typed_events": false,
+        "reported_minutes": false,
+        "source_identity": false,
+        "roster_structure": true
+      },
+      "old_players": 22,
+      "parsed_own_players": 0,
+      "old_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 6,
+        "SUBSTITUTE_USED": 5
+      },
+      "new_status": {},
+      "comparison": {},
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": false,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 60,
+      "provider": "Torlytics",
+      "club_id": 9825,
+      "outcome": "PARSED",
+      "parser": "squad_pipeline.live_parse.torly_detail@source-parser/1",
+      "uncertainties": [],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "events": true,
+        "reported_minutes": false
+      },
+      "old_players": 20,
+      "parsed_own_players": 20,
+      "old_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 5,
+        "SUBSTITUTE_USED": 4
+      },
+      "new_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 5,
+        "SUBSTITUTE_USED": 4
+      },
+      "comparison": {
+        "reported_minutes_equal": 20,
+        "participation_equal": 20
+      },
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 61,
+      "provider": "Sky",
+      "club_id": 9825,
+      "outcome": "INCOMPLETE",
+      "parser": "multi_hop_reviewed.sky_rosters@source-parser/1",
+      "uncertainties": [
+        "Retained excerpt is not full native response; canonical/typed minute adjudication still required"
+      ],
+      "completeness": {
+        "full_http_response": false,
+        "typed_events": false,
+        "reported_minutes": false,
+        "source_identity": false,
+        "roster_structure": true
+      },
+      "old_players": 21,
+      "parsed_own_players": 0,
+      "old_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 6,
+        "SUBSTITUTE_USED": 4
+      },
+      "new_status": {},
+      "comparison": {},
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": false,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 62,
+      "provider": "Sky",
+      "club_id": 9825,
+      "outcome": "INCOMPLETE",
+      "parser": "multi_hop_reviewed.sky_rosters@source-parser/1",
+      "uncertainties": [
+        "Retained excerpt is not full native response; canonical/typed minute adjudication still required"
+      ],
+      "completeness": {
+        "full_http_response": false,
+        "typed_events": false,
+        "reported_minutes": false,
+        "source_identity": false,
+        "roster_structure": true
+      },
+      "old_players": 20,
+      "parsed_own_players": 0,
+      "old_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 4,
+        "SUBSTITUTE_USED": 5
+      },
+      "new_status": {},
+      "comparison": {},
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": false,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 63,
+      "provider": "Torlytics",
+      "club_id": 9825,
+      "outcome": "PARSED",
+      "parser": "squad_pipeline.live_parse.torly_detail@source-parser/1",
+      "uncertainties": [],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "events": true,
+        "reported_minutes": false
+      },
+      "old_players": 20,
+      "parsed_own_players": 20,
+      "old_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 4,
+        "SUBSTITUTE_USED": 5
+      },
+      "new_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 4,
+        "SUBSTITUTE_USED": 5
+      },
+      "comparison": {
+        "reported_minutes_equal": 20,
+        "participation_equal": 20
+      },
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 64,
+      "provider": "Torlytics",
+      "club_id": 9825,
+      "outcome": "PARSED",
+      "parser": "squad_pipeline.live_parse.torly_detail@source-parser/1",
+      "uncertainties": [],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "events": true,
+        "reported_minutes": false
+      },
+      "old_players": 20,
+      "parsed_own_players": 20,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 4
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 4
+      },
+      "comparison": {
+        "reported_minutes_equal": 20,
+        "participation_equal": 20
+      },
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 65,
+      "provider": "Sky",
+      "club_id": 9825,
+      "outcome": "INCOMPLETE",
+      "parser": "multi_hop_reviewed.sky_rosters@source-parser/1",
+      "uncertainties": [
+        "Retained excerpt is not full native response; canonical/typed minute adjudication still required"
+      ],
+      "completeness": {
+        "full_http_response": false,
+        "typed_events": false,
+        "reported_minutes": false,
+        "source_identity": false,
+        "roster_structure": true
+      },
+      "old_players": 23,
+      "parsed_own_players": 0,
+      "old_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 7,
+        "SUBSTITUTE_USED": 5
+      },
+      "new_status": {},
+      "comparison": {},
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": false,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 66,
+      "provider": "Torlytics",
+      "club_id": 9825,
+      "outcome": "PARSED",
+      "parser": "squad_pipeline.live_parse.torly_detail@source-parser/1",
+      "uncertainties": [],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "events": true,
+        "reported_minutes": false
+      },
+      "old_players": 20,
+      "parsed_own_players": 20,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 4
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 4
+      },
+      "comparison": {
+        "reported_minutes_equal": 20,
+        "participation_equal": 20
+      },
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 67,
+      "provider": "FotMob",
+      "club_id": 9847,
+      "outcome": "INCOMPLETE",
+      "parser": "international_fotmob.parse_public_club_match@source-parser/1",
+      "uncertainties": [
+        "Independent request/provider ID unavailable; no canonical acceptance",
+        "Unknown minutes or bench participation retained"
+      ],
+      "completeness": {
+        "source_identity": false,
+        "squad": true,
+        "applicable_minutes": false
+      },
+      "old_players": 20,
+      "parsed_own_players": 20,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 4
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "BENCH_PARTICIPATION_UNKNOWN": 4
+      },
+      "comparison": {
+        "reported_minutes_equal": 16,
+        "participation_equal": 16,
+        "current_minutes_unknown": 4,
+        "participation_difference": 4
+      },
+      "unknown_transitions": {
+        "UNUSED_SUBSTITUTE->BENCH_PARTICIPATION_UNKNOWN": 4
+      },
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": false,
+      "requested_id_matched": false,
+      "native_parent_relation": true
+    },
+    {
+      "sequence": 68,
+      "provider": "FotMob",
+      "club_id": 9847,
+      "outcome": "INCOMPLETE",
+      "parser": "international_fotmob.parse_public_club_match@source-parser/1",
+      "uncertainties": [
+        "Independent request/provider ID unavailable; no canonical acceptance",
+        "Unknown minutes or bench participation retained"
+      ],
+      "completeness": {
+        "source_identity": false,
+        "squad": true,
+        "applicable_minutes": false
+      },
+      "old_players": 23,
+      "parsed_own_players": 23,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 7
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "BENCH_PARTICIPATION_UNKNOWN": 7
+      },
+      "comparison": {
+        "reported_minutes_equal": 16,
+        "participation_equal": 16,
+        "current_minutes_unknown": 7,
+        "participation_difference": 7
+      },
+      "unknown_transitions": {
+        "UNUSED_SUBSTITUTE->BENCH_PARTICIPATION_UNKNOWN": 7
+      },
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": false,
+      "requested_id_matched": false,
+      "native_parent_relation": true
+    },
+    {
+      "sequence": 69,
+      "provider": "FotMob",
+      "club_id": 9847,
+      "outcome": "INCOMPLETE",
+      "parser": "international_fotmob.parse_public_club_match@source-parser/1",
+      "uncertainties": [
+        "Independent request/provider ID unavailable; no canonical acceptance",
+        "Unknown minutes or bench participation retained"
+      ],
+      "completeness": {
+        "source_identity": false,
+        "squad": true,
+        "applicable_minutes": false
+      },
+      "old_players": 20,
+      "parsed_own_players": 20,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 4
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "BENCH_PARTICIPATION_UNKNOWN": 4
+      },
+      "comparison": {
+        "reported_minutes_equal": 16,
+        "participation_equal": 16,
+        "current_minutes_unknown": 4,
+        "participation_difference": 4
+      },
+      "unknown_transitions": {
+        "UNUSED_SUBSTITUTE->BENCH_PARTICIPATION_UNKNOWN": 4
+      },
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": false,
+      "requested_id_matched": false,
+      "native_parent_relation": true
+    },
+    {
+      "sequence": 70,
+      "provider": "FotMob",
+      "club_id": 9847,
+      "outcome": "INCOMPLETE",
+      "parser": "international_fotmob.parse_public_club_match@source-parser/1",
+      "uncertainties": [
+        "Unknown minutes or bench participation retained"
+      ],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "applicable_minutes": false
+      },
+      "old_players": 23,
+      "parsed_own_players": 23,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 7
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "BENCH_PARTICIPATION_UNKNOWN": 7
+      },
+      "comparison": {
+        "reported_minutes_equal": 16,
+        "participation_equal": 16,
+        "current_minutes_unknown": 7,
+        "participation_difference": 7
+      },
+      "unknown_transitions": {
+        "UNUSED_SUBSTITUTE->BENCH_PARTICIPATION_UNKNOWN": 7
+      },
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": true
+    },
+    {
+      "sequence": 71,
+      "provider": "Torlytics",
+      "club_id": 9847,
+      "outcome": "PARSED",
+      "parser": "squad_pipeline.live_parse.torly_detail@source-parser/1",
+      "uncertainties": [],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "events": true,
+        "reported_minutes": false
+      },
+      "old_players": 19,
+      "parsed_own_players": 19,
+      "old_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 3,
+        "SUBSTITUTE_USED": 5
+      },
+      "new_status": {
+        "STARTER": 11,
+        "UNUSED_SUBSTITUTE": 3,
+        "SUBSTITUTE_USED": 5
+      },
+      "comparison": {
+        "reported_minutes_equal": 19,
+        "participation_equal": 19
+      },
+      "unknown_transitions": {},
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": false
+    },
+    {
+      "sequence": 72,
+      "provider": "FotMob",
+      "club_id": 9847,
+      "outcome": "INCOMPLETE",
+      "parser": "international_fotmob.parse_public_club_match@source-parser/1",
+      "uncertainties": [
+        "Independent request/provider ID unavailable; no canonical acceptance",
+        "Unknown minutes or bench participation retained"
+      ],
+      "completeness": {
+        "source_identity": false,
+        "squad": true,
+        "applicable_minutes": false
+      },
+      "old_players": 23,
+      "parsed_own_players": 23,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 7
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "BENCH_PARTICIPATION_UNKNOWN": 7
+      },
+      "comparison": {
+        "reported_minutes_equal": 16,
+        "participation_equal": 16,
+        "current_minutes_unknown": 7,
+        "participation_difference": 7
+      },
+      "unknown_transitions": {
+        "UNUSED_SUBSTITUTE->BENCH_PARTICIPATION_UNKNOWN": 7
+      },
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": false,
+      "requested_id_matched": false,
+      "native_parent_relation": true
+    },
+    {
+      "sequence": 73,
+      "provider": "FotMob",
+      "club_id": 9847,
+      "outcome": "INCOMPLETE",
+      "parser": "international_fotmob.parse_public_club_match@source-parser/1",
+      "uncertainties": [
+        "Independent request/provider ID unavailable; no canonical acceptance",
+        "Unknown minutes or bench participation retained"
+      ],
+      "completeness": {
+        "source_identity": false,
+        "squad": true,
+        "applicable_minutes": false
+      },
+      "old_players": 20,
+      "parsed_own_players": 20,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 4
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "BENCH_PARTICIPATION_UNKNOWN": 4
+      },
+      "comparison": {
+        "reported_minutes_equal": 16,
+        "participation_equal": 16,
+        "current_minutes_unknown": 4,
+        "participation_difference": 4
+      },
+      "unknown_transitions": {
+        "UNUSED_SUBSTITUTE->BENCH_PARTICIPATION_UNKNOWN": 4
+      },
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": false,
+      "requested_id_matched": false,
+      "native_parent_relation": true
+    },
+    {
+      "sequence": 74,
+      "provider": "FotMob",
+      "club_id": 9847,
+      "outcome": "INCOMPLETE",
+      "parser": "international_fotmob.parse_public_club_match@source-parser/1",
+      "uncertainties": [
+        "Independent request/provider ID unavailable; no canonical acceptance",
+        "Unknown minutes or bench participation retained"
+      ],
+      "completeness": {
+        "source_identity": false,
+        "squad": true,
+        "applicable_minutes": false
+      },
+      "old_players": 20,
+      "parsed_own_players": 20,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 4
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "BENCH_PARTICIPATION_UNKNOWN": 4
+      },
+      "comparison": {
+        "reported_minutes_equal": 16,
+        "participation_equal": 16,
+        "current_minutes_unknown": 4,
+        "participation_difference": 4
+      },
+      "unknown_transitions": {
+        "UNUSED_SUBSTITUTE->BENCH_PARTICIPATION_UNKNOWN": 4
+      },
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": false,
+      "requested_id_matched": false,
+      "native_parent_relation": true
+    },
+    {
+      "sequence": 75,
+      "provider": "FotMob",
+      "club_id": 9847,
+      "outcome": "INCOMPLETE",
+      "parser": "international_fotmob.parse_public_club_match@source-parser/1",
+      "uncertainties": [
+        "Independent request/provider ID unavailable; no canonical acceptance",
+        "Unknown minutes or bench participation retained"
+      ],
+      "completeness": {
+        "source_identity": false,
+        "squad": true,
+        "applicable_minutes": false
+      },
+      "old_players": 20,
+      "parsed_own_players": 20,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 4,
+        "UNUSED_SUBSTITUTE": 5
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 4,
+        "BENCH_PARTICIPATION_UNKNOWN": 5
+      },
+      "comparison": {
+        "reported_minutes_equal": 15,
+        "participation_equal": 15,
+        "current_minutes_unknown": 5,
+        "participation_difference": 5
+      },
+      "unknown_transitions": {
+        "UNUSED_SUBSTITUTE->BENCH_PARTICIPATION_UNKNOWN": 5
+      },
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": false,
+      "requested_id_matched": false,
+      "native_parent_relation": true
+    },
+    {
+      "sequence": 76,
+      "provider": "FotMob",
+      "club_id": 9847,
+      "outcome": "INCOMPLETE",
+      "parser": "international_fotmob.parse_public_club_match@source-parser/1",
+      "uncertainties": [
+        "Independent request/provider ID unavailable; no canonical acceptance",
+        "Unknown minutes or bench participation retained"
+      ],
+      "completeness": {
+        "source_identity": false,
+        "squad": true,
+        "applicable_minutes": false
+      },
+      "old_players": 20,
+      "parsed_own_players": 20,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 4
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "BENCH_PARTICIPATION_UNKNOWN": 4
+      },
+      "comparison": {
+        "reported_minutes_equal": 16,
+        "participation_equal": 16,
+        "current_minutes_unknown": 4,
+        "participation_difference": 4
+      },
+      "unknown_transitions": {
+        "UNUSED_SUBSTITUTE->BENCH_PARTICIPATION_UNKNOWN": 4
+      },
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": false,
+      "requested_id_matched": false,
+      "native_parent_relation": true
+    },
+    {
+      "sequence": 77,
+      "provider": "FotMob",
+      "club_id": 9847,
+      "outcome": "INCOMPLETE",
+      "parser": "international_fotmob.parse_public_club_match@source-parser/1",
+      "uncertainties": [
+        "Independent request/provider ID unavailable; no canonical acceptance",
+        "Unknown minutes or bench participation retained"
+      ],
+      "completeness": {
+        "source_identity": false,
+        "squad": true,
+        "applicable_minutes": false
+      },
+      "old_players": 23,
+      "parsed_own_players": 23,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 7
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "BENCH_PARTICIPATION_UNKNOWN": 7
+      },
+      "comparison": {
+        "reported_minutes_equal": 16,
+        "participation_equal": 16,
+        "current_minutes_unknown": 7,
+        "participation_difference": 7
+      },
+      "unknown_transitions": {
+        "UNUSED_SUBSTITUTE->BENCH_PARTICIPATION_UNKNOWN": 7
+      },
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": false,
+      "requested_id_matched": false,
+      "native_parent_relation": true
+    },
+    {
+      "sequence": 78,
+      "provider": "FotMob",
+      "club_id": 9847,
+      "outcome": "INCOMPLETE",
+      "parser": "international_fotmob.parse_public_club_match@source-parser/1",
+      "uncertainties": [
+        "Independent request/provider ID unavailable; no canonical acceptance",
+        "Unknown minutes or bench participation retained"
+      ],
+      "completeness": {
+        "source_identity": false,
+        "squad": true,
+        "applicable_minutes": false
+      },
+      "old_players": 20,
+      "parsed_own_players": 20,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 4
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "BENCH_PARTICIPATION_UNKNOWN": 4
+      },
+      "comparison": {
+        "reported_minutes_equal": 16,
+        "participation_equal": 16,
+        "current_minutes_unknown": 4,
+        "participation_difference": 4
+      },
+      "unknown_transitions": {
+        "UNUSED_SUBSTITUTE->BENCH_PARTICIPATION_UNKNOWN": 4
+      },
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": false,
+      "requested_id_matched": false,
+      "native_parent_relation": true
+    },
+    {
+      "sequence": 79,
+      "provider": "FotMob",
+      "club_id": 9847,
+      "outcome": "INCOMPLETE",
+      "parser": "international_fotmob.parse_public_club_match@source-parser/1",
+      "uncertainties": [
+        "Unknown minutes or bench participation retained"
+      ],
+      "completeness": {
+        "source_identity": true,
+        "squad": true,
+        "applicable_minutes": false
+      },
+      "old_players": 20,
+      "parsed_own_players": 20,
+      "old_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "UNUSED_SUBSTITUTE": 4
+      },
+      "new_status": {
+        "STARTER": 11,
+        "SUBSTITUTE_USED": 5,
+        "BENCH_PARTICIPATION_UNKNOWN": 4
+      },
+      "comparison": {
+        "reported_minutes_equal": 16,
+        "participation_equal": 16,
+        "current_minutes_unknown": 4,
+        "participation_difference": 4
+      },
+      "unknown_transitions": {
+        "UNUSED_SUBSTITUTE->BENCH_PARTICIPATION_UNKNOWN": 4
+      },
+      "body_hash_verified": true,
+      "repeat_equal": true,
+      "canonical_facts_written": 0,
+      "source_url_available": true,
+      "requested_id_matched": true,
+      "native_parent_relation": true
+    }
+  ],
+  "reference_unchanged": true,
+  "canonical_facts_written": 0
+}

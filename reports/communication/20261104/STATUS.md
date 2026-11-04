@@ -20,3 +20,6 @@ Publication checkpoints: initial index, failure/execution audit, then final per-
 
 ## Gate S source-infrastructure work
 2026-11-05: source-first priority adopted. [Implementation registry and inventory](source-infrastructure/SOURCE_IMPLEMENTATION_REGISTRY.md). Existing acquisition/parsers are being reused behind a versioned facade; interface remains EXPERIMENTAL until Gate S acceptance. No substantive R1–R6 expansion or Real Madrid work has resumed.
+
+## Gate S local acceptance evidence and publication blocker
+79 source tests pass; all 79 retained sheets dispositioned and all 755 historical records resolved. Normal football export unchanged. [Gate S evaluation](source-infrastructure/GATE_S_ACCEPTANCE.md), [contract and compatibility](source-infrastructure/SOURCE_CONTRACT_AND_COMPATIBILITY.md), [all dispositions](source-infrastructure/ARCHIVED_SOURCE_DISPOSITIONS.json), [publication manifest](source-infrastructure/SOURCE_PUBLICATION_MANIFEST.json), [handoff](source-infrastructure/HANDOFF.md). Code publication was rejected by automatic approval before execution; hosted regression and S6 remain blocked. No code was published through this reporting branch. Production NO-GO.

@@ -1,0 +1,56 @@
+{
+  "repository": "Strange-Noah/Futograma",
+  "visibility": "public",
+  "remote": "https://github.com/Strange-Noah/Futograma.git",
+  "branch": "codex/source-layer-publication-20261105",
+  "base": "37bcc066e89474d4caefb98356246a053371a14c",
+  "target": "53ace3a29596263ca57f39370e39f1243160fcdc",
+  "outgoing_commits": [
+    "53ace3a29596263ca57f39370e39f1243160fcdc"
+  ],
+  "files": [
+    {
+      "path": "ops/cloud/source_replay.py",
+      "bytes": 9145,
+      "sha256": "51640d739e33a5f57d0d480b8788357a841da4d7cb0d79f4906078de48107c72"
+    },
+    {
+      "path": "squad_pipeline/identity_sources.py",
+      "bytes": 22043,
+      "sha256": "a543203400fff6bfd10e4ca3f2850340ab06d352b0fabf5fb5a6f882989f615c"
+    },
+    {
+      "path": "squad_pipeline/international_discovery.py",
+      "bytes": 5526,
+      "sha256": "ccf1e4576b54bc42d940a9c23d3c3cd869c74b7b97a33dd9396f1eed4f699a23"
+    },
+    {
+      "path": "squad_pipeline/live_sources.py",
+      "bytes": 8493,
+      "sha256": "af8ca7c630d32eb7bd3a276af833734f48ee0782173f59fd49508c1788893582"
+    },
+    {
+      "path": "squad_pipeline/source_interface.py",
+      "bytes": 15933,
+      "sha256": "63377b8696849480248185110aec8d7bfa62ab6dac919168328c5a9c2a5e994d"
+    },
+    {
+      "path": "squad_pipeline/source_parsing.py",
+      "bytes": 12858,
+      "sha256": "788f48bf7ab858ea104d0de4dee02eb62e731f45afbd9b16b246afcbf8d86676"
+    },
+    {
+      "path": "tests/cloud/test_source_interface.py",
+      "bytes": 27298,
+      "sha256": "87d6696ed2a5b7bfe2b57dc866043e196e9069a55a7545e0d67327a99669d1b1"
+    }
+  ],
+  "review": "PASS: seven source/test files manually reviewed plus secret/path/artifact scan; synthetic fixtures only; no private records/raw sources/assets/database/environment/exports",
+  "excluded_history": "fc82acf and its reconstruction implementation are not ancestors of this source-only publication",
+  "local_tests": {
+    "total": 433,
+    "passed": 375,
+    "skipped": 58
+  },
+  "production": "NO-GO"
+}
