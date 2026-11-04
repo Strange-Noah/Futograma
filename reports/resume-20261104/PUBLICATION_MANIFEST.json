@@ -1,0 +1,69 @@
+{
+  "destination": "https://github.com/Strange-Noah/Futograma.git",
+  "repository_id": 1438028570,
+  "visibility": "public",
+  "target_ref": "refs/heads/codex/reviewed-publication-20261104",
+  "base": "5a6e38868abf03bc588907778f9e4dd879d9bcf0",
+  "commit_range": "base..publication commit containing this manifest; exact resolved SHA recorded in local review receipt",
+  "outgoing_commits": 1,
+  "security_review": "PASS: exact allowlist; complete added file contents and source diffs manually reviewed; automated secret/path screening passed",
+  "files": [
+    {
+      "path": "squad_pipeline/quality_lifecycle.py",
+      "sha256": "956e3de0b34bd9cfb0c225797cfe6e9a6fb61906723ca01456c47ed3e4bc8abd",
+      "bytes": 7108
+    },
+    {
+      "path": "squad_pipeline/quality_membership.py",
+      "sha256": "e8f242df843fa0cc7eb5c53918c23a3916783726ba9ebb6ef29cebaa80bfb184",
+      "bytes": 9100
+    },
+    {
+      "path": "tests/cloud/test_quality_hardening.py",
+      "sha256": "2d15bcf66d68e445571d418452ef6d178c3a878548c8eaece56f40b4d274596d",
+      "bytes": 2489
+    },
+    {
+      "path": "reports/resume-20261104/A_VALIDATION.md",
+      "sha256": "20596ea4bab3e47d8a9c7889c70195330d19b80536fe61a7ba0abaaf038cb223",
+      "bytes": 1085
+    },
+    {
+      "path": "reports/resume-20261104/B_HARDENING.md",
+      "sha256": "fb071431b8da0b7b71130bbb7e164f5b369b9f35c864d62b931ed284fbeb7c5f",
+      "bytes": 1015
+    },
+    {
+      "path": "reports/resume-20261104/FINAL_HANDOFF.md",
+      "sha256": "6fc0df41fa47e74072ae74c024632b5f890c8eb8bfe58f91abde5a3233b5623c",
+      "bytes": 1187
+    },
+    {
+      "path": "reports/resume-20261104/INTEGRATION.md",
+      "sha256": "c0f52912afcd0fd2d27fffe06546d63e02c19c85072fadce47f4d524a7119be5",
+      "bytes": 875
+    },
+    {
+      "path": "reports/resume-20261104/SIX_TEAM_SHADOW.md",
+      "sha256": "6cad3c878906c3c4c84a7137ab0126e7e10013250325c618432538e81eb23b73",
+      "bytes": 1021
+    },
+    {
+      "path": "reports/resume-20261104/WORKSPACE_ACTIVATION.md",
+      "sha256": "332207662cd3c62badd2ec5c2d1810d45d85b8fb48060d0932b7c5615d80066e",
+      "bytes": 636
+    }
+  ],
+  "manifest_self": "reports/resume-20261104/PUBLICATION_MANIFEST.json (self hash excluded)",
+  "excluded": [
+    "earlier local commits and their personal commit metadata",
+    "workspace operating-rule copy and absolute paths",
+    "private database versions and hashes",
+    "databases and source/evidence archives",
+    "raw captures, generated exports and logs",
+    "identity-debt records and environment/configuration files",
+    "private replay helpers and detailed verification records"
+  ],
+  "workflow": "Existing ci.yml push trigger only; public ubuntu-latest regression. No changes to workflows. pages.yml has no push trigger.",
+  "production": "NO-GO; no production actions authorized"
+}

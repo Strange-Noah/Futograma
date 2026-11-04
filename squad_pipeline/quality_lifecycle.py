@@ -67,7 +67,9 @@ def evaluate(obligations, required, observation_fingerprint, previous=None,
             # Required obligations cannot disappear by claiming NOT_APPLICABLE.
             missing.append(key)
     review = stability_review or {}
-    if not review and previous and previous.get('fingerprint') == observation_fingerprint and not trigger:
+    if (not review and previous and previous.get('fingerprint') == observation_fingerprint
+            and previous.get('required') == required
+            and previous.get('obligations') == normalized and not trigger):
         review = previous.get('stability_review') or {}
     stable = (review.get('fingerprint') == observation_fingerprint
               and review.get('independent') is True and bool(review.get('reviewer_id'))

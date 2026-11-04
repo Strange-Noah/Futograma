@@ -29,6 +29,11 @@ def evaluate(prior,observations,on):
   if status=='IDENTITY_MISMATCH':obligations.append('SOURCE_IDENTITY_MISMATCH');continue
   if not trusted(o):obligations.append('INSUFFICIENT_MEMBERSHIP_EVIDENCE');continue
   start=o.get('effective_from')
+  end=o.get('end_exclusive')
+  if end:
+   date.fromisoformat(end)
+   if not start or end<=start:
+    obligations.append('HISTORICAL_INTERVAL_UNVERIFIED');continue
   if start:
    date.fromisoformat(start)
    if start>on:continue

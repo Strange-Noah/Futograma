@@ -1,0 +1,5 @@
+# Six-team shadow compatibility
+PASS for additive migration and normal export compatibility within the tested scope.
+The authoritative version pointer was read during validation. Its database hash matched the retained control. A and integration independently used copies of that same control; no new football data replaced archived evidence.
+All rows of 90 existing tables were preserved. Integrity and foreign-key checks passed. Normal exports preserved football content, including selected facts, roster, participation/minutes, national history and source debt. Allowed differences: export timestamp, database hash after schema additions, and newly present empty fixture catalogue/pending arrays.
+Legacy fields without modern evidence certificates remain pending revalidation; migration did not certify them. This does not prove all six-team source evidence, independent season completeness, or production freshness. Private version identifiers, database hashes and record details are withheld from this public report.
