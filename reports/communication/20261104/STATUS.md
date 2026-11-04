@@ -17,3 +17,6 @@ Main findings: Gate B's old FAIL string was hardcoded. Required audit coverage a
 B1 PASS in tested scope; B2/B3 FAIL; B4 mixed with candidate-proof failure; B5 unchanged-repeat/export PASS but broader lifecycle not accepted; B6 UNKNOWN/not accepted. Zero Pending never substitutes for uncovered scope. No fresh Real Madrid onboarding or production activity. Production NO-GO.
 
 Publication checkpoints: initial index, failure/execution audit, then final per-club/root-cause/reproduction/handoff reports. Git history preserves those revisions. Reports omit private databases, player-level evidence, raw responses, credentials and sensitive paths. A full private-data rerun requires authorized local inputs; public aggregate reports are not represented as a downloadable evidence archive.
+
+## Gate S source-infrastructure work
+2026-11-05: source-first priority adopted. [Implementation registry and inventory](source-infrastructure/SOURCE_IMPLEMENTATION_REGISTRY.md). Existing acquisition/parsers are being reused behind a versioned facade; interface remains EXPERIMENTAL until Gate S acceptance. No substantive R1–R6 expansion or Real Madrid work has resumed.
