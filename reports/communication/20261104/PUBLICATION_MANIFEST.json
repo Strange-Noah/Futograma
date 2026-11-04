@@ -48,8 +48,8 @@
     },
     {
       "path": "reports/communication/20261104/STATUS.md",
-      "bytes": 3597,
-      "sha256": "23748d556f2b604a355b9b66937f1498571f804a21215341384b8a570be5656a"
+      "bytes": 4244,
+      "sha256": "4298fd3c001ca00baa65406df9e33d400945a91e2283f96d5877c63be7158a79"
     },
     {
       "path": "reports/communication/20261104/source-infrastructure/ARCHIVED_SOURCE_DISPOSITIONS.json",
@@ -58,18 +58,23 @@
     },
     {
       "path": "reports/communication/20261104/source-infrastructure/GATE_S_ACCEPTANCE.md",
-      "bytes": 2596,
-      "sha256": "8a2ea535afdf9195d4646b8332e7d43537f8ef417bd336d4caaa1a8f9bec4e5c"
+      "bytes": 3501,
+      "sha256": "00e153032cd1dd1b6e86bd2a35f4482668b1a248ee51f272fe88329cc85afe79"
     },
     {
       "path": "reports/communication/20261104/source-infrastructure/HANDOFF.md",
-      "bytes": 2896,
-      "sha256": "707a22ed624d6fc4e71f4f2a79fffd940abeb79fd8dc63395f87b23b4e050409"
+      "bytes": 2307,
+      "sha256": "84a5739e111d83b371cfe7622cc236b4b7cb284fce45b9a885f79b9a9cba9bbd"
     },
     {
       "path": "reports/communication/20261104/source-infrastructure/HISTORICAL_COMPATIBILITY.json",
       "bytes": 294,
       "sha256": "eb2da824c559d696877fee09698bb4abd64613d9118db927db36decaef478f8b"
+    },
+    {
+      "path": "reports/communication/20261104/source-infrastructure/HOSTED_S6_ACCEPTANCE.json",
+      "bytes": 7802,
+      "sha256": "9bc88b5c32df21458126966d26379d70a9ca8fec7ef4031ad8cc1c8774799974"
     },
     {
       "path": "reports/communication/20261104/source-infrastructure/SOURCE_CONTRACT_AND_COMPATIBILITY.md",
@@ -78,8 +83,8 @@
     },
     {
       "path": "reports/communication/20261104/source-infrastructure/SOURCE_IMPLEMENTATION_REGISTRY.md",
-      "bytes": 6763,
-      "sha256": "cfa9bd5f06921947a176440704a3d2963828012cd249705b2c05e06e60143150"
+      "bytes": 6872,
+      "sha256": "6fda36f03087bb55ca5d70ecdd3cbf05f64e057740a37bb7920fcde73f5561bb"
     },
     {
       "path": "reports/communication/20261104/source-infrastructure/SOURCE_PUBLICATION_MANIFEST.json",
