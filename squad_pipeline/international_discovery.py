@@ -4,6 +4,10 @@ from urllib.parse import urljoin
 from datetime import datetime
 
 def payload(raw):
+    if raw.lstrip().startswith('{'):
+        direct=json.loads(raw)
+        if isinstance(direct,dict) and isinstance(direct.get('general'),dict) and isinstance(direct.get('content'),dict):return direct
+        raise ValueError('DIRECT_MATCH_PAYLOAD_STRUCTURE_REQUIRED')
     m=re.findall(r'<script\b[^>]*id=["\']__NEXT_DATA__["\'][^>]*>(.*?)</script>',raw,re.S)
     if len(m)!=1:raise ValueError('SSR_NEXT_PAYLOAD_REQUIRED')
     page=json.loads(m[0])['props']['pageProps'];return page.get('data',page)

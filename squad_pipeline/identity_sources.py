@@ -44,9 +44,9 @@ def uefa_profile(raw,capture):
             if cid and cid[1] in UEFA_CLUBS:clubs.append(str(UEFA_CLUBS[cid[1]]))
     return [base(capture,'meta[itemprop=name,birthdate,url]; official club identifier','UEFA',[m['name']],provider_ids={'UEFA':uid},birth_date=m['birthdate'],official_clubs=list(set(clubs)),authority='OFFICIAL')]
 
-def uefa_squad(raw,capture):
+def uefa_squad(raw,capture,expected_season='2026/27'):
     cid=re.search(r'/clubs/(\d+)--',capture['url']);club=UEFA_CLUBS.get(cid[1]) if cid else None
-    if not club or '2026/27' not in meta(raw).get('og:title',''):raise ValueError('CURRENT_UEFA_CLUB_SCOPE_REQUIRED')
+    if not club or (expected_season is not None and expected_season not in meta(raw).get('og:title','')):raise ValueError('CURRENT_UEFA_CLUB_SCOPE_REQUIRED')
     result=[]
     for i,row in enumerate(Tree(raw).root.all(tag='pk-table-row')):
         links=[a for a in row.all(tag='a') if re.search(r'/clubs/players/\d+--',a.attrs.get('href',''))]
@@ -247,3 +247,23 @@ def laliga_profile(raw,capture,candidate_names=()):
     from .live_parse import canon,CLUBS
     labels=[n.txt() for n in root.all(tag='h2')];clubs=[str(cid) for cid,(_,slug) in CLUBS.items() if any(canon(label)==slug for label in labels)]
     return [base(capture,'LaLiga h1 legal name; complete displayed common-name field; DATE OF BIRTH; club h2','LaLiga',names,provider_ids={'LaLigaProfile':capture['url']},birth_date=f'{birthday[3]}-{birthday[2]}-{birthday[1]}',official_clubs=clubs,scope='IDENTITY_ONLY',authority='OFFICIAL')]
+
+
+def fifa_calendar(raw,capture):
+    """Provider-native men's senior calendar rows; no audit-window decisions."""
+    view=next_data(raw)['pageData']['dashboardView']
+    if view.get('activeTab')!="Men's" or 'international “A” matches' not in view.get('description',''):
+        raise ValueError('FIFA_SENIOR_MENS_SCOPE_REQUIRED')
+    rows=[]
+    for bi,block in enumerate(view.get('content',[])):
+        props=block.get('contentProps') or {}
+        if props.get('tableType')!='International Match Calendar':continue
+        for year,data in props.get('years',{}).items():
+            for gi,group in enumerate(data.get('groups',[])):
+                for ri,row in enumerate(group.get('rows',[])):
+                    fields=row.get('fields') or {}
+                    rows.append(dict(year=year,fields=fields,scope='MENS_SENIOR',source_url=capture['url'],
+                        source_sha256=capture['sha256'],locator=f'pageData.dashboardView.content[{bi}].years.{year}.groups[{gi}].rows[{ri}]',
+                        provider_updated_at=props.get('lastUpdate')))
+    if not rows:raise ValueError('FIFA_CALENDAR_ROWS_UNAVAILABLE')
+    return rows
