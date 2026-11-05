@@ -51,15 +51,32 @@ def persist_fixture_row(db,packet,mid):
  if not db.execute('SELECT 1 FROM matches WHERE match_id=?',(mid,)).fetchone():
   db.execute('INSERT INTO matches(match_id,home_id,away_id,kickoff,local_date,period_id,competition_id,result,scheduled_kickoff,match_state,metadata_json) VALUES(?,?,?,?,?,?,?,?,?,?,?)',(mid,home['id'],away['id'],kick,day,period,f['competition_key'],str(f['home_score'])+' - '+str(f['away_score']) if f.get('home_score') is not None and f.get('away_score') is not None else None,kick,'COMPLETED' if f['status']=='FINISHED' else f['status'],canonical.encoded(meta)))
 
-def apply_appearance(db,club_id,mid,player,source,on,mode):
+def apply_appearance(db,club_id,mid,player,source,on,mode,canonical_player_id=None,supplement_unknown=False):
  from squad_pipeline import quality_lifecycle as lifecycle
  from squad_pipeline.minute_policy import select,audit
- pid=int(player['provider_player_id']);db.execute('INSERT OR IGNORE INTO players VALUES(?,?,?)',(pid,player['name'],'VERIFIED_SOURCE_ENTITY;CROSS_PROVIDER_NOT_ASSUMED'))
+ pid=int(canonical_player_id) if canonical_player_id is not None else int(player['provider_player_id'])
+ if canonical_player_id is not None:
+  from squad_pipeline.identity_registry import lookup
+  key=player.get('provider_key') or 'fotmob:'+str(player['provider_player_id'])
+  linked=lookup(db,club_id,dict(player,provider_key=key))
+  if linked is None or int(linked)!=int(canonical_player_id) or not db.execute('SELECT 1 FROM players WHERE player_id=?',(canonical_player_id,)).fetchone():raise ValueError('EXISTING_VERIFIED_CANONICAL_IDENTITY_REQUIRED')
+  pid=int(canonical_player_id)
+ db.execute('INSERT OR IGNORE INTO players VALUES(?,?,?)',(pid,player['name'],'VERIFIED_SOURCE_ENTITY;CROSS_PROVIDER_NOT_ASSUMED'))
  obligations=pipeline.participation_contract(player,source);source_quality=lifecycle.evaluate(obligations,list(obligations),lifecycle.fingerprint([player,source]));status=player['participation_status'];minutes=player['minutes']
  if source_quality['state']=='CONFLICTED':
   pipeline.record_source_issue(db,'CLUB_PARTICIPATION',str(mid)+':'+str(pid),'SOURCE_PARTICIPATION_CONFLICT',dict(source=source,player=player,managing_club_id=club_id),on);return dict(quality=source_quality,state='QUARANTINED',player_id=pid)
  if obligations['minutes']['status']!='SATISFIED':minutes=None
  old=db.execute('SELECT participation_status,minutes FROM player_match_minutes WHERE club_id=? AND match_id=? AND player_id=?',(club_id,mid,pid)).fetchone()
+ if supplement_unknown and canonical_player_id is not None and old and old['minutes'] is None and minutes is not None and (old['participation_status']==status or old['participation_status'] in ('UNKNOWN','BENCH_PARTICIPATION_UNKNOWN')) and source_quality['decision']=='ACCEPT':
+  # Reuse the normal revision-writing path. Never replace a known selected value.
+  from squad_pipeline.six_club_experiment import fact
+  before=dict(db.execute('SELECT * FROM player_match_minutes WHERE club_id=? AND match_id=? AND player_id=?',(club_id,mid,pid)).fetchone())
+  q=pipeline.verify_participation(db,mid,player,source,on,mode)
+  if q['decision']!='ACCEPT':return dict(quality=q,state='HELD_PARTICIPATION_CONTRACT',player_id=pid)
+  row=dict(club_id=club_id,match_id=mid,player_id=pid,status=status,minutes=minutes,reported_minutes=player.get('reported_minutes'),derived_minutes=player.get('derived_minutes'),minute_method=player.get('minutes_precision') or 'EXACT_SOURCE_SUPPLEMENT_UNKNOWN',
+      observations=[dict(retained_before=before,adjudication='EXACT_VERIFIED_IDENTITY_SUPPLEMENT_UNKNOWN',verification=q)],source_refs=[source],issues=[])
+  operation=fact(db,row,on,'RECONSTRUCTION_VERIFIED_UNKNOWN_SUPPLEMENT')
+  return dict(quality=q,state='SUPPLEMENTED_UNKNOWN',player_id=pid,operation=operation)
  if old and tuple(old)!=(status,minutes):
   selected=select([dict(status=old[0],minutes=old[1],provider='RETAINED_ACCEPTED'),dict(status=status,minutes=minutes,provider=source.get('provider'))])
   if selected['accepted'] and selected['selected_source']['provider']=='RETAINED_ACCEPTED':

@@ -15,6 +15,9 @@ def export_all_matches(database,out,data_head,pointer,as_of,acceptance=True):
     result.setdefault('source_issues',[])
     from .quality_context_export import issues as quality_issues
     result['quality_issues']=quality_issues(db)
+    from ..reconstruction.export import summary as completeness_summary
+    audit_summary=completeness_summary(db)
+    if audit_summary is not None:result['completeness_audit']=audit_summary
 
     for task in db.execute("SELECT * FROM international_acquisition_queue WHERE state<>'RESOLVED'"):
         result['source_issues'].append(dict(task_key=task['task_key'],scope=task['entity_type'],player_id=task['player_id'],canonical_match_id=task['match_id'],provider=task['provider'],source_url=task['url'],state=task['state'],failure_classification=task['failure_classification'],next_retry_at=task['next_retry_at']))

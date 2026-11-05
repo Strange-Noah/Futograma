@@ -5,7 +5,7 @@ from urllib.parse import urlsplit,parse_qs
 from .source_interface import ParsedSourceObservation,sha,VERSION
 from .acquisition import detect_type
 
-PARSER_VERSION='source-parser/1'
+PARSER_VERSION='source-parser/4'
 
 
 def _result(artifact,outcome,native,complete,uncertainties=(),parser=PARSER_VERSION):
@@ -32,6 +32,27 @@ def parse(artifact, body):
         http_status=artifact.metadata.get('http_status'),status='SUCCESS')
     if artifact.metadata.get('catalog_candidate'):source['catalog_candidate']=artifact.metadata['catalog_candidate']
     try:
+        if request.provider=='FotMob' and request.category in {'player_history','team_history'}:
+            from .international_discovery import profile_hints,team_fixture_hints,payload
+            context=request.context;left=context.get('start');right=context.get('cutoff')
+            if not left or not right:return _result(artifact,'INCOMPLETE',{}, {},['Explicit discovery interval required'])
+            d=payload(body.decode('utf8'))
+            if request.category=='player_history':
+                match=re.search(r'/players/(\d+)',request.target_url or '')
+                asked=request.expected_ids.get('player') or (match[1] if match else None)
+                if asked is None:return _result(artifact,'INCOMPLETE',{}, {},['Independent requested player ID required'])
+                if str(d.get('id'))!=str(asked):return _result(artifact,'IDENTITY_MISMATCH',{}, {},['Requested/returned player ID mismatch'])
+                if d.get('isCoach') or d.get('gender')!='male':return _result(artifact,'IDENTITY_MISMATCH',{}, {},['Player scope mismatch'])
+                native=profile_hints(body.decode('utf8'),source,left,right,include_club=context.get('include_club',False))
+                return _result(artifact,'PARSED',native,dict(source_identity=True,history_complete=False),
+                    ['Recent history and career ranges are discovery hints; not current call-up membership'],
+                    'international_discovery.profile_hints@'+PARSER_VERSION)
+            asked=request.expected_ids.get('team');level=context.get('level')
+            if asked is None or not level:return _result(artifact,'INCOMPLETE',{}, {},['Explicit team ID and level required'])
+            matches=team_fixture_hints(body.decode('utf8'),source,dict(provider_team_id=str(asked),level=level),left,right)
+            return _result(artifact,'PARSED',dict(matches=matches),dict(source_identity=True,history_complete=False),
+                ['Fixture hints require independent detail/canonical verification'],
+                'international_discovery.team_fixture_hints@'+PARSER_VERSION)
         if request.category=='article':
             from .identity_sources import meta,jsonld
             return _result(artifact,'PARSED',dict(metadata=meta(body.decode('utf8')),structured=jsonld(body.decode('utf8'))),
@@ -75,6 +96,22 @@ def parse(artifact, body):
             return _result(artifact,'PARSED' if records else 'INCOMPLETE',dict(records=[r.evidence() for r in records]),dict(profile=bool(records)),parser=fn.__module__+'.'+fn.__name__+'@'+PARSER_VERSION)
         if request.category!='match':
             return _result(artifact,'PARSER_NOT_IMPLEMENTED',{}, {},['No registered parser for category'])
+        if request.provider=='Sky' and request.context.get('domain')=='NATIONAL' and mime=='text/html':
+            from .international_parse import parse_sky
+            fixture=request.context.get('fixture') or {}
+            asked=request.expected_ids.get('match');url_id=urlsplit(request.target_url).path.rstrip('/').rsplit('/',1)[-1]
+            if asked is None:return _result(artifact,'INCOMPLETE',{}, {},['Independent Sky request ID required'])
+            if str(asked)!=url_id:return _result(artifact,'IDENTITY_MISMATCH',{}, {},['Sky request URL differs from provider binding'])
+            from .live_parse import ParseError
+            labels=fixture.get('competition_labels') or [fixture.get('competition_label')]
+            for i,label in enumerate(labels):
+                try:parsed=parse_sky(body.decode('utf8'),source,dict(fixture,competition_label=label));break
+                except ParseError as exc:
+                    if str(exc)!='NATIONAL_COMPETITION_UNVERIFIED' or i==len(labels)-1:raise
+            parsed['provider_fixture_id']=url_id;parsed['identity_basis']='REQUEST_URL_AND_VERIFIED_ORDERED_FIXTURE_TUPLE;NO_RETURNED_NATIVE_ID'
+            return _result(artifact,'PARSED',parsed,dict(source_identity=True,returned_provider_id=False,returned_fixture_tuple=True),
+                ['Canonical identity remains downstream; no returned native fixture ID claimed'],
+                'international_parse.parse_sky@'+PARSER_VERSION)
         payload=None
         if mime=='application/json':payload=json.loads(body)
         # Saved web-tool extractions remain a different evidence class from HTTP HTML.
@@ -103,7 +140,7 @@ def parse(artifact, body):
                 'multi_hop_reviewed.sky_rosters@'+PARSER_VERSION if request.provider=='Sky' else 'archived-excerpt@'+PARSER_VERSION)
         if request.provider=='FotMob':
             from .international_discovery import payload as extract_payload
-            from .international_fotmob import parse_public_club_match
+            from .international_fotmob import parse_public_club_match,parse_public_match
             d=extract_payload(body.decode('utf8'));g=d.get('general') or {}
             actual=str(g.get('matchId') or '')
             asked=request.expected_ids.get('match') or returned_match_id(request.target_url)
@@ -117,7 +154,12 @@ def parse(artifact, body):
                 away=dict(id=context.get('away_id', (g.get('awayTeam') or {}).get('id'))),
                 kickoff=context.get('kickoff') or g.get('matchTimeUTCDate'),
                 competition_key=str(context.get('competition_id') or g.get('parentLeagueId') or g.get('leagueId')))
-            parsed=parse_public_club_match(body.decode('utf8'),source,fixture)
+            domain=context.get('domain','CLUB')
+            if domain=='NATIONAL':
+                if not context.get('level'):return _result(artifact,'INCOMPLETE',{}, {},['National team level context required'])
+                parsed=parse_public_match(body.decode('utf8'),source,dict(fixture,level=context['level']),context.get('history_claims'))
+            elif domain=='CLUB':parsed=parse_public_club_match(body.decode('utf8'),source,fixture,context.get('history_claims'))
+            else:return _result(artifact,'INCOMPLETE',{}, {},['Unsupported match domain'])
             parsed.pop('source',None)
             parsed.update(provider_competition_id=str(g.get('leagueId')),
                 provider_parent_competition_id=str(g['parentLeagueId']) if g.get('parentLeagueId') is not None else None,
@@ -132,7 +174,7 @@ def parse(artifact, body):
             if unknown:uncertainty.append('Unknown minutes or bench participation retained')
             return _result(artifact,'PARSED' if not uncertainty else 'INCOMPLETE',parsed,
                 dict(source_identity=asked is not None,squad=not parsed['identity_issues'],applicable_minutes=unknown==0),uncertainty,
-                'international_fotmob.parse_public_club_match@'+PARSER_VERSION)
+                ('international_fotmob.parse_public_match@' if domain=='NATIONAL' else 'international_fotmob.parse_public_club_match@')+PARSER_VERSION)
         if request.provider in {'Torlytics','Sky'} and mime=='text/html':
             from .live_parse import torly_detail,sky_detail
             from .sky_german import parse as german_sky
@@ -146,6 +188,13 @@ def parse(artifact, body):
                 if returned_url and returned_url.rstrip('/')!=request.target_url.rstrip('/'):
                     return _result(artifact,'IDENTITY_MISMATCH',dict(requested_url=request.target_url,returned_url=returned_url),{},['SportsEvent resource URL mismatch'])
             fixture,sheets=parser(body.decode('utf8'),source)
+            directory_identity=False
+            if request.provider=='Sky':
+                candidate=artifact.metadata.get('catalog_candidate') or {};directory=candidate.get('catalog_source') or {}
+                asked=request.expected_ids.get('match');url_id=urlsplit(request.target_url).path.rstrip('/').rsplit('/',1)[-1]
+                if asked is not None and str(asked)!=url_id:return _result(artifact,'IDENTITY_MISMATCH',{}, {},['Sky request/provider binding differs'])
+                directory_identity=bool(asked is not None and str(candidate.get('catalog_provider_id'))==str(asked) and directory.get('sha256') and directory.get('url'))
+                directory_identity=directory_identity or bool(asked is not None and request.context.get('accepted_source_url')==request.target_url and str(asked)==url_id)
             fixture.pop('match_id',None)
             mapping=dict(home_club_id=fixture.pop('home_id',None),away_club_id=fixture.pop('away_id',None),
                 competition_id=fixture.pop('competition_id',None))
@@ -155,15 +204,16 @@ def parse(artifact, body):
             # Legacy label/config mapping is parser context, not canonical identity.
             fixture['native_source_team_labels']=fixture.get('source_team_names')
             issues=[i for s in sheets for i in s.get('issues',[])]
-            if not returned_url:issues.append('Returned resource identity unavailable from legacy parser')
+            if not returned_url and not directory_identity:issues.append('Returned resource identity unavailable from legacy parser')
             native=dict(fixture=fixture,sheets=sheets,provider_fixture_id=returned_url or request.expected_ids.get('match'),requested_resource=request.target_url,returned_resource=returned_url,
                 canonical_mapping='NOT_ADJUDICATED;LEGACY_TEAM_LABEL_ADAPTER',legacy_mapping_context=mapping)
+            if request.provider=='Sky':native['identity_basis']='REQUEST_URL_AND_ACCEPTED_FIXTURE_TUPLE;NO_RETURNED_NATIVE_ID'
             return _result(artifact,'INCOMPLETE' if issues else 'PARSED',native,
-                dict(source_identity=bool(returned_url),squad=all(s['complete_squad'] for s in sheets),events=all(s['complete_events'] for s in sheets),
+                dict(source_identity=bool(returned_url) or directory_identity,returned_provider_id=False if request.provider=='Sky' else bool(returned_url),squad=all(s['complete_squad'] for s in sheets),events=all(s['complete_events'] for s in sheets),
                      reported_minutes=all(p.get('reported_minutes') is not None for s in sheets for p in s['players'])),
                 issues,parser.__module__+'.'+parser.__name__+'@'+PARSER_VERSION)
         return _result(artifact,'PARSER_NOT_IMPLEMENTED',dict(content_type=mime),{},['No matching provider/format adapter'])
     except (ValueError,KeyError,TypeError,IndexError) as exc:
         from .live_parse import Pending
-        outcome='INCOMPLETE' if isinstance(exc,Pending) else 'IDENTITY_MISMATCH' if any(k in str(exc).upper() for k in ['IDENTITY','MATCH_ID','TEAM_ID','KICKOFF','COMPETITION_ID']) else 'MALFORMED'
+        outcome='INCOMPLETE' if isinstance(exc,Pending) else 'IDENTITY_MISMATCH' if any(k in str(exc).upper() for k in ['IDENTITY','MATCH_ID','TEAM_ID','TEAM_LEVEL','KICKOFF','COMPETITION_ID']) else 'MALFORMED'
         return _result(artifact,outcome,{}, {},[type(exc).__name__+':'+str(exc)])

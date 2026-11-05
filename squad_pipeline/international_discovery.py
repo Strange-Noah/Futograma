@@ -16,18 +16,26 @@ def level(name):
     m=re.search(r'\bU[- ]?(\d{2})\b|Under[- ]?(\d{2})',name,re.I)
     return 'U'+next(x for x in m.groups() if x) if m else 'SENIOR'
 
-def profile_hints(raw,source,window_start,window_end):
+def profile_hints(raw,source,window_start,window_end,include_club=False):
     d=payload(raw);career=d.get('careerHistory',{}).get('careerItems',{});national=career.get('national team',{}).get('teamEntries',[]);affiliations=[];all_national={str(t['teamId']):dict(level=level(t['team'])) for t in national if t.get('participantId')==d['id'] and t.get('teamId') and t.get('team')}
     for i,t in enumerate(national):
         if t.get('participantId')!=d['id'] or not t.get('teamId') or not t.get('team'):continue
         if t.get('endDate') and t['endDate'][:10]<window_start or t.get('startDate') and t['startDate'][:10]>window_end:continue
         affiliations.append(dict(provider='FotMob',provider_player_id=str(d['id']),provider_team_id=str(t['teamId']),name=t['team'],level=level(t['team']),start_date=t.get('startDate'),end_date=t.get('endDate'),scope='EXPLICIT_NATIONAL_CAREER_SECTION;NOT_CITIZENSHIP',verification_status='PROVIDER_ASSERTED_CAREER_RANGE;NOT_CURRENT_CALLUP',source=source,source_path=f'$.props.pageProps.data.careerHistory.careerItems["national team"].teamEntries[{i}]'))
-    teams=all_national;matches={};allrows=list(d.get('recentMatches') or [])+list((d.get('initialMatchesPage') or {}).get('matches') or [])
+    teams=dict(all_national)
+    if include_club:
+        for t in career.get('senior',{}).get('teamEntries',[]):
+            if str(t.get('participantId'))==str(d['id']) and t.get('teamId') and t.get('team'):
+                tid=str(t['teamId'])
+                if tid in teams and teams[tid].get('domain')!='CLUB':raise ValueError('CLUB_NATIONAL_TEAM_ID_COLLISION')
+                teams[tid]=dict(level='SENIOR',domain='CLUB')
+    matches={};allrows=list(d.get('recentMatches') or [])+list((d.get('initialMatchesPage') or {}).get('matches') or [])
     for i,m in enumerate(allrows):
         tid=str(m.get('teamId'));date=(m.get('matchDate') or {}).get('utcTime','')[:10]
         if tid not in teams or not window_start<=date<=window_end or not m.get('matchPageUrl') or not m.get('id'):continue
         own=dict(id=tid,name=m['teamName']);opponent=dict(id=str(m['opponentTeamId']),name=m['opponentTeamName']);home,away=(own,opponent) if m.get('isHomeTeam') else (opponent,own)
         match=dict(provider='FotMob',provider_match_id=str(m['id']),url=urljoin('https://www.fotmob.com',m['matchPageUrl']),home=home,away=away,kickoff=m['matchDate']['utcTime'],competition_key=str(m['leagueId']),competition_label=m['leagueName'],level=teams[tid]['level'],player_provider_id=str(d['id']),represented_team_provider_id=tid,source=source,source_path=f'personal_match_history[{i}]',discovery_claim=m)
+        if include_club:match['domain']=teams[tid].get('domain','NATIONAL')
         old=matches.get(match['provider_match_id'])
         if old and any(old[k]!=match[k] for k in ['home','away','kickoff','competition_key']):raise ValueError('PERSONAL_HISTORY_FIXTURE_CONFLICT')
         matches[match['provider_match_id']]=match
@@ -42,7 +50,7 @@ def team_fixture_hints(raw,source,affiliation,window_start,window_end):
         d=fallback[key];prefix='$.props.pageProps.fallback['+repr(key)+']'
     details=d.get('details') or {}
     if str(details.get('id'))!=affiliation['provider_team_id']:raise ValueError('NATIONAL_TEAM_FIXTURE_ID_MISMATCH')
-    f=d.get('fixtures') or {};rows=f.get('allFixtures') or f.get('allMatches')
+    f=d.get('fixtures') or {};rows=f.get('allFixtures',f.get('allMatches'))
     if isinstance(rows,dict):rows=rows.get('fixtures')
     if not isinstance(rows,list):raise ValueError('TEAM_FIXTURE_SCHEMA_UNSUPPORTED')
     out=[]

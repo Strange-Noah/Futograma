@@ -1,10 +1,51 @@
 """Read-only source acceptance replay; never runs R1–R6 or writes football facts."""
 import argparse,json,sqlite3,hashlib
+import re
 from pathlib import Path
 from collections import Counter
 from dataclasses import asdict
 from squad_pipeline.source_interface import SourceRequest,RawSourceArtifact,EvidenceStore,sha,encode
 from squad_pipeline.source_parsing import parse
+
+
+def discovery_replay(reference, store_root, output, start, cutoff):
+    """Read-only broad discovery from retained profiles and team entrypoints.
+
+    Results are provider hints, not accepted fixtures, membership or appearances.
+    """
+    reference=Path(reference).resolve();digest=sha(reference.read_bytes())
+    store=EvidenceStore(store_root);db=sqlite3.connect('file:'+str(reference)+'?mode=ro',uri=True)
+    seen=set();rows=[];fixtures=set();affiliations=set()
+    for provider,url,stamp,body_hash in db.execute('SELECT provider,source_url,fetched_at,body_sha256 FROM persistent_source_evidence'):
+        if provider!='FotMob' or not url or (url,body_hash) in seen:continue
+        player=re.search(r'/players/(\d+)',url);team=re.search(r'/teams/(\d+)',url)
+        if '/players/' not in url and '/teams/' not in url:continue
+        seen.add((url,body_hash));context=dict(start=start,cutoff=cutoff);ids={}
+        if '/players/' in url:
+            category='player_history'
+            if player:ids['player']=player[1]
+        else:
+            category='team_history'
+            if team is None:
+                rows.append(dict(category=category,outcome='EVIDENCE_CONTRACT_INCOMPLETE'));continue
+            ids['team']=team[1]
+            levels=db.execute('SELECT DISTINCT t.level FROM football_teams t JOIN football_team_provider_ids p USING(team_key) WHERE p.provider=? AND p.provider_team_id=?',('FotMob',team[1])).fetchall()
+            if len(levels)==1:context['level']=levels[0][0]
+        path=store.root/'bodies'/(str(body_hash)+'.response')
+        row=dict(category=category)
+        if not path.is_file():row['outcome']='ARCHIVE_LOCATOR_UNRESOLVED';rows.append(row);continue
+        request=SourceRequest(provider,category,url,category,expected_ids=ids,context=context)
+        artifact=RawSourceArtifact(request,body_hash,str(path),dict(response_timestamp=stamp),'SOURCE_RECORD')
+        body=store.read(artifact);observation=parse(artifact,body)
+        assert observation==parse(artifact,body),'NONDETERMINISTIC_PARSE'
+        row['outcome']=observation.outcome;rows.append(row)
+        for m in observation.native.get('matches',[]):fixtures.add(m['provider_match_id'])
+        for a in observation.native.get('affiliations',[]):affiliations.add((a['provider_player_id'],a['provider_team_id'],a['level']))
+    db.close();assert sha(reference.read_bytes())==digest
+    report=dict(captures=len(rows),categories=dict(Counter(r['category'] for r in rows)),
+        outcomes=dict(Counter(r['outcome'] for r in rows)),native_fixture_hints=len(fixtures),
+        native_affiliation_hints=len(affiliations),accepted_canonical_facts=0,reference_unchanged=True)
+    Path(output).write_text(json.dumps(report,indent=2)+'\n');return report
 
 
 def historical_replay(reference, store_root, output):

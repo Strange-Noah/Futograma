@@ -10,6 +10,15 @@ def data():
  teams={s+'Team':dict(id=f[s]['id'],name=f[s]['name'],starters=[dict(id=100*k+i,name='Player '+str(100*k+i)) for i in range(11)],subs=[dict(id=100*k+11,name='Bench '+str(k))]) for k,s in enumerate(('home','away'),1)}
  return dict(general=g,header=dict(teams=[f['home'],f['away']],status=status),content=dict(lineup=dict(matchId='10',**teams),playerStats=None))
 class PublicInternationalTests(unittest.TestCase):
+ def test_opt_in_club_history_reuses_explicit_senior_career_not_nationality(self):
+  row=dict(id=10,teamId=1,teamName='A',opponentTeamId=2,opponentTeamName='B',isHomeTeam=True,matchDate=dict(utcTime='2026-10-02T18:45:00Z'),matchPageUrl='/matches/a#10',leagueId=8,leagueName='Synthetic')
+  entry=dict(participantId=7,teamId=1,team='A')
+  d=dict(id=7,nationality='Unrelated',careerHistory=dict(careerItems=dict(senior=dict(teamEntries=[entry,entry]))),recentMatches=[row])
+  raw=html(dict(data=d))
+  self.assertEqual(profile_hints(raw,{},'2026-10-01','2026-10-03')['matches'],[])
+  matches=profile_hints(raw,{},'2026-10-01','2026-10-03',include_club=True)['matches']
+  self.assertEqual(len(matches),1);self.assertEqual(matches[0]['domain'],'CLUB')
+
  def test_missing_minutes_never_become_zero(self):
   r=parse_public_match(html(data()),{},fixture());self.assertTrue(all(p['minutes'] is None for s in r['sheets'] for p in s['players']));self.assertEqual(r['sheets'][0]['players'][-1]['participation_status'],'BENCH_PARTICIPATION_UNKNOWN')
  def test_wrong_historical_fragment_rejected(self):

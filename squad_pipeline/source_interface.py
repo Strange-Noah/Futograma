@@ -95,12 +95,26 @@ class SourceAcquisitionResult:
 
 class EvidenceStore:
     """Explicit relocatable roots plus hash index; no silent cross-boundary lookup."""
-    def __init__(self, root, archives=(), index=None, relocations=None, asset_reader=None):
+    def __init__(self, root, archives=(), index=None, relocations=None, asset_reader=None, records=()):
         self.root=Path(root).resolve()
         self.archives=tuple(Path(p).resolve() for p in archives)
         self.index=index or {}
         self.relocations=relocations or {}
         self.asset_reader=asset_reader
+        self.records=tuple(records)
+
+    def lookup(self,request):
+        records=[r for r in self.records if (r.get('url') or r.get('source_url'))==request.target_url]
+        if not records:return SourceAcquisitionResult('NOT_REQUESTED',reason='No exact request URL in configured capture index')
+        def order(record):
+            value=record.get('response_timestamp') or record.get('fetched_at') or ''
+            try:
+                stamp=datetime.fromisoformat(value.replace('Z','+00:00'))
+                epoch=stamp.timestamp() if stamp.tzinfo else float('-inf')
+            except (ValueError,TypeError):epoch=float('-inf')
+            return epoch,record.get('sha256') or record.get('body_sha256') or ''
+        record=max(records,key=order)
+        return self.normalize(record,request.provider,request.category)
 
     def candidates(self, locator):
         p=Path(locator)
@@ -152,7 +166,9 @@ class EvidenceStore:
             return SourceAcquisitionResult('EVIDENCE_CONTRACT_INCOMPLETE',reason='HASH_REQUIRED')
         locator=record.get('reused_body_path') or record.get('path')
         asset=record.get('retained_asset_ref') or (record.get('raw_fields') or {}).get('retained_raw_asset')
-        if not locator:
+        if not locator or not any(p.is_file() for p in self.candidates(locator)):
+            # A stale workspace locator must not hide an already retained body.
+            # Existing files with a wrong hash still fail below, never get replaced.
             locator=next((p for p in self.index.get(digest,[]) if any(c.is_file() for c in self.candidates(p))),None)
         if not locator and not asset and self.asset_reader is not None and hasattr(self.asset_reader,'find_asset'):
             asset=self.asset_reader.find_asset(digest)
@@ -170,6 +186,23 @@ class EvidenceStore:
             return SourceAcquisitionResult('REMOTE_ASSET_REQUIRED' if asset else 'ARCHIVE_LOCATOR_UNRESOLVED',
                 reason='Asset requires authorized backend resolution' if asset else 'Not found in configured indexes; source availability unknown',
                 metadata=dict(content_sha256=digest,asset_ref=asset,source_url=url))
+        if not url and locator:
+            # Older captures stored request identity in a hash-bound sidecar.
+            # Resolve it here, never by interpreting a storage filename as an ID.
+            for candidate in self.candidates(locator):
+                for suffix in ('.meta.json','.metadata.json'):
+                    sidecar=candidate.with_suffix(suffix)
+                    if not any(sidecar.resolve().is_relative_to(r) for r in (self.root,)+self.archives):continue
+                    if not sidecar.is_file():continue
+                    try:side=json.loads(sidecar.read_text())
+                    except (ValueError,OSError):continue
+                    if side.get('sha256')==digest and side.get('url'):
+                        url=side['url'];break
+                if url:break
+        if not url:
+            urls={r.get('url') or r.get('source_url') for r in self.records if (r.get('reused_body_sha256') or r.get('sha256') or r.get('body_sha256'))==digest}
+            urls.discard(None)
+            if len(urls)==1:url=next(iter(urls))
         if not url:
             return SourceAcquisitionResult('EVIDENCE_CONTRACT_INCOMPLETE',reason='REQUEST_URL_UNAVAILABLE',metadata=dict(content_sha256=digest,locator=locator))
         request=SourceRequest(record.get('provider') or provider,category,url,category)
@@ -178,6 +211,8 @@ class EvidenceStore:
             observed_on=record.get('observed_on'),locator=record.get('locator') or record.get('location'),
             http_status=record.get('http_status'),asset_ref=asset,source_status=record.get('source_status') or record.get('status'),
             timestamp_precision='TIMESTAMP' if any(record.get(k) for k in ['response_timestamp','observed_at','acquired_at','fetched_at']) else 'DAY_OR_UNKNOWN')
+        if record.get('directory_match_id') and record.get('catalog_source'):
+            metadata['catalog_candidate']=dict(catalog_provider_id=record['directory_match_id'],catalog_source=record['catalog_source'],catalog_team_labels=record.get('directory_team_labels') or {})
         artifact=RawSourceArtifact(request,digest,locator,metadata,'SOURCE_RECORD' if 'source_sha256' in record else 'HTTP_CAPTURE')
         try:self.read(artifact)
         except FileNotFoundError:return SourceAcquisitionResult('ARCHIVE_LOCATOR_UNRESOLVED',artifact,reason='Retained body not found in configured roots')
@@ -191,6 +226,7 @@ class SourceService:
                  transport=None,sleeper=None):
         if type(max_calls) is not int or max_calls<0 or type(max_bytes) is not int or max_bytes<0:raise ValueError('INVALID_SOURCE_BUDGET')
         self.store=store;self.max_bytes=max_bytes;self.bytes=0
+        self.parse_cache={};self.parse_cache_hits=0;self.parse_calls=0
         kwargs=dict(storage_root=store.root,allowed_hosts=allowed_hosts,transport=transport)
         if sleeper is not None:kwargs['sleeper']=sleeper
         self.client=Client(run_id,budget=max_calls,**kwargs)
@@ -203,8 +239,16 @@ class SourceService:
             try:body=self.store.read(prior)
             except FileNotFoundError:return SourceAcquisitionResult('ARCHIVE_LOCATOR_UNRESOLVED',prior)
             except ValueError:return SourceAcquisitionResult('INTEGRITY_CONFLICT',prior)
+            code=prior.metadata.get('http_status')
+            if code in {401,403,404,410,429} or isinstance(code,int) and code>=500:
+                outcome='ACCESS_RESTRICTED' if code in {401,403} else 'UNAVAILABLE' if code in {404,410} else 'RATE_LIMITED' if code==429 else 'TEMPORARILY_FAILED'
+                return SourceAcquisitionResult(outcome,prior,reason='ARCHIVED_HTTP_'+str(code),metadata=dict(transport='ARCHIVE_REPLAY',new_network_requests=0))
             return SourceAcquisitionResult('FOUND',prior,metadata=dict(transport='ARCHIVE_REPLAY',bytes=len(body)))
-        if request.policy=='ARCHIVE_ONLY':return SourceAcquisitionResult('NOT_REQUESTED',reason='No archived artifact supplied')
+        if request.policy=='ARCHIVE_ONLY':
+            result=self.store.lookup(request)
+            if result.outcome!='FOUND':return result
+            a=result.artifact
+            return self.acquire(request,RawSourceArtifact(request,a.content_sha256,a.locator,a.metadata,a.authority))
         if request.policy=='CACHE_FIRST':
             cached=self.client.cache.get(request.target_url)
             if cached:
@@ -240,10 +284,19 @@ class SourceService:
         return [self.acquire(replace(request,parameters=tuple(params))) for params in page_parameters]
 
     def observe(self, request, prior=None):
-        from .source_parsing import parse
+        from .source_parsing import parse,PARSER_VERSION
+        from copy import deepcopy
         acquired=self.acquire(request,prior)
         if acquired.outcome!='FOUND':return acquired,None
-        return acquired,parse(acquired.artifact,self.store.read(acquired.artifact))
+        artifact=acquired.artifact;body=self.store.read(artifact)
+        key=(artifact.key,PARSER_VERSION,sha(encode(artifact.metadata).encode()))
+        if key in self.parse_cache:
+            self.parse_cache_hits+=1
+            return acquired,deepcopy(self.parse_cache[key])
+        parsed=parse(artifact,body);self.parse_calls+=1
+        if len(self.parse_cache)>=128:self.parse_cache.pop(next(iter(self.parse_cache)))
+        self.parse_cache[key]=deepcopy(parsed)
+        return acquired,parsed
 
 
 class AssetArchiveReader:
@@ -255,7 +308,7 @@ class AssetArchiveReader:
     def __init__(self, assets, wanted_hashes=None, max_member=16000000,
                  max_archive_bytes=512000000,max_cached_bytes=128000000):
         import tarfile
-        self.bodies={};self.owners={};self.archive_versions={};cached=0
+        self.bodies={};self.owners={};self.archive_versions={};self.captures=[];cached=0
         for reference,item in assets.items():
             path=Path(item['path']).resolve()
             if sha(path.read_bytes())!=item['sha256']:raise ValueError('ASSET_ARCHIVE_HASH_MISMATCH')
@@ -267,6 +320,12 @@ class AssetArchiveReader:
                     total+=member.size
                     if total>max_archive_bytes:raise ValueError('ASSET_ARCHIVE_BYTE_BUDGET')
                     body=tar.extractfile(member).read();digest=sha(body)
+                    if member.name.endswith(('.metadata.json','.meta.json')):
+                        try:record=json.loads(body)
+                        except (ValueError,UnicodeDecodeError):record=None
+                        if isinstance(record,dict) and record.get('url') and re.fullmatch('[a-fA-F0-9]{64}',str(record.get('sha256',''))):
+                            keys=('url','sha256','request_timestamp','response_timestamp','http_status','status','error','purpose','size','provider','reused_body_sha256')
+                            self.captures.append(dict({k:record[k] for k in keys if k in record},retained_asset_ref=str(reference)))
                     if wanted_hashes is not None and digest not in wanted_hashes:continue
                     self.owners.setdefault(digest,[]).append(str(reference))
                     if digest not in self.bodies:

@@ -11,6 +11,131 @@ from test_international_fotmob import data,html
 
 
 class SourceContractTests(unittest.TestCase):
+    def test_stale_locator_reuses_hash_index_but_existing_corruption_fails(self):
+        body=b'retained';p=self.root/'indexed';p.write_bytes(body)
+        store=EvidenceStore(self.root,index={sha(body):[p.name]})
+        record=dict(path='stale',sha256=sha(body),url=self.request().url)
+        self.assertEqual(store.normalize(record).outcome,'FOUND')
+        (self.root/'stale').write_bytes(b'corrupt')
+        self.assertEqual(store.normalize(record).outcome,'INTEGRITY_CONFLICT')
+
+    def test_hash_metadata_identity_requires_unique_url(self):
+        body=b'retained';p=self.root/'body';p.write_bytes(body)
+        record=dict(path=p.name,sha256=sha(body))
+        captures=[dict(sha256=sha(body),url=self.request().url)]
+        store=EvidenceStore(self.root,records=captures)
+        self.assertEqual(store.normalize(record).artifact.request.url,self.request().url)
+        store=EvidenceStore(self.root,records=captures+[dict(sha256=sha(body),url='https://source.example/other')])
+        self.assertEqual(store.normalize(record).outcome,'EVIDENCE_CONTRACT_INCOMPLETE')
+
+    def test_replay_cache_is_versioned_isolated_and_checks_body_integrity(self):
+        a=self.artifact();service=SourceService(self.store,'offline',set(),max_calls=0)
+        _,first=service.observe(a.request,a);first.native['modified_by_caller']=True
+        _,second=service.observe(a.request,a)
+        self.assertNotIn('modified_by_caller',second.native);self.assertEqual(service.parse_calls,1)
+        self.assertEqual(service.parse_cache_hits,1)
+        with patch('squad_pipeline.source_parsing.PARSER_VERSION','next-test-parser'):
+            service.observe(a.request,a)
+        self.assertEqual(service.parse_calls,2)
+        (self.root/a.locator).write_bytes(b'tampered')
+        acquired,observation=service.observe(a.request,a)
+        self.assertEqual(acquired.outcome,'INTEGRITY_CONFLICT');self.assertIsNone(observation)
+
+    def test_sky_native_national_tuple_and_request_binding_both_required(self):
+        header='<div class="sdc-site-match-header" data-status="4"><span class="sdc-site-match-header__team-name-block-target">Country A</span><span class="sdc-site-match-header__team-name-block-target">Country B</span><span class="sdc-site-match-header__detail-time">7:45pm, Friday 2nd October 2026</span><span class="sdc-site-match-header__detail-fixture">International Match</span></div>'
+        columns=[]
+        for side in ['A','B']:
+            groups=[]
+            for bench,indices in [(False,range(11)),(True,[11])]:
+                players=''.join('<span class="sdc-site-team-lineup__player-number">'+str(i)+'</span><span class="sdc-site-team-lineup__player-name"><span class="sdc-site-team-lineup__player-initial" title="Given'+side+str(i)+'"></span><span class="sdc-site-team-lineup__player-surname">Family'+side+str(i)+'</span></span>' for i in indices)
+                groups.append('<div class="sdc-site-team-lineup__players'+(' sdc-site-team-lineup__players--subs' if bench else '')+'">'+players+'</div>')
+            columns.append('<div class="sdc-site-team-lineup__col"><span class="sdc-site-team-lineup__team-name">Country '+side+'</span>'+''.join(groups)+'</div>')
+        body=('<!doctype html><html>'+header+''.join(columns)+'</html>').encode()
+        fixture=dict(home='Country A',away='Country B',home_team_key='a',away_team_key='b',kickoff='2026-10-02T18:45:00Z',competition_label='International Match',competition_key='114',level='SENIOR',evidence=dict(url='https://source.example/schedule',sha256='a'*64))
+        request=self.request(provider='Sky',url='https://www.skysports.com/lineups/44',expected_ids=dict(match='44'),context=dict(domain='NATIONAL',fixture=fixture))
+        o=parse(self.artifact(body,request),body);self.assertEqual(o.outcome,'PARSED');self.assertFalse(o.completeness['returned_provider_id']);self.assertIsNone(o.canonical_identity)
+        wrong=replace(request,expected_ids=dict(match='45'))
+        self.assertEqual(parse(self.artifact(body,wrong),body).outcome,'IDENTITY_MISMATCH')
+
+    def test_archive_capture_metadata_excludes_headers_and_retains_source_identity(self):
+        import tarfile,io
+        from squad_pipeline.source_interface import AssetArchiveReader
+        body=b'captured';metadata=json.dumps(dict(url='https://source.example/teams/88/fixtures',sha256=sha(body),headers={'Authorization':'private'},response_timestamp='2026-11-04T00:00:00Z',http_status=200)).encode()
+        path=self.root/'asset.tar'
+        with tarfile.open(path,'w') as tar:
+            for name,value in [('arbitrary.response',body),('arbitrary.metadata.json',metadata)]:
+                entry=tarfile.TarInfo(name);entry.size=len(value);tar.addfile(entry,io.BytesIO(value))
+        reader=AssetArchiveReader({'retained':dict(path=str(path),sha256=sha(path.read_bytes()))},wanted_hashes={sha(body)})
+        self.assertEqual(reader.captures[0]['sha256'],sha(body));self.assertNotIn('headers',reader.captures[0])
+        self.assertEqual(reader('retained',sha(body)),body)
+
+    def test_exact_capture_index_replays_via_service_without_network(self):
+        body=b'archived';p=self.root/'capture';p.write_bytes(body)
+        store=EvidenceStore(self.root,records=[dict(url=self.request().target_url,path=p.name,sha256=sha(body),http_status=200)])
+        service=SourceService(store,'offline',set(),max_calls=0)
+        self.assertEqual(service.acquire(self.request()).outcome,'FOUND');self.assertEqual(service.client.calls,0)
+
+    def test_archived_failure_is_transport_failure_not_parser_malformed(self):
+        a=self.store.import_body(self.request(),b'error',dict(http_status=500))
+        service=SourceService(self.store,'offline',set(),max_calls=0)
+        acquired,observation=service.observe(a.request,a)
+        self.assertEqual(acquired.outcome,'TEMPORARILY_FAILED');self.assertIsNone(observation)
+        self.assertEqual(service.client.calls,0)
+
+    def test_capture_index_preserves_later_restriction_instead_of_stale_success(self):
+        p=self.root/'body';p.write_bytes(b'captured')
+        base=dict(url=self.request().target_url,path=p.name,sha256=sha(b'captured'))
+        records=[dict(base,http_status=200,response_timestamp='2026-11-04T01:00:00+02:00'),dict(base,http_status=403,response_timestamp='2026-11-04T00:00:00Z')]
+        service=SourceService(EvidenceStore(self.root,records=records),'offline',set(),max_calls=0)
+        self.assertEqual(service.acquire(self.request()).outcome,'ACCESS_RESTRICTED')
+
+    def test_joint_history_detail_request_rejects_different_fixture_claim(self):
+        claim=dict(player_provider_id='111',provider_match_id='different',source=dict(url='https://source.example/players/111'),discovery_claim=dict(id='different'))
+        r=self.request(context=dict(history_claims=[claim]));a=self.artifact(request=r)
+        self.assertEqual(parse(a,self.store.read(a)).outcome,'IDENTITY_MISMATCH')
+
+    def test_national_source_keeps_explicit_team_level(self):
+        body=json.dumps(data()).encode();r=self.request(context=dict(domain='NATIONAL',level='U21'))
+        o=parse(self.artifact(body,r),body);self.assertEqual(o.native['level'],'U21')
+        self.assertIn('international_fotmob.parse_public_match@',o.parser_version)
+
+    def test_national_level_mismatch_is_not_accepted_as_club_fixture(self):
+        body=json.dumps(data()).encode();r=self.request(context=dict(domain='NATIONAL',level='SENIOR'))
+        self.assertEqual(parse(self.artifact(body,r),body).outcome,'IDENTITY_MISMATCH')
+
+    def test_player_history_reuses_native_discovery_not_nationality(self):
+        d=dict(id=77,gender='male',isCoach=False,nationality='Example',recentMatches=[],initialMatchesPage={})
+        body=('<script id="__NEXT_DATA__">'+json.dumps(dict(props=dict(pageProps=dict(data=d))))+'</script>').encode()
+        request=self.request(category='player_history',url='https://source.example/players/77',context=dict(start='2026-08-01',cutoff='2026-11-04'))
+        o=parse(self.artifact(body,request),body)
+        self.assertEqual(o.outcome,'PARSED');self.assertEqual(o.native['affiliations'],[])
+        self.assertFalse(o.completeness['history_complete']);self.assertIsNone(o.canonical_identity)
+
+    def test_player_history_wrong_requested_player_is_conflict(self):
+        body=b'<script id="__NEXT_DATA__">{"props":{"pageProps":{"data":{"id":78}}}}</script>'
+        request=self.request(category='player_history',url='https://source.example/players/77',context=dict(start='2026-08-01',cutoff='2026-11-04'))
+        self.assertEqual(parse(self.artifact(body,request),body).outcome,'IDENTITY_MISMATCH')
+
+    def test_team_history_requires_explicit_team_and_level(self):
+        d=dict(details=dict(id=88),fixtures=dict(allFixtures=[]))
+        body=('<script id="__NEXT_DATA__">'+json.dumps(dict(props=dict(pageProps=dict(data=d))))+'</script>').encode()
+        request=self.request(category='team_history',context=dict(start='2026-08-01',cutoff='2026-11-04'))
+        self.assertEqual(parse(self.artifact(body,request),body).outcome,'INCOMPLETE')
+        request=replace(request,expected_ids=dict(team='88'),context=dict(start='2026-08-01',cutoff='2026-11-04',level='SENIOR'))
+        self.assertEqual(parse(self.artifact(body,request),body).outcome,'PARSED')
+
+    def test_hash_bound_sidecar_recovers_legacy_request_url(self):
+        body=b'archive';p=self.root/'arbitrary.response';p.write_bytes(body)
+        p.with_suffix('.meta.json').write_text(json.dumps(dict(url='https://source.example/detail?matchId=10',sha256=sha(body))))
+        r=self.store.normalize(dict(path=p.name,sha256=sha(body)))
+        self.assertEqual(r.outcome,'FOUND');self.assertEqual(r.artifact.request.url,'https://source.example/detail?matchId=10')
+        self.assertIsNone(r.artifact.metadata['response_timestamp'])
+
+    def test_unbound_sidecar_cannot_grant_request_identity(self):
+        body=b'archive';p=self.root/'arbitrary.response';p.write_bytes(body)
+        p.with_suffix('.meta.json').write_text(json.dumps(dict(url='https://source.example/detail?matchId=10',sha256='f'*64)))
+        self.assertEqual(self.store.normalize(dict(path=p.name,sha256=sha(body))).outcome,'EVIDENCE_CONTRACT_INCOMPLETE')
+
     def test_body_store_symlink_cannot_escape(self):
         outside=self.root/'outside';outside.mkdir();owned=self.root/'owned';owned.mkdir()
         (owned/'bodies').symlink_to(outside)
