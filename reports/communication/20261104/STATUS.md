@@ -29,3 +29,6 @@ Publication checkpoints: initial index, failure/execution audit, then final per-
 
 ## R1–R6 resumed after Gate S
 [Reintegration progress](source-infrastructure/R1_R6_REINTEGRATION_PROGRESS.md), [quantitative probe](source-infrastructure/R1_R6_REINTEGRATION_PROGRESS.json). Source-backed callers, national-fixture context and precise unperformed-path semantics are implemented locally; 476 local tests, 418 pass/58 skips. All 90 original tables and frozen reference remain unchanged. Gate B is not accepted; no production authority changed. Gate S and its published 433-test hosted acceptance remain anchored to the original approved seven-file commit.
+
+## Next full-period six-club checkpoint
+[Coverage](gate-b-20261105/SIX_CLUB_COVERAGE.md), [execution audit](gate-b-20261105/R1_R6_EXECUTION_AUDIT.md), [architecture consolidation](gate-b-20261105/ARCHITECTURE_CONSOLIDATION.md), [handoff](gate-b-20261105/HANDOFF.md). Actual archived player/team/Sky parsing now runs through the accepted boundary; full season-start scope and source/cache counts recorded. Gate B remains NOT ACCEPTED; production NO-GO.

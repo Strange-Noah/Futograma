@@ -32,3 +32,6 @@ All 755 historical records are resolved; 751 native observations match and four 
 
 ## Subsequent experimental reconstruction integration
 Local commit 02de515 modifies the existing retained adapter to call the accepted source facade, removes duplicate calendar extraction in favor of typed FIFA observations, and reuses international_discovery profile/team parsers. The archive helper remains preserved for older callers/tests and is not declared RETIRED. Source contract version 1 remains reconstruction-canonical at accepted commit 53ace3a; parser version 2 discovery extensions and the reintegrated callers remain EXPERIMENTAL until their own acceptance. Production legacy authority is unchanged. See R1_R6_REINTEGRATION_PROGRESS.md. No second acquisition engine or copied pipeline directory was added.
+
+## Latest caller audit
+See [architecture consolidation](../gate-b-20261105/ARCHITECTURE_CONSOLIDATION.md) and [actual AST/runtime inventory](../gate-b-20261105/CALL_GRAPH.json). Operational calendar parsing now also passes through SourceService. Existing national Sky and profile/team parsers are reused; capture metadata is handled by the existing archive reader. Current experimental development is dbe49bc, separate from immutable accepted Gate S publication. No legacy retirement or production migration.

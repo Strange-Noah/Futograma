@@ -48,8 +48,38 @@
     },
     {
       "path": "reports/communication/20261104/STATUS.md",
-      "bytes": 4816,
-      "sha256": "55d87a621f8ca7944aea81112b1c31cb54eecc80274555463f45a0f4e9261ead"
+      "bytes": 5269,
+      "sha256": "db4dd4787c42896196ad642c4e383c070d1b1b1a3d8df5f9e2ff8d99877c7e61"
+    },
+    {
+      "path": "reports/communication/20261104/gate-b-20261105/ARCHITECTURE_CONSOLIDATION.md",
+      "bytes": 3831,
+      "sha256": "194c4818c9450d282c0de13c8fa34813e3c6affd82e75da60151657a709c6d15"
+    },
+    {
+      "path": "reports/communication/20261104/gate-b-20261105/CALL_GRAPH.json",
+      "bytes": 15004,
+      "sha256": "6a85144c188207a5770e576a3ab2188ffe407d77e1e5521ff9d879dda6fb7f87"
+    },
+    {
+      "path": "reports/communication/20261104/gate-b-20261105/COVERAGE.json",
+      "bytes": 14399,
+      "sha256": "2e15517c9b53377165bf3e2a302b0d72a203902564d7c055e9b4f1c8af90482a"
+    },
+    {
+      "path": "reports/communication/20261104/gate-b-20261105/HANDOFF.md",
+      "bytes": 2025,
+      "sha256": "27bddd207ffe5f0a15962fcf07457f4e48b04b65cfc6fd144f9acd3e28ce97d7"
+    },
+    {
+      "path": "reports/communication/20261104/gate-b-20261105/R1_R6_EXECUTION_AUDIT.md",
+      "bytes": 3764,
+      "sha256": "a0d630b21a1101187b16dc77bad73495bb13387d3aec44fb8dc33555c76861e4"
+    },
+    {
+      "path": "reports/communication/20261104/gate-b-20261105/SIX_CLUB_COVERAGE.md",
+      "bytes": 2897,
+      "sha256": "c8fb4feeb00bea5a3afe0b478b8786e9697d379d2b1f49d2dc869383377ee908"
     },
     {
       "path": "reports/communication/20261104/source-infrastructure/ARCHIVED_SOURCE_DISPOSITIONS.json",
@@ -93,8 +123,8 @@
     },
     {
       "path": "reports/communication/20261104/source-infrastructure/SOURCE_IMPLEMENTATION_REGISTRY.md",
-      "bytes": 7595,
-      "sha256": "f8db3f8732d35abeaec7433d3a5c63b677daa9e5f8dacc971a185a27aa220d48"
+      "bytes": 8105,
+      "sha256": "d9514c93bd04ea8301239ed0d2d69c50fab4381975d3820e4ccbfe305a9b4d79"
     },
     {
       "path": "reports/communication/20261104/source-infrastructure/SOURCE_PUBLICATION_MANIFEST.json",
