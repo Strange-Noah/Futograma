@@ -38,3 +38,7 @@ See [architecture consolidation](../gate-b-20261105/ARCHITECTURE_CONSOLIDATION.m
 
 ## Audit authority correction
 The reconstruction now reads accepted roster_policy decisions and canonical facts as authoritative scoped inputs rather than requiring new raw-source certification. This is baseline reuse, not a parallel acquisition path. RetainedAdapter produces explicitly non-HTTP baseline receipts; engine R3/R4/R6 can investigate but cannot write canonical corrections. Existing minute_policy.select reconciles same-role numerical variation. SourceService remains the sole reconstructed acquisition/parsing boundary; existing writers are unchanged and not invoked. See [authority contract](../authority-20261105/AUDIT_AUTHORITY_CONTRACT.md). No implementation is newly retired.
+
+
+## Frozen-obligation execution checkpoint
+See [architecture consolidation](../obligations-20261105/ARCHITECTURE_CONSOLIDATION.md), [execution audit](../obligations-20261105/R1_R6_EXECUTION_AUDIT.md) and [coverage](../obligations-20261105/SIX_CLUB_COVERAGE.md). RetainedAdapter and obligation_execution reuse SourceService, roster_policy, identity_registry, minute_policy and established canonical writers. New controlled writer parameters are opt-in; existing production callers retain defaults. Complete native squad exclusion may use a target identity certificate without requiring every unrelated source player to have a canonical mapping; it remains a supported audit inference. No legacy component is retired and no production migration is implied.

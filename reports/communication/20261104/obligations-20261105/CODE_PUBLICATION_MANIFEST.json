@@ -1,0 +1,133 @@
+{
+  "repository": "Strange-Noah/Futograma",
+  "remote_url": "https://github.com/Strange-Noah/Futograma.git",
+  "branch": "codex/gate-b-obligations-20261105",
+  "base": "53ace3a29596263ca57f39370e39f1243160fcdc",
+  "commit": "76d4b236f12adb5bb24ebb82d84a4581cd3eeeb2",
+  "commit_range": [
+    "76d4b236f12adb5bb24ebb82d84a4581cd3eeeb2"
+  ],
+  "files": [
+    {
+      "path": "ops/cloud/coldstart_acceptance.py",
+      "bytes": 25430,
+      "sha256": "39c4351ad9229426460cbf0d4b16b2e4208fe3c7ea5f184e13abb95c9a840a29",
+      "git_blob": "d666c68d35172790ea406191f97b897ddfbf6832"
+    },
+    {
+      "path": "ops/cloud/obligation_execution.py",
+      "bytes": 16045,
+      "sha256": "4eab8209c26a920baa6e59feb79048345a1fe374946ab14fd81d1c8eae0d6ab2",
+      "git_blob": "a0ac67b67bec19ad4110cf9e895ebfff97a76a75"
+    },
+    {
+      "path": "ops/cloud/reconstruction_probe.py",
+      "bytes": 5471,
+      "sha256": "3de79358b436e0f78d6911cc4853aebf44ec91b2058d04d27e100e33fe59ce33",
+      "git_blob": "b5a5340e6e855610ba7e592ba6667ed679551d7d"
+    },
+    {
+      "path": "ops/cloud/source_replay.py",
+      "bytes": 11917,
+      "sha256": "71bb364177fc8242ea35bf7f529c36f64f862dc1d6d3c9aca4b3d2f1410a5e9e",
+      "git_blob": "abf922f75e6264e9c750196619cfb24c191349c3"
+    },
+    {
+      "path": "squad_pipeline/cloud/all_match_export.py",
+      "bytes": 6509,
+      "sha256": "0cd6e20e5ee0367696f85eddbe46a5260e7a57dc0ce8d52df0cf30d915e27467",
+      "git_blob": "e8424086d5b0dd4710235073204e7142b8da3ccc"
+    },
+    {
+      "path": "squad_pipeline/international_discovery.py",
+      "bytes": 6029,
+      "sha256": "46717f65174962857af40371cb164f4f0a874745ef4fa4897c725a92835ea344",
+      "git_blob": "e1067fb8d239ddf5ea60a9d518623e686d89e6d6"
+    },
+    {
+      "path": "squad_pipeline/reconstruction/__init__.py",
+      "bytes": 83,
+      "sha256": "69981d42597e2121c8a00aeaacc5c0d7b3dff2e8a40bffd6264d3cff0e29516c",
+      "git_blob": "6c678b251925a86f595914bcd3287978f78b284c"
+    },
+    {
+      "path": "squad_pipeline/reconstruction/archive.py",
+      "bytes": 3069,
+      "sha256": "9a894d063128310e86bd4d3a54d937d8a513741908bad6803c23b1923e7125de",
+      "git_blob": "276e1c80090088cace738ff9a5ee760135e6b1b2"
+    },
+    {
+      "path": "squad_pipeline/reconstruction/calendar.py",
+      "bytes": 2141,
+      "sha256": "ce191ebc9f2a29c182311a929c9ac77412ddbcb3047e4db513853e14367442fc",
+      "git_blob": "aa2c350017a50f11d073b6b87f566e5c874f92e4"
+    },
+    {
+      "path": "squad_pipeline/reconstruction/engine.py",
+      "bytes": 28832,
+      "sha256": "6ab10b56179b5adb1d5667b7487fd941d3b84c1cfbe07b3648e6fbf70b0a370b",
+      "git_blob": "796d19f3b10f2d2fd7953f5459d1199398df85e6"
+    },
+    {
+      "path": "squad_pipeline/reconstruction/export.py",
+      "bytes": 734,
+      "sha256": "d006c95ce37fb0addf0ad6e9bfd39264c76f2bff9bcf60470fe4b49de0f2a773",
+      "git_blob": "81981f4a19b2b9256c453d5b5cc769834a8ed646"
+    },
+    {
+      "path": "squad_pipeline/reconstruction/legacy.py",
+      "bytes": 2128,
+      "sha256": "9c25d7ec71db2e2eac958b156f66416beab534bc020d82208435ccfd7b4d4f7d",
+      "git_blob": "5909b6f511b15572755ea8a12b0fd6bbec81f12d"
+    },
+    {
+      "path": "squad_pipeline/reconstruction/retained_adapter.py",
+      "bytes": 42551,
+      "sha256": "fad48fba2ee33e15b63c42c01b410ba83e4c8c1c544d50045492db74633b3cad",
+      "git_blob": "7221aa5a495978930b58d56938ae150cd59a1748"
+    },
+    {
+      "path": "squad_pipeline/source_interface.py",
+      "bytes": 20161,
+      "sha256": "e865ae6eb46bdab265572c3e3d301331be2396afcc36e627cb3e42ce0b0a8096",
+      "git_blob": "5d8992a8d841322ee3e3a5327b18a949d211fcb0"
+    },
+    {
+      "path": "squad_pipeline/source_parsing.py",
+      "bytes": 18081,
+      "sha256": "3d3e5bce879e50cd24557ec8106b5ef072cb8c8ed01f068c1f2770296843569c",
+      "git_blob": "103874f086c5b36394474b73bf3f6b99b16344b9"
+    },
+    {
+      "path": "tests/cloud/test_coldstart_persistence.py",
+      "bytes": 6727,
+      "sha256": "4bd1a3ae2b6336f7e1d24f1952630da8bff9d5ca3777e9f30ab0eed76ec5f147",
+      "git_blob": "e0f36089279ed2e6579df030d873a59407c9114e"
+    },
+    {
+      "path": "tests/cloud/test_international_fotmob.py",
+      "bytes": 5196,
+      "sha256": "5df778693a97f8b0fe03db140f236bdf0c86a338676b49b68ee061528875ea16",
+      "git_blob": "dc0cd94bfb49919ff8f7212cdb1a691580bd346e"
+    },
+    {
+      "path": "tests/cloud/test_reconstruction.py",
+      "bytes": 25433,
+      "sha256": "a1c10004964e703dce2a10ace60dd68665ad2a09b29d29fb99b0d1e93f2220a5",
+      "git_blob": "89ac0fc4148dff39e90dd9b45912daffb159f9c3"
+    },
+    {
+      "path": "tests/cloud/test_source_interface.py",
+      "bytes": 37502,
+      "sha256": "6f6362af4ccc82c7c937cf36061aec9aeeccac68feaf27de0377c7a21c5c5a44",
+      "git_blob": "31f657b0090c32983d27c95255121147007c4624"
+    }
+  ],
+  "security_review": "PASS: all outgoing commit blobs inspected; code/tests only; no private data, raw captures, credentials, local paths or unrelated intermediate history",
+  "local_tests": {
+    "total": 497,
+    "passed": 439,
+    "hosted_only_skips": 58
+  },
+  "production": "NO-GO"
+}

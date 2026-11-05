@@ -1,0 +1,51 @@
+{
+  "repository": "Strange-Noah/Futograma",
+  "branch": "codex/communication-20261104",
+  "base": "8a526d97ea3e5fddf69e08fe9f5ee20c91716baa",
+  "files": [
+    {
+      "path": "reports/communication/20261104/obligations-20261105/AGGREGATES.json",
+      "sha256": "7e424cfeb4cde34f2169e674d2a43c19db5cf6ee2d7c17b5b22a41b7844fd06d",
+      "bytes": 4718
+    },
+    {
+      "path": "reports/communication/20261104/obligations-20261105/ARCHITECTURE_CONSOLIDATION.md",
+      "sha256": "c259177d19135fe48a8d4180e2e8867fc5f418df07d094345d59e0bafff73433",
+      "bytes": 3183
+    },
+    {
+      "path": "reports/communication/20261104/obligations-20261105/CODE_PUBLICATION_MANIFEST.json",
+      "sha256": "2e46db60c36fac6b09966c7ec13fdc4353221b5e256aa0f1bfff08902c63fc08",
+      "bytes": 5105
+    },
+    {
+      "path": "reports/communication/20261104/obligations-20261105/HANDOFF.md",
+      "sha256": "668947c0a2efdb94cb29a1e10ce22d8d92645e8eab674cc6e7c18468b9421c7f",
+      "bytes": 3113
+    },
+    {
+      "path": "reports/communication/20261104/obligations-20261105/OBLIGATION_EXECUTION.md",
+      "sha256": "17401e4be69a80459c62f6225943dfe38880114d5d20580c6958ce0326555088",
+      "bytes": 3637
+    },
+    {
+      "path": "reports/communication/20261104/obligations-20261105/R1_R6_EXECUTION_AUDIT.md",
+      "sha256": "445ef59e415cc3d66396697b5d791a0a0254f272643f177c90c5db21b0f1cce2",
+      "bytes": 3169
+    },
+    {
+      "path": "reports/communication/20261104/obligations-20261105/SIX_CLUB_COVERAGE.md",
+      "sha256": "e176287040c40f9b8005b8c7819cdec561f6cc72f0e744406327b1ee7f9caf8a",
+      "bytes": 2382
+    },
+    {
+      "path": "reports/communication/20261104/source-infrastructure/SOURCE_IMPLEMENTATION_REGISTRY.md",
+      "sha256": "9e06e4c152c7af2dcd31953fc0f9f07d8b31eeca948a7fae7ceba3fc3c1ee78b",
+      "bytes": 9558
+    }
+  ],
+  "manifest_self_hash": "Excluded to avoid self-reference; exact Git blob verified after commit",
+  "security_review": "PASS: sanitized aggregate reports and code manifest only; no private DB, raw capture, debt records, credentials, personal identities or local filesystem paths",
+  "code_publication": "FAILED_TRANSPORT;NO_RETRY",
+  "production": "NO-GO"
+}
