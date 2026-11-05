@@ -48,8 +48,33 @@
     },
     {
       "path": "reports/communication/20261104/STATUS.md",
-      "bytes": 5269,
-      "sha256": "db4dd4787c42896196ad642c4e383c070d1b1b1a3d8df5f9e2ff8d99877c7e61"
+      "bytes": 5976,
+      "sha256": "193b7841f9ad34366088842b6922a104dbaef919f05a404389a59f95875d0567"
+    },
+    {
+      "path": "reports/communication/20261104/authority-20261105/AGGREGATES.json",
+      "bytes": 18481,
+      "sha256": "73c25d778b71f23c9969ce9197cad568664906b94963395b5019aa0abc5f9a4e"
+    },
+    {
+      "path": "reports/communication/20261104/authority-20261105/AUDIT_AUTHORITY_CONTRACT.md",
+      "bytes": 4431,
+      "sha256": "830805454e13dafa35904a7b2e688ec399d803a7449f2637c74e9ccd24129a5d"
+    },
+    {
+      "path": "reports/communication/20261104/authority-20261105/GATE_B_OBLIGATIONS_AND_HANDOFF.md",
+      "bytes": 2857,
+      "sha256": "dda70eead8c0a87d9bf7de4e729542be5beed8345ed7ca7c5b942564ecce4906"
+    },
+    {
+      "path": "reports/communication/20261104/authority-20261105/R1_BASELINE_REUSE_FINDINGS.md",
+      "bytes": 3723,
+      "sha256": "cb3d1d202b9c2b58c5ab864df0f10c3694f376617c7541895d296ff8ed86fdd8"
+    },
+    {
+      "path": "reports/communication/20261104/authority-20261105/REVISED_SIX_CLUB_COVERAGE.md",
+      "bytes": 2943,
+      "sha256": "9493b19de0e703aa75665401437dfbd5144d407bdceaae6bd51e2dea6aab3d56"
     },
     {
       "path": "reports/communication/20261104/gate-b-20261105/ARCHITECTURE_CONSOLIDATION.md",
@@ -78,8 +103,8 @@
     },
     {
       "path": "reports/communication/20261104/gate-b-20261105/SIX_CLUB_COVERAGE.md",
-      "bytes": 2897,
-      "sha256": "c8fb4feeb00bea5a3afe0b478b8786e9697d379d2b1f49d2dc869383377ee908"
+      "bytes": 3182,
+      "sha256": "cc8774396a7602a74ff48609aa009a202f427e215322283ee8ae7a2a4bc28985"
     },
     {
       "path": "reports/communication/20261104/source-infrastructure/ARCHIVED_SOURCE_DISPOSITIONS.json",
@@ -113,8 +138,8 @@
     },
     {
       "path": "reports/communication/20261104/source-infrastructure/R1_R6_REINTEGRATION_PROGRESS.md",
-      "bytes": 3872,
-      "sha256": "a30d77330fcf678ec9f12bf6e8ca0d4876c67ee507291294aef964f2b9fa5fdd"
+      "bytes": 4157,
+      "sha256": "05f9b07305fc48b20979deb2bedd35e815a0ba7c7d7016805e5580f8e2fb8ff6"
     },
     {
       "path": "reports/communication/20261104/source-infrastructure/SOURCE_CONTRACT_AND_COMPATIBILITY.md",
@@ -123,8 +148,8 @@
     },
     {
       "path": "reports/communication/20261104/source-infrastructure/SOURCE_IMPLEMENTATION_REGISTRY.md",
-      "bytes": 8105,
-      "sha256": "d9514c93bd04ea8301239ed0d2d69c50fab4381975d3820e4ccbfe305a9b4d79"
+      "bytes": 8802,
+      "sha256": "66c3d66d5626808e52cfb5af8b7264d1a9d5e0e2bdad6103c7d95131e2257060"
     },
     {
       "path": "reports/communication/20261104/source-infrastructure/SOURCE_PUBLICATION_MANIFEST.json",

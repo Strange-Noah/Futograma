@@ -35,3 +35,6 @@ Local commit 02de515 modifies the existing retained adapter to call the accepted
 
 ## Latest caller audit
 See [architecture consolidation](../gate-b-20261105/ARCHITECTURE_CONSOLIDATION.md) and [actual AST/runtime inventory](../gate-b-20261105/CALL_GRAPH.json). Operational calendar parsing now also passes through SourceService. Existing national Sky and profile/team parsers are reused; capture metadata is handled by the existing archive reader. Current experimental development is dbe49bc, separate from immutable accepted Gate S publication. No legacy retirement or production migration.
+
+## Audit authority correction
+The reconstruction now reads accepted roster_policy decisions and canonical facts as authoritative scoped inputs rather than requiring new raw-source certification. This is baseline reuse, not a parallel acquisition path. RetainedAdapter produces explicitly non-HTTP baseline receipts; engine R3/R4/R6 can investigate but cannot write canonical corrections. Existing minute_policy.select reconciles same-role numerical variation. SourceService remains the sole reconstructed acquisition/parsing boundary; existing writers are unchanged and not invoked. See [authority contract](../authority-20261105/AUDIT_AUTHORITY_CONTRACT.md). No implementation is newly retired.

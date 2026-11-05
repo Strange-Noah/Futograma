@@ -1,3 +1,5 @@
+> Authority correction: the prior new-certificate/zero-opportunity interpretation is superseded by [accepted-baseline reuse findings](../authority-20261105/R1_BASELINE_REUSE_FINDINGS.md). Historical execution evidence is preserved; those counters do not revoke accepted roster facts.
+
 # R1–R6 integration after Gate S
 
 Gate S passed on published source commit 53ace3a with [433 successful hosted tests, zero skips](https://github.com/Strange-Noah/Futograma/actions/runs/41885610724). The following development is subsequent local work, not part of that exact seven-file publication or its hosted acceptance.

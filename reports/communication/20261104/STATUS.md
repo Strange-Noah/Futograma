@@ -32,3 +32,6 @@ Publication checkpoints: initial index, failure/execution audit, then final per-
 
 ## Next full-period six-club checkpoint
 [Coverage](gate-b-20261105/SIX_CLUB_COVERAGE.md), [execution audit](gate-b-20261105/R1_R6_EXECUTION_AUDIT.md), [architecture consolidation](gate-b-20261105/ARCHITECTURE_CONSOLIDATION.md), [handoff](gate-b-20261105/HANDOFF.md). Actual archived player/team/Sky parsing now runs through the accepted boundary; full season-start scope and source/cache counts recorded. Gate B remains NOT ACCEPTED; production NO-GO.
+
+## Accepted authority restored; calibrated autonomous judgment
+[Audit contract](authority-20261105/AUDIT_AUTHORITY_CONTRACT.md), [baseline reuse findings](authority-20261105/R1_BASELINE_REUSE_FINDINGS.md), [revised six-club coverage](authority-20261105/REVISED_SIX_CLUB_COVERAGE.md), [remaining Gate B work](authority-20261105/GATE_B_OBLIGATIONS_AND_HANDOFF.md). The earlier zero-football-activity interpretation is refuted as an integration error. Accepted facts remain unchanged; six numerical variations are reconciled by the existing policy. There are 203 scoped evidence resolutions, 198 NOT_CHECKED source-work tasks and zero human Pending items. This is not mission completion or Gate B acceptance.

@@ -1,3 +1,5 @@
+> Authority correction: the prior new-certificate/zero-opportunity interpretation is superseded by [accepted-baseline reuse findings](../authority-20261105/R1_BASELINE_REUSE_FINDINGS.md). Historical execution evidence is preserved; those counters do not revoke accepted roster facts.
+
 # Six-club coverage — full-period reconstruction checkpoint
 
 Gate B: NOT ACCEPTED. Production NO-GO; Real Madrid not started.
