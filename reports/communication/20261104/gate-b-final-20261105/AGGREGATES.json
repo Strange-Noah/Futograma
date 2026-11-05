@@ -1,0 +1,77 @@
+{
+  "contract": "USER_GATE_B_B1_B6_20261105",
+  "status": {
+    "B1": "PASS",
+    "B2": "PASS",
+    "B3": "PASS",
+    "B4": "PASS",
+    "B5": "PASS",
+    "B6": "BLOCKED"
+  },
+  "overall": "BLOCKED",
+  "development_commit": "89746b34c6cab0dae30506d3c3f1f55781d6908a",
+  "publication_commit": "51c7bf988ffdd2ed2232cc238a48f92c4fd6e481",
+  "original_tables": 90,
+  "normal_export_identical": true,
+  "local_tests": {
+    "discovered": 500,
+    "passed": 442,
+    "hosted_only_skips": 58
+  },
+  "hosted": "NOT_EXECUTED_FOR_CURRENT_CANDIDATE",
+  "obligations": {
+    "RESOLVED_ACCEPTED_EVIDENCE": 168,
+    "RESOLVED_DEFENSIBLE_INFERENCE": 30
+  },
+  "current_website": {
+    "result": "HASH_AND_VERSION_VERIFIED",
+    "website_version": {
+      "data_commit": "ceaaa8ec6d4e1c980d6f41afc94daaff192ecbf3",
+      "data_version": "20261104T160520-1e148ae24020",
+      "sqlite_sha256": "11b31a695137d4095a654157d8559c245c7f3deb315af094003faa9a089b890e",
+      "code_commit": "666255afe5bb565f82156ba9908713a5bcbab8ed"
+    },
+    "frozen_record_count": 2843,
+    "current_website_record_count": 2863,
+    "common_records": 2843,
+    "only_frozen": 0,
+    "only_current": 20,
+    "core_field_differences": {
+      "date": 0,
+      "kickoff_utc": 0,
+      "competition": 0,
+      "opponent": 0,
+      "minutes": 0,
+      "participation_status": 0,
+      "represented_team": 0,
+      "match_type": 0,
+      "team_level": 0
+    },
+    "whole_common_records_identical": 2819,
+    "scope": "CURRENT_PUBLIC_WEBSITE_COMPARISON;NOT_A_FROZEN_BASELINE_REPLACEMENT"
+  },
+  "code_publication": {
+    "observed_at": "2026-11-05T13:06:30.186685+00:00",
+    "destination": "https://github.com/Strange-Noah/Futograma.git",
+    "branch": "codex/gate-b-obligations-20261105",
+    "commit": "51c7bf988ffdd2ed2232cc238a48f92c4fd6e481",
+    "operation": "NORMAL_GIT_HTTPS_HTTP_1_1_PUSH",
+    "result": "FAILED",
+    "exit_code": 128,
+    "error": "Failed to connect to github.com port 443 after 75003 ms: Couldn't connect to server",
+    "github_request_id": null,
+    "retries": 0,
+    "alternate_routes": 0,
+    "remote_branch": "ABSENT_404",
+    "hosted_run": "NOT_EXECUTED",
+    "website_extra_record_types": {
+      "CLUB": 20
+    },
+    "website_different_metadata_fields": {
+      "canonical_metadata": 24
+    }
+  },
+  "production": "NO-GO",
+  "website_readiness": "DEFERRED_UNTIL_GATE_B_PASS",
+  "real_madrid": "NOT_STARTED;PLANNING_DEFERRED_UNTIL_GATE_B_PASS"
+}

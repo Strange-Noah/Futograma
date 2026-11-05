@@ -1,0 +1,83 @@
+{
+  "repository": "Strange-Noah/Futograma",
+  "remote": "https://github.com/Strange-Noah/Futograma.git",
+  "branch": "codex/communication-20261104",
+  "base": "8a526d97ea3e5fddf69e08fe9f5ee20c91716baa",
+  "preserved_unpublished_commit": "3f04c1e9f1b75396121510c3afca1ff8f89b8722",
+  "prior_commit_files": [
+    "reports/communication/20261104/obligations-20261105/AGGREGATES.json",
+    "reports/communication/20261104/obligations-20261105/ARCHITECTURE_CONSOLIDATION.md",
+    "reports/communication/20261104/obligations-20261105/CODE_PUBLICATION_MANIFEST.json",
+    "reports/communication/20261104/obligations-20261105/HANDOFF.md",
+    "reports/communication/20261104/obligations-20261105/OBLIGATION_EXECUTION.md",
+    "reports/communication/20261104/obligations-20261105/R1_R6_EXECUTION_AUDIT.md",
+    "reports/communication/20261104/obligations-20261105/REPORT_PUBLICATION_MANIFEST.json",
+    "reports/communication/20261104/obligations-20261105/SIX_CLUB_COVERAGE.md",
+    "reports/communication/20261104/source-infrastructure/SOURCE_IMPLEMENTATION_REGISTRY.md"
+  ],
+  "new_files": [
+    {
+      "path": "reports/communication/20261104/gate-b-final-20261105/ACCEPTANCE_MATRIX.md",
+      "sha256": "da6105fb00152e4663cc9aea74ef50b725bcf0832bafa3e6fd0e56ef73b1d700",
+      "bytes": 3357
+    },
+    {
+      "path": "reports/communication/20261104/gate-b-final-20261105/AGGREGATES.json",
+      "sha256": "d29de40d7304ee2fb510a4fdb1bc7f915623a991cb9e8b566c2f98d1257d5424",
+      "bytes": 2437
+    },
+    {
+      "path": "reports/communication/20261104/gate-b-final-20261105/ARCHITECTURE_AND_CALLERS.md",
+      "sha256": "af80bc18ba901a0cf5b044d87546ac0c31133c90bedfb834a070b5f01d3c6bf2",
+      "bytes": 2247
+    },
+    {
+      "path": "reports/communication/20261104/gate-b-final-20261105/BASELINE_AND_WEBSITE_COMPARISON.md",
+      "sha256": "94a88a3a3ab25ab2f342ccaa64e2f0f37a2eb6199f2797bc82f6ed8feabf18d7",
+      "bytes": 2294
+    },
+    {
+      "path": "reports/communication/20261104/gate-b-final-20261105/CALL_GRAPH.json",
+      "sha256": "d97e04a477b9acff9c85d252c37586de6f488a1bc647591a5a1e41f6c70d8bfc",
+      "bytes": 1505
+    },
+    {
+      "path": "reports/communication/20261104/gate-b-final-20261105/CODE_PUBLICATION_MANIFEST.json",
+      "sha256": "dca5dd647632101abb12a29790681b8bf3aaea360e7e3a9c78b7510b7eecdda1",
+      "bytes": 9907
+    },
+    {
+      "path": "reports/communication/20261104/gate-b-final-20261105/DISCOVERY_AND_PERSISTENCE_COMPATIBILITY.md",
+      "sha256": "29924c42a08c0004d101c0200f7e8059fd854cc58011a32e921a8de3d545b3c9",
+      "bytes": 1928
+    },
+    {
+      "path": "reports/communication/20261104/gate-b-final-20261105/HANDOFF.md",
+      "sha256": "e91b1e5b6441b99ec892a320b2ac95cda64fdc8d02ecea80fd182a72ac7ab23e",
+      "bytes": 2638
+    },
+    {
+      "path": "reports/communication/20261104/gate-b-final-20261105/PIPELINE_INDEPENDENCE_AND_FAILURE_ISOLATION.md",
+      "sha256": "32951b78ce4af0cb9004a5b4cf3f7339276f9e5aec5ebc1c1431b0ec381f556d",
+      "bytes": 2486
+    },
+    {
+      "path": "reports/communication/20261104/gate-b-final-20261105/R1_R6_EVIDENCE_ASSESSMENT.md",
+      "sha256": "77eb55db45f270c3fcd697d37f1ac0508fe9f42443b0066a0826c60e5376d073",
+      "bytes": 2595
+    },
+    {
+      "path": "reports/communication/20261104/gate-b-final-20261105/REGRESSION.md",
+      "sha256": "12f5732551274857dc890cecd53a6a39ff881583bc71fb434cd6d86071bb6373",
+      "bytes": 1470
+    },
+    {
+      "path": "reports/communication/20261104/source-infrastructure/SOURCE_IMPLEMENTATION_REGISTRY.md",
+      "sha256": "06c5e71ab80ae51c80bbe4dd2646a34053d6fbdcfebe85202766a8b09bf8eda4",
+      "bytes": 10265
+    }
+  ],
+  "self_hash": "Excluded to avoid recursive hash; commit blob verified separately",
+  "review": "PASS: complete outgoing report history and every intermediate/final report inspected; aggregate reports, code-file manifests and registry only; no credentials, private identities/debts, databases, raw captures, generated exports or sensitive local paths",
+  "production": "NO-GO"
+}

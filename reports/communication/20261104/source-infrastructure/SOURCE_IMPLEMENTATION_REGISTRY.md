@@ -42,3 +42,7 @@ The reconstruction now reads accepted roster_policy decisions and canonical fact
 
 ## Frozen-obligation execution checkpoint
 See [architecture consolidation](../obligations-20261105/ARCHITECTURE_CONSOLIDATION.md), [execution audit](../obligations-20261105/R1_R6_EXECUTION_AUDIT.md) and [coverage](../obligations-20261105/SIX_CLUB_COVERAGE.md). RetainedAdapter and obligation_execution reuse SourceService, roster_policy, identity_registry, minute_policy and established canonical writers. New controlled writer parameters are opt-in; existing production callers retain defaults. Complete native squad exclusion may use a target identity certificate without requiring every unrelated source player to have a canonical mapping; it remains a supported audit inference. No legacy component is retired and no production migration is implied.
+
+
+## Gate B B2/B4 authority and caller correction
+Normal all_match_export no longer imports the reconstruction package. Audit summaries are optional input; original acquisition/update and export run with audit imports unavailable. Existing Client, native parsers, identity verification, roster_refresh, live_ingest and canonical writers are exercised by controlled integration tests. R3/R4/R6 injected failures preserve accepted facts and normal export. See [B1–B6 matrix](../gate-b-final-20261105/ACCEPTANCE_MATRIX.md) and [actual callers](../gate-b-final-20261105/ARCHITECTURE_AND_CALLERS.md). Hosted acceptance remains blocked by Git transport; no production migration or legacy retirement is implied.

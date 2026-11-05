@@ -1,0 +1,61 @@
+{
+  "normal_pipeline_has_audit_dependency": false,
+  "audit_sql_writes_only_own_ledger": true,
+  "edges": [
+    {
+      "caller": "squad_pipeline/reconstruction/calendar.py",
+      "module": "source_interface"
+    },
+    {
+      "caller": "squad_pipeline/reconstruction/engine.py",
+      "module": "minute_policy"
+    },
+    {
+      "caller": "squad_pipeline/reconstruction/retained_adapter.py",
+      "module": "source_interface"
+    },
+    {
+      "caller": "squad_pipeline/reconstruction/retained_adapter.py",
+      "module": "source_interface"
+    },
+    {
+      "caller": "squad_pipeline/reconstruction/retained_adapter.py",
+      "module": "roster_policy"
+    },
+    {
+      "caller": "squad_pipeline/reconstruction/retained_adapter.py",
+      "module": "identity_registry"
+    },
+    {
+      "caller": "squad_pipeline/cloud/browser_export.py",
+      "module": "roster_policy"
+    }
+  ],
+  "sql": [
+    {
+      "module": "squad_pipeline/reconstruction/engine.py",
+      "verb": "CREATE"
+    },
+    {
+      "module": "squad_pipeline/reconstruction/engine.py",
+      "verb": "CREATE"
+    },
+    {
+      "module": "squad_pipeline/reconstruction/engine.py",
+      "verb": "CREATE"
+    },
+    {
+      "module": "squad_pipeline/reconstruction/engine.py",
+      "verb": "INSERT"
+    },
+    {
+      "module": "squad_pipeline/reconstruction/engine.py",
+      "verb": "INSERT"
+    },
+    {
+      "module": "squad_pipeline/reconstruction/engine.py",
+      "verb": "INSERT"
+    }
+  ],
+  "retired_modules": []
+}
