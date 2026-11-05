@@ -3,7 +3,7 @@ import json,sqlite3,hashlib
 from pathlib import Path
 from .browser_export import export_browser
 
-def export_all_matches(database,out,data_head,pointer,as_of,acceptance=True):
+def export_all_matches(database,out,data_head,pointer,as_of,acceptance=True,*,audit_summary=None):
     out=Path(out);club_out=out/'club-export';export_browser(database,club_out,data_head,pointer,as_of,acceptance)
     result=json.loads((club_out/'data/browser.json').read_text());manifest=json.loads((club_out/'data/manifest.json').read_text());db=sqlite3.connect('file:'+str(Path(database).resolve())+'?mode=ro',uri=True);db.row_factory=sqlite3.Row;db.execute('PRAGMA query_only=ON')
     for rows in result['records'].values():
@@ -15,8 +15,7 @@ def export_all_matches(database,out,data_head,pointer,as_of,acceptance=True):
     result.setdefault('source_issues',[])
     from .quality_context_export import issues as quality_issues
     result['quality_issues']=quality_issues(db)
-    from ..reconstruction.export import summary as completeness_summary
-    audit_summary=completeness_summary(db)
+    # Supplementary audit metadata is opt-in; ordinary exports never import audits.
     if audit_summary is not None:result['completeness_audit']=audit_summary
 
     for task in db.execute("SELECT * FROM international_acquisition_queue WHERE state<>'RESOLVED'"):
