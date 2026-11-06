@@ -1,0 +1,65 @@
+{
+  "batch1": {
+    "http_calls": 120,
+    "bytes": 38143891,
+    "squad_operations": 0
+  },
+  "batch2": {
+    "authorized_calls": 350,
+    "used_calls": 332,
+    "authorized_bytes": 180000000,
+    "used_bytes": 87867552,
+    "catalogue_pages_requested": 48,
+    "lineup_results": 215,
+    "official_evidence_pages": 11,
+    "RMA_requests": 0,
+    "lineup_page_operations": 240,
+    "transient_rechecks": 25
+  },
+  "source_detail_states": {
+    "source_detail_leads": 215,
+    "transitions": {
+      "UNAVAILABLE -> UNAVAILABLE": 1,
+      "MALFORMED -> PARSED": 41,
+      "MALFORMED -> MALFORMED": 13,
+      "INCOMPLETE -> INCOMPLETE": 1,
+      "PARSED -> PARSED": 134,
+      "TEMPORARILY_FAILED -> PARSED": 18,
+      "TEMPORARILY_FAILED -> MALFORMED": 6,
+      "TEMPORARILY_FAILED_INTERRUPTED -> PARSED": 1
+    },
+    "remaining_issues": {
+      "UNAVAILABLE": 1,
+      "ParseError:SKY_ROSTER_SIDE_MISMATCH": 4,
+      "ParseError:UNSUPPORTED_COMPETITION:None": 15,
+      "Pending:SKY_NOT_FULL_TIME": 1
+    },
+    "http_calls": 0,
+    "units_accepted": 0
+  },
+  "identity_coverage": {
+    "parsed_sheets": 199,
+    "distinct_observed_entities": 230,
+    "resolved_by_existing_verified_certificates": 119,
+    "unresolved": 111,
+    "complete_identity_sheets": 0,
+    "roster_seeded": false,
+    "canonical_writes": 0,
+    "source_database_read_only": true
+  },
+  "third_batch": {
+    "authorized_http_calls": 500,
+    "authorized_bytes": 200000000,
+    "catalogue_cap": 80,
+    "squad_cap": 240,
+    "observed_entity_identity_page_cap": 120,
+    "state": "AUTHORIZED_AND_STARTED;FOLLOWUP_REPORT_REQUIRED"
+  },
+  "human_pending_added": 0,
+  "accepted_facts_modified": 0,
+  "notes": [
+    "Batch 2 includes three redundant fragment-only official calendar URL requests, all charged. Follow-up navigation strips fragments.",
+    "Eleven captured Friendly Match headers are outside the established competitive scope; parser errors do not establish football absence.",
+    "Parser success is not canonical fixture/player admission or season completeness."
+  ]
+}

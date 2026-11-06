@@ -1,0 +1,13 @@
+# Accepted six-club website release preparation
+
+Production remains NO-GO for the proposed release; the existing production service remains untouched. This is preparation and independent verification, not deployment authorization.
+
+Candidate [9acd42e73882020dca5f7820c80c61cc7bc8b187](https://github.com/Strange-Noah/Futograma/commit/9acd42e73882020dca5f7820c80c61cc7bc8b187) consists of accepted Gate B backend plus web/app.js and web/index.html restored byte-for-byte to the actual deployed frontend. Optional frontend changes are excluded. The published two-file delta and remote tip were independently verified.
+
+[Exact candidate hosted regression](https://github.com/Strange-Noah/Futograma/actions/runs/42236914802): 500 passed, zero failures, zero skips; all 58 formerly local-skipped cases individually verified. No main merge or production action.
+
+Current and previous real private backup assets were downloaded and independently restored with compressed/unpacked hash, schema, SQLite integrity and foreign-key checks. A later read observed normal production data advancement, so the preview was refreshed rather than comparing different data snapshots as a code regression. The refreshed isolated export contains 2,887 public football records, preserves source database bytes and passes coordinated frontend/export/data gates with the proposed code pin. This is a locally simulated release pointer, not the production pointer. Normal export works without R1–R6 audit imports. Earlier six-club team → player → match browser navigation passed; the latest refreshed dataset is not represented as a new browser session acceptance.
+
+[Existing isolated persistence/recovery workflow](https://github.com/Strange-Noah/Futograma-data/actions/runs/42253702587) passed operate, independent recovery and durable-receipt jobs. Independent API readback confirmed the exact proposed code and unchanged production main. Its ordinary smoke test intentionally adds an acceptance_marker table; that test snapshot is not selected for production promotion.
+
+A marker-free code-only isolated candidate is being prepared using the existing backup publisher. It must retain the production SQLite bytes, verify actual current and previous restores, pin the exact candidate code and prove production head unchanged. No production approval is requested until this concrete payload and rollback pins are reviewable. Coordinated private workflow code pins, data promotion, site transport, frontend release pin and Pages deployment require separate exact production authorization. Active schedules are not altered; any production head advancement invalidates a stale promotion proposal.

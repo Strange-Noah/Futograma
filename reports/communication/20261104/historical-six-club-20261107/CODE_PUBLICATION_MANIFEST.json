@@ -1,0 +1,84 @@
+{
+  "repository": "Strange-Noah/Futograma",
+  "branch": "codex/historical-six-club-20261106",
+  "base": "51c7bf988ffdd2ed2232cc238a48f92c4fd6e481",
+  "tip": "e4666ea252896d5bcfd46648a74ffff026f7ad51",
+  "commits": [
+    "bbf67f7736d9ae61997860be44c812f71136bf7c",
+    "e4666ea252896d5bcfd46648a74ffff026f7ad51"
+  ],
+  "intermediate_changed_files": [
+    "squad_pipeline/competition_identity.py",
+    "squad_pipeline/live_parse.py",
+    "squad_pipeline/live_sources.py",
+    "squad_pipeline/roster_initialization.py",
+    "squad_pipeline/source_interface.py",
+    "squad_pipeline/source_parsing.py",
+    "tests/cloud/test_club_source_labels.py",
+    "tests/cloud/test_roster_initialization.py",
+    "tests/cloud/test_season_catalogue_admission.py",
+    "tests/cloud/test_sky_badge_labels.py",
+    "tests/cloud/test_source_http_failures.py"
+  ],
+  "files": [
+    {
+      "path": "squad_pipeline/competition_identity.py",
+      "sha256": "b283f8b4d138ea6594a9286a2c99c04c0e7e4c11f3dea49bccf137c46cd756c5",
+      "git_blob": "042fbfab0ecfc75a39843b2fb0646a5b422e4a90"
+    },
+    {
+      "path": "squad_pipeline/live_parse.py",
+      "sha256": "6a1d5b414e4cd200d01d8adf25f7697ae7dcac3f91238c078f83fda2a0c3fe9b",
+      "git_blob": "d95e1e7c0c9188737dec30c69a58c1259470e391"
+    },
+    {
+      "path": "squad_pipeline/live_sources.py",
+      "sha256": "1bd6994a09bdce8db48c91c307b787850f3f229f2e027eec406ba25938a1fc87",
+      "git_blob": "e8a322b364e3b8f36f8a2765df294a2c23e4f443"
+    },
+    {
+      "path": "squad_pipeline/roster_initialization.py",
+      "sha256": "751a541f606d018abfda632aadedeb27423e6d2e1b3f76827914b49efc8122ea",
+      "git_blob": "1b6f75c68573aa3ce51b5d471508ecb74e42333b"
+    },
+    {
+      "path": "squad_pipeline/source_interface.py",
+      "sha256": "f9e96c59ff7b28f383533e5c12a74ea5abf45c02e27650385f0fc50b12879e8e",
+      "git_blob": "fae4d5945abeb79bdaaec8b9e6e66d02e33e8fad"
+    },
+    {
+      "path": "squad_pipeline/source_parsing.py",
+      "sha256": "63a9e3196dd5d76b9537ed533247def41c7b2c6da2d9a9feee150b9374120b08",
+      "git_blob": "b0acb85c7cc48ce06ae6e55afe4aa76501075035"
+    },
+    {
+      "path": "tests/cloud/test_club_source_labels.py",
+      "sha256": "3c29428ab9c6814d262e0c45943d32557850854439d66bbc8855e2812ca6bb8a",
+      "git_blob": "c8bd27ea2e7ffaf446d59c5b34c51f13e43552f2"
+    },
+    {
+      "path": "tests/cloud/test_roster_initialization.py",
+      "sha256": "20164082867945c89a1874e67b3bbfb788671b349f5e0dcd3dae95b5a5f5b37a",
+      "git_blob": "abf987e358dfa26b81092685354dcdb9f379dbfa"
+    },
+    {
+      "path": "tests/cloud/test_season_catalogue_admission.py",
+      "sha256": "dee27cf50e67c9c3b97524a51f37ca14210552dac6edb8e498c337de9151ba3a",
+      "git_blob": "9ccf29c4309e119e6246f4519a8cd0fe112bb872"
+    },
+    {
+      "path": "tests/cloud/test_sky_badge_labels.py",
+      "sha256": "2e383eaf4da601d871e74606a50450a2f4ee6bef42fd61ca293140fa55ef107d",
+      "git_blob": "537cd4a215361a20037dd4451248f0271c7493d7"
+    },
+    {
+      "path": "tests/cloud/test_source_http_failures.py",
+      "sha256": "58b12ed8bcd0862146c65773e74de971574a6a85c6d446e4898c456d0243bcf4",
+      "git_blob": "b070c3f5a0555cead6a20372a7e047686b868da1"
+    }
+  ],
+  "file_count": 11,
+  "security_review": "PASS: manually reviewed two-commit diff; code and focused tests only; no captures, database, private records, exports, credentials, sensitive local paths, configuration or unrelated history",
+  "false_positive_review": "Existing authorization field is a literal prior-manual-policy status, not a credential; unchanged from accepted base",
+  "production_changes": false
+}

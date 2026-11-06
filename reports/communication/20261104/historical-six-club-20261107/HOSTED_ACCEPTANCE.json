@@ -1,0 +1,12 @@
+{
+  "commit": "e4666ea252896d5bcfd46648a74ffff026f7ad51",
+  "run_id": 42257049651,
+  "job_id": 128026898638,
+  "tests": 523,
+  "passed": 523,
+  "failures": 0,
+  "skips": 0,
+  "hosted_only_verified": 58,
+  "summary": "Ran 523 tests in 5.519s",
+  "test_identity_lines": 523
+}

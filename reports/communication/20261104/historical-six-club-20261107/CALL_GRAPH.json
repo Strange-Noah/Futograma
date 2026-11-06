@@ -1,0 +1,678 @@
+[
+  {
+    "path": "squad_pipeline/identity_sources.py",
+    "imports": [
+      {
+        "line": 4,
+        "module": "live_parse",
+        "names": [
+          "Tree"
+        ]
+      },
+      {
+        "line": 179,
+        "module": "live_sources",
+        "names": [
+          "CLUB_FEEDS"
+        ]
+      },
+      {
+        "line": 247,
+        "module": "live_parse",
+        "names": [
+          "canon",
+          "CLUBS"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "squad_pipeline/international_incremental.py",
+    "imports": [
+      {
+        "line": 25,
+        "module": "squad_pipeline.live_sources",
+        "names": [
+          "Client",
+          "HOSTS"
+        ]
+      },
+      {
+        "line": 38,
+        "module": "squad_pipeline.roster_policy",
+        "names": [
+          "materialize",
+          "latest"
+        ]
+      },
+      {
+        "line": 154,
+        "module": "squad_pipeline.minute_policy",
+        "names": [
+          "select",
+          "audit"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "squad_pipeline/canonical_adapters.py",
+    "imports": [
+      {
+        "line": 130,
+        "module": "live_parse",
+        "names": [
+          "Tree",
+          "COMP",
+          "canon",
+          "uk_datetime"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "squad_pipeline/sky_german.py",
+    "imports": [
+      {
+        "line": 5,
+        "module": "live_parse",
+        "names": [
+          "Tree",
+          "COMP",
+          "fixture",
+          "src",
+          "ParseError",
+          "Pending",
+          "_sky_lineups"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "squad_pipeline/source_parsing.py",
+    "imports": [
+      {
+        "line": 5,
+        "module": "source_interface",
+        "names": [
+          "ParsedSourceObservation",
+          "sha",
+          "VERSION"
+        ]
+      },
+      {
+        "line": 57,
+        "module": "live_parse",
+        "names": [
+          "catalogs"
+        ]
+      },
+      {
+        "line": 117,
+        "module": "live_parse",
+        "names": [
+          "ParseError"
+        ]
+      },
+      {
+        "line": 191,
+        "module": "live_parse",
+        "names": [
+          "torly_detail",
+          "sky_detail"
+        ]
+      },
+      {
+        "line": 229,
+        "module": "live_parse",
+        "names": [
+          "Pending"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "squad_pipeline/quality_live_bridge.py",
+    "imports": [
+      {
+        "line": 8,
+        "module": "live_parse",
+        "names": [
+          "Pending"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "squad_pipeline/live_ingest.py",
+    "imports": [
+      {
+        "line": 9,
+        "module": "live_sources",
+        "names": [
+          "Client",
+          "CLUB_FEEDS",
+          "OUT"
+        ]
+      },
+      {
+        "line": 10,
+        "module": "live_parse",
+        "names": [
+          "catalogs",
+          "torly_detail",
+          "sky_detail",
+          "ParseError",
+          "Pending",
+          "canon",
+          "norm"
+        ]
+      },
+      {
+        "line": 132,
+        "module": "minute_policy",
+        "names": [
+          "select"
+        ]
+      },
+      {
+        "line": 150,
+        "module": "minute_policy",
+        "names": [
+          "audit"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "squad_pipeline/international_sky_fallback.py",
+    "imports": [
+      {
+        "line": 6,
+        "module": "live_parse",
+        "names": [
+          "catalogs"
+        ]
+      },
+      {
+        "line": 13,
+        "module": "minute_policy",
+        "names": [
+          "select"
+        ]
+      },
+      {
+        "line": 126,
+        "module": "minute_policy",
+        "names": [
+          "audit"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "squad_pipeline/international_parse.py",
+    "imports": [
+      {
+        "line": 4,
+        "module": "live_parse",
+        "names": [
+          "Tree",
+          "ParseError",
+          "Pending",
+          "uk_datetime",
+          "canon"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "squad_pipeline/quality_membership.py",
+    "imports": [
+      {
+        "line": 9,
+        "module": "roster_policy",
+        "names": [
+          "roster_decision"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "squad_pipeline/pending_matches.py",
+    "imports": [
+      {
+        "line": 90,
+        "module": "live_parse",
+        "names": [
+          "Tree",
+          "COMP",
+          "canon",
+          "uk_datetime"
+        ]
+      },
+      {
+        "line": 98,
+        "module": "live_parse",
+        "names": [
+          "COMP",
+          "canon"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "squad_pipeline/source_interface.py",
+    "imports": [
+      {
+        "line": 13,
+        "module": "live_sources",
+        "names": [
+          "Client"
+        ]
+      },
+      {
+        "line": 236,
+        "module": "live_parse",
+        "names": [
+          "Tree"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "squad_pipeline/international_store.py",
+    "imports": [
+      {
+        "line": 116,
+        "module": "minute_policy",
+        "names": [
+          "select",
+          "audit"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "squad_pipeline/minute_reconciliation.py",
+    "imports": [
+      {
+        "line": 4,
+        "module": "minute_policy",
+        "names": [
+          "select",
+          "audit",
+          "VERSION"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "squad_pipeline/six_club_experiment.py",
+    "imports": [
+      {
+        "line": 83,
+        "module": "minute_policy",
+        "names": [
+          "select"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "squad_pipeline/eligibility.py",
+    "imports": [
+      {
+        "line": 10,
+        "module": "live_parse",
+        "names": [
+          "Tree"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "squad_pipeline/international_fotmob.py",
+    "imports": [
+      {
+        "line": 6,
+        "module": "minute_policy",
+        "names": [
+          "select"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "squad_pipeline/cloud/browser_export.py",
+    "imports": [
+      {
+        "line": 6,
+        "module": "roster_policy",
+        "names": [
+          "roster_decision"
+        ]
+      },
+      {
+        "line": 7,
+        "module": "live_parse",
+        "names": [
+          "CLUBS"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "squad_pipeline/cloud/driver.py",
+    "imports": [
+      {
+        "line": 42,
+        "module": "live_sources",
+        "names": [
+          "CLUB_FEEDS"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "squad_pipeline/cloud/incremental.py",
+    "imports": [
+      {
+        "line": 8,
+        "module": "live_sources",
+        "names": [
+          "Client",
+          "HOSTS"
+        ]
+      },
+      {
+        "line": 54,
+        "module": "live_sources",
+        "names": [
+          "OUT"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "squad_pipeline/reconstruction/calendar.py",
+    "imports": [
+      {
+        "line": 4,
+        "module": "source_interface",
+        "names": [
+          "SourceRequest",
+          "RawSourceArtifact",
+          "sha"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "squad_pipeline/reconstruction/engine.py",
+    "imports": [
+      {
+        "line": 250,
+        "module": "minute_policy",
+        "names": [
+          "select"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "squad_pipeline/reconstruction/retained_adapter.py",
+    "imports": [
+      {
+        "line": 14,
+        "module": "source_interface",
+        "names": [
+          "EvidenceStore",
+          "SourceService",
+          "SourceRequest",
+          "RawSourceArtifact"
+        ]
+      },
+      {
+        "line": 16,
+        "module": "source_interface",
+        "names": [
+          "VERSION"
+        ]
+      },
+      {
+        "line": 18,
+        "module": "roster_policy",
+        "names": [
+          "roster_decision",
+          "latest"
+        ]
+      },
+      {
+        "line": 183,
+        "module": "live_parse",
+        "names": [
+          "canon"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "ops/cloud/coldstart_acceptance.py",
+    "imports": [
+      {
+        "line": 56,
+        "module": "squad_pipeline.minute_policy",
+        "names": [
+          "select",
+          "audit"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "ops/cloud/club_raw_replay.py",
+    "imports": [
+      {
+        "line": 8,
+        "module": "squad_pipeline.live_parse",
+        "names": [
+          "catalogs",
+          "sky_detail",
+          "torly_detail"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "ops/cloud/canonical_mismatch_replay.py",
+    "imports": [
+      {
+        "line": 39,
+        "module": "squad_pipeline.live_sources",
+        "names": [
+          "Client",
+          "HOSTS"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "ops/cloud/phase3_audit.py",
+    "imports": [
+      {
+        "line": 16,
+        "module": "squad_pipeline.live_sources",
+        "names": [
+          "Client",
+          "HOSTS"
+        ]
+      },
+      {
+        "line": 159,
+        "module": "squad_pipeline.live_parse",
+        "names": [
+          "sky_detail"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "ops/cloud/canonical_stage.py",
+    "imports": [
+      {
+        "line": 14,
+        "module": "squad_pipeline.live_parse",
+        "names": [
+          "Tree",
+          "fixture",
+          "src",
+          "canon",
+          "uk_datetime",
+          "torly_detail",
+          "sky_detail",
+          "COMP",
+          "catalogs"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "ops/cloud/source_replay.py",
+    "imports": [
+      {
+        "line": 7,
+        "module": "squad_pipeline.source_interface",
+        "names": [
+          "SourceRequest",
+          "RawSourceArtifact",
+          "EvidenceStore",
+          "sha",
+          "encode"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "ops/cloud/release_acceptance.py",
+    "imports": [
+      {
+        "line": 15,
+        "module": "squad_pipeline.roster_policy",
+        "names": [
+          "population"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "ops/cloud/phase2_acceptance.py",
+    "imports": [
+      {
+        "line": 14,
+        "module": "squad_pipeline.live_sources",
+        "names": [
+          "Client",
+          "HOSTS"
+        ]
+      },
+      {
+        "line": 15,
+        "module": "squad_pipeline.live_parse",
+        "names": [
+          "Tree",
+          "canon"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "ops/cloud/reconstruction_probe.py",
+    "imports": [
+      {
+        "line": 9,
+        "module": "squad_pipeline.source_interface",
+        "names": [
+          "EvidenceStore",
+          "SourceService",
+          "SourceRequest"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "ops/cloud/obligation_execution.py",
+    "imports": [
+      {
+        "line": 10,
+        "module": "squad_pipeline.source_interface",
+        "names": [
+          "EvidenceStore",
+          "SourceService",
+          "SourceRequest",
+          "RawSourceArtifact",
+          "sha"
+        ]
+      },
+      {
+        "line": 15,
+        "module": "squad_pipeline.minute_policy",
+        "names": [
+          "select"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "ops/cloud/phase3_capture.py",
+    "imports": [
+      {
+        "line": 7,
+        "module": "squad_pipeline.live_sources",
+        "names": [
+          "Client",
+          "HOSTS"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "ops/cloud/phase3_national_capture.py",
+    "imports": [
+      {
+        "line": 7,
+        "module": "squad_pipeline.live_sources",
+        "names": [
+          "Client",
+          "HOSTS"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "ops/cloud/phase3_international_e2e.py",
+    "imports": [
+      {
+        "line": 25,
+        "module": "squad_pipeline.live_sources",
+        "names": [
+          "Client",
+          "HOSTS"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "ops/cloud/phase3_enrich.py",
+    "imports": [
+      {
+        "line": 8,
+        "module": "squad_pipeline.live_sources",
+        "names": [
+          "Client",
+          "HOSTS"
+        ]
+      }
+    ]
+  }
+]
