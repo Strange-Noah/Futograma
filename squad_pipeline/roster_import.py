@@ -52,30 +52,19 @@ from .three_club_parsers import psg_manual_roster,bayern_manual_roster,barcelona
 from .html_rosters import import_html
 PARSERS={'manchester_city_html':import_html,'inter_html':import_html,'existing_atalanta_text':reuse_atalanta,'psg_manual_roster':psg_manual_roster,'bayern_manual_roster':bayern_manual_roster,'barcelona_manual_roster':barcelona_manual_roster}
 
+
 def independent_aliases(specs,club_key):
     """Read only previously captured, checksum-pinned identity content, never roster membership."""
+    from .identity_sources import flight_objects
     records=[]
-    def walk(v,path='$'):
-        if isinstance(v,dict):
-            yield path,v
-            for k,x in v.items():yield from walk(x,path+'.'+k)
-        elif isinstance(v,list):
-            for i,x in enumerate(v):yield from walk(x,f'{path}[{i}]')
     for spec in specs:
         if spec.get('provider')!='seriea':continue
         p=ROOT/spec['path']
         if not p.is_file() or digest(p.read_bytes())!=spec['sha256']:raise ImportBlocked('Required independent identity cache missing/corrupt: '+spec['path'])
-        for si,script in enumerate(re.findall(r'<script[^>]*>(.*?)</script>',p.read_text(),re.S)):
-            if not script.startswith('self.__next_f.push('):continue
-            try:frame=json.loads(script[len('self.__next_f.push('):-1]);content=frame[1] if len(frame)>1 and isinstance(frame[1],str) else ''
-            except ValueError:continue
-            for li,line in enumerate(content.splitlines()):
-                try:obj=json.loads(line.split(':',1)[1])
-                except (ValueError,IndexError):continue
-                for path,v in walk(obj):
-                    if v.get('teamSlug')!=club_key or not v.get('playerId') or not v.get('mediaFirstName'):continue
-                    full=(v['mediaFirstName']+' '+v.get('mediaLastName','')).strip()
-                    records.append(dict(full_name=full,aliases=sorted({x for x in (v.get('shortName'),v.get('shirtName')) if x}),country_code=v.get('nationalityIsoCode'),date_of_birth=v.get('dateOfBirth'),source_player_id=v['playerId'],source_url=spec['url'],raw_path=spec['path'],sha256=spec['sha256'],field_path=f'script[{si}]/frame_line[{li}]/{path}'))
+        for si,li,path,v in flight_objects(p.read_text()):
+            if v.get('teamSlug')!=club_key or not v.get('playerId') or not v.get('mediaFirstName'):continue
+            full=(v['mediaFirstName']+' '+v.get('mediaLastName','')).strip()
+            records.append(dict(full_name=full,aliases=sorted({x for x in (v.get('shortName'),v.get('shirtName')) if x}),country_code=v.get('nationalityIsoCode'),date_of_birth=v.get('dateOfBirth'),source_player_id=v['playerId'],source_url=spec['url'],raw_path=spec['path'],sha256=spec['sha256'],field_path=f'script[{si}]/frame_line[{li}]/{path}'))
     return records
 
 def ordered_tokens(short,full):

@@ -120,15 +120,79 @@ def academy_biographies(raw,capture,club_id):
         result.append(base(capture,'h2 biography: '+name+'; Born field','OfficialClub',[name],birth_date=f'{year}-{month}-{day}',official_clubs=[str(club_id)],scope='ACADEMY_AFFILIATION',authority='OFFICIAL',raw_fields={'biography_excerpt':body[:500]}))
     return result
 
+def flight_objects(raw):
+    """Reuse the existing JSON-only React-frame decoder; never execute scripts."""
+    def walk(v,path='$'):
+        if isinstance(v,dict):
+            yield path,v
+            for k,x in v.items():yield from walk(x,path+'.'+k)
+        elif isinstance(v,list):
+            for i,x in enumerate(v):yield from walk(x,f'{path}[{i}]')
+    for si,script in enumerate(re.findall(r'<script[^>]*>(.*?)</script>',raw,re.S)):
+        script=script.strip().removesuffix(';')
+        if not script.startswith('self.__next_f.push('):continue
+        try:frame=json.loads(script[len('self.__next_f.push('):-1]);content=frame[1] if len(frame)>1 and isinstance(frame[1],str) else ''
+        except (ValueError,TypeError,KeyError,IndexError):continue
+        for li,line in enumerate(content.splitlines()):
+            try:obj=json.loads(line.split(':',1)[1])
+            except (ValueError,IndexError):continue
+            for path,v in walk(obj):yield si,li,path,v
+
+
+def profile_birth_date(value):
+    """Normalize demonstrated ISO and English-text profile dates; never truncate text."""
+    from datetime import datetime,date
+    value=str(value or '').strip()
+    if re.match(r'^\d{4}-\d{2}-\d{2}(?:$|T)',value):return date.fromisoformat(value[:10]).isoformat()
+    try:return datetime.strptime(value,'%d %B %Y').date().isoformat()
+    except ValueError:raise ValueError('OFFICIAL_PROFILE_BIRTH_DATE_FORMAT_UNSUPPORTED') from None
+
 def person_profile(raw,capture,club_id=None):
     owned={8456:{'www.mancity.com'},9825:{'www.arsenal.com'},9823:{'fcbayern.com','app.fcbayern.com'},9847:{'www.psg.fr'},8634:{'www.fcbarcelona.com','www.fcbarcelona.es'},8636:{'www.inter.it'}}
-    if urlsplit(capture['url']).hostname not in owned.get(club_id,set()):return []
+    url=urlsplit(capture['url'])
+    if url.scheme!='https' or url.hostname not in owned.get(club_id,set()):return []
     rows=[]
     for i,d in enumerate(jsonld(raw)):
-        if d.get('@type')=='Person' and d.get('name') and d.get('birthDate'):
+        if isinstance(d,dict) and d.get('@type')=='Person' and d.get('name') and d.get('birthDate'):
             names=[d['name']]+([d['alternateName']] if isinstance(d.get('alternateName'),str) else [])
-            rows.append(base(capture,f'JSONLD.Person[{i}]','OfficialClub',names,birth_date=d['birthDate'][:10],official_clubs=[str(club_id)] if club_id else [],authority='OFFICIAL',raw_fields={'biography':d.get('description',''),'profile_url':d.get('url')}))
-    return rows
+            rows.append(base(capture,f'JSONLD.Person[{i}]','OfficialClub',names,birth_date=profile_birth_date(d['birthDate']),official_clubs=[str(club_id)],authority='OFFICIAL',raw_fields={'biography':d.get('description',''),'profile_url':d.get('url'),'raw_birth_date':d['birthDate']}))
+    if rows:return rows
+    if club_id in {8456,8636}:
+        try:data=next_data(raw)
+        except ValueError:return []
+        if club_id==8456:
+            d=data.get('playerProfileData') or {}
+            if not d:return []
+            if d.get('isMensTeam') is not True or d.get('isWomensTeam') or d.get('isCoach') or d.get('isManager') or d.get('team')!='mens':raise ValueError('CITY_MENS_PLAYER_PROFILE_REQUIRED')
+            expected=urlsplit(urljoin(capture['url'],'/players'+d.get('urlName','')))
+            if expected.path!=url.path or not d.get('id') or not d.get('name'):raise ValueError('CITY_PROFILE_RESOURCE_IDENTITY_MISMATCH')
+            names=list(dict.fromkeys([d['name'],' '.join(x for x in [d.get('firstName'),d.get('lastName')] if x)]));ids={'City':str(d['id'])};locator='$.props.pageProps.playerProfileData'
+        else:
+            d=data.get('player') or {}
+            if not d:return []
+            if (d.get('team') or {}).get('slug')!='first-team' or (d.get('role') or {}).get('name') not in POSITIONS:raise ValueError('INTER_FIRST_TEAM_PLAYER_PROFILE_REQUIRED')
+            if url.path!='/en/teams/first-team/player/'+d.get('slug','') or not (d.get('sys') or {}).get('id'):raise ValueError('INTER_PROFILE_RESOURCE_IDENTITY_MISMATCH')
+            names=[' '.join(x for x in [d.get('firstName'),d.get('lastName')] if x)];ids={'Inter':str(d['sys']['id'])};locator='$.props.pageProps.player'
+        if not all(names) or not d.get('dateOfBirth'):raise ValueError('OFFICIAL_PROFILE_NAME_AND_BIRTH_DATE_REQUIRED')
+        return [base(capture,locator,'OfficialClub',names,provider_ids=ids,birth_date=profile_birth_date(d['dateOfBirth']),official_clubs=[str(club_id)],authority='OFFICIAL',scope='IDENTITY_ONLY',raw_fields={'profile_url':capture['url'],'raw_birth_date':d['dateOfBirth'],'no_historical_membership_assertion':True})]
+    if club_id==9847 and re.fullmatch(r'/joueurs/[a-z0-9-]+',url.path):
+        from .identity_pipeline import variants
+        title=meta(raw).get('og:title','').strip();form=lambda text:variants(text)['forms'].get('LATIN_TRANSLITERATION_JOINED','')
+        if len(title.split())<2 or form(url.path.rsplit('/',1)[1])!=form(title):raise ValueError('PSG_DEDICATED_PROFILE_TITLE_RESOURCE_MISMATCH')
+        candidates={};football_ids=set()
+        for si,li,path,d in flight_objects(raw):
+            if d.get('type')!='Player' or d.get('gender')!='Male' or not d.get('birthDate'):continue
+            if not d.get('id') or not d.get('fullName'):raise ValueError('PSG_NATIVE_PERSON_ID_NAME_REQUIRED')
+            if not str(d['id']).isdigit() or int(d['id'])<=0:raise ValueError('PSG_POSITIVE_NATIVE_PERSON_ID_REQUIRED')
+            if d.get('teamType')=='Football':football_ids.add(str(d['id']))
+            identity=(str(d['id']),d['fullName'],profile_birth_date(d['birthDate']))
+            candidates[identity]=(si,li,path,d)
+        if len(candidates)!=1:raise ValueError('PSG_UNIQUE_NATIVE_PROFILE_PERSON_REQUIRED')
+        (pid,full,dob),(si,li,path,d)=next(iter(candidates.items()))
+        if pid not in football_ids:raise ValueError('PSG_MENS_FOOTBALL_PROFILE_REQUIRED')
+        names=list(dict.fromkeys([full,title]))
+        return [base(capture,f'script[{si}]/frame_line[{li}]/{path}','OfficialClub',names,provider_ids={'PSG':pid},birth_date=dob,official_clubs=[str(club_id)],authority='OFFICIAL',scope='IDENTITY_ONLY',raw_fields={'profile_url':capture['url'],'native_team_id':d.get('teamId'),'profile_name_fields':{'fullName':full,'og:title':title},'no_historical_membership_assertion':True})]
+    return []
 
 
 def documented_alias_articles(raw,capture,candidates,club_id=None):
