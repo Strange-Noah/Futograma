@@ -5,7 +5,7 @@ from urllib.parse import urlsplit,parse_qs
 from .source_interface import ParsedSourceObservation,sha,VERSION
 from .acquisition import detect_type
 
-PARSER_VERSION='source-parser/4'
+PARSER_VERSION='source-parser/6'
 
 
 def _result(artifact,outcome,native,complete,uncertainties=(),parser=PARSER_VERSION):
@@ -53,6 +53,18 @@ def parse(artifact, body):
             return _result(artifact,'PARSED',dict(matches=matches),dict(source_identity=True,history_complete=False),
                 ['Fixture hints require independent detail/canonical verification'],
                 'international_discovery.team_fixture_hints@'+PARSER_VERSION)
+        if request.category=='fixture_catalogue' and request.provider in {'Sky','Torlytics'}:
+            from .live_parse import catalogs
+            context=request.context
+            if context.get('club_id') is None or not context.get('as_of'):
+                return _result(artifact,'INCOMPLETE',{}, {},['Explicit club binding and calendar context required'])
+            try:rows=catalogs(body.decode('utf8'),request.provider,context['club_id'],context['as_of'])
+            except ValueError as exc:
+                if str(exc)!='EMPTY_DIRECTORY_IS_NOT_NO_MATCHES':raise
+                return _result(artifact,'INCOMPLETE',dict(fixtures=[]),dict(catalogue_page=True,season_complete=False,known_no_fixtures=False),['No fixture entries extracted; absence of matches is not established'],parser='live_parse.catalogs@'+PARSER_VERSION)
+            return _result(artifact,'PARSED',dict(fixtures=rows,identity_basis='REQUEST_URL_AND_ACCEPTED_PROVIDER_CLUB_ALIAS'),
+                dict(catalogue_page=True,season_complete=False,canonical_adjudication=False),
+                ['One source page is not a complete season certificate'],parser='live_parse.catalogs@'+PARSER_VERSION)
         if request.category=='article':
             from .identity_sources import meta,jsonld
             return _result(artifact,'PARSED',dict(metadata=meta(body.decode('utf8')),structured=jsonld(body.decode('utf8'))),

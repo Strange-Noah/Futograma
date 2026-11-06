@@ -231,6 +231,24 @@ class SourceService:
         if sleeper is not None:kwargs['sleeper']=sleeper
         self.client=Client(run_id,budget=max_calls,**kwargs)
 
+    def admit_season_catalogue_link(self, parent, url):
+        """Opt-in only to an exact public season link in a hash-verified capture."""
+        from .live_parse import Tree
+        from urllib.parse import urljoin
+        target=urlsplit(url);origin=urlsplit(parent.request.target_url)
+        if (parent.request.provider!='Torlytics' or parent.request.category!='fixture_catalogue'
+            or origin.scheme!='https' or origin.netloc!='torlytics.de'
+            or target.scheme!='https' or target.netloc!='torlytics.de' or target.fragment
+            or target.path!=origin.path or not re.fullmatch(r'/verein/[a-z0-9-]+',target.path)
+            or not re.fullmatch(r'season=[0-9]+',target.query)):
+            raise ValueError('EXACT_PUBLIC_SEASON_CATALOGUE_REQUIRED')
+        acquired=self.acquire(parent.request,parent)
+        if acquired.outcome!='FOUND' or parent.metadata.get('http_status') not in {200,304}:raise ValueError('VERIFIED_PARENT_CAPTURE_REQUIRED')
+        links={urljoin(parent.request.target_url,n.attrs.get('href','')) for n in Tree(self.store.read(parent).decode('utf8')).root.all(tag='a')}
+        if url not in links:raise ValueError('DISCLOSED_LINK_REQUIRED')
+        self.client.catalogue_allowlist.add(url)
+        return dict(url=url,parent_artifact_key=parent.key,parent_sha256=parent.content_sha256)
+
     def acquire(self, request, prior=None):
         if request.version!=VERSION:return SourceAcquisitionResult('CONTRACT_VERSION_UNSUPPORTED')
         request.target_url  # validate even on a replay

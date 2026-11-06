@@ -15,7 +15,7 @@ class Client:
   self.raw_dir=self.root/'raw/live' if storage_root is not None else RAW
   self.output_dir=self.root/'audit/live_deployment' if storage_root is not None else OUT
   self.hosts=HOSTS if allowed_hosts is None else set(allowed_hosts)
-  self.run_id=run_id;self.budget=budget;self.records=[];self.rules={};self.last={};self.blocked=set();self.transport=transport;self.sleep=sleeper;self.cachepath=(self.root/'state/live_http_cache.json') if storage_root is not None else BASE/'state/live_http_cache.json';self.cache=read(self.cachepath) if self.cachepath.exists() else {};self.calls=0
+  self.run_id=run_id;self.budget=budget;self.records=[];self.rules={};self.last={};self.blocked=set();self.transport=transport;self.sleep=sleeper;self.cachepath=(self.root/'state/live_http_cache.json') if storage_root is not None else BASE/'state/live_http_cache.json';self.cache=read(self.cachepath) if self.cachepath.exists() else {};self.calls=0;self.catalogue_allowlist=set()
  def _write(self,path,value):
   if not self.isolated_storage:return write(path,value)
   path=Path(path).resolve()
@@ -81,7 +81,7 @@ class Client:
   return rec,body
  def fetch(self,url,purpose,conditional=True):
   p=urllib.parse.urlsplit(url);host=p.netloc
-  if p.scheme!='https' or host not in self.hosts or p.username or p.password or p.path.startswith('/api/') or '/api/' in p.path or p.query and host=='torlytics.de':return dict(url=url,purpose=purpose,status='SOURCE_UNAVAILABLE',error='SOURCE_POLICY_RESTRICTED'),b''
+  if p.scheme!='https' or host not in self.hosts or p.username or p.password or p.path.startswith('/api/') or '/api/' in p.path or p.query and host=='torlytics.de' and url not in self.catalogue_allowlist:return dict(url=url,purpose=purpose,status='SOURCE_UNAVAILABLE',error='SOURCE_POLICY_RESTRICTED'),b''
   if host in self.blocked:return dict(url=url,purpose=purpose,status='SOURCE_UNAVAILABLE',error='HOST_ACCESS_DENIED_THIS_RUN'),b''
   if host not in self.rules:
    r,b=self.raw('https://'+host+'/robots.txt','robots',conditional=False)
