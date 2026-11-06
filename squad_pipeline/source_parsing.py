@@ -5,7 +5,7 @@ from urllib.parse import urlsplit,parse_qs
 from .source_interface import ParsedSourceObservation,sha,VERSION
 from .acquisition import detect_type
 
-PARSER_VERSION='source-parser/7'
+PARSER_VERSION='source-parser/8'
 
 
 def _result(artifact,outcome,native,complete,uncertainties=(),parser=PARSER_VERSION):
@@ -32,6 +32,12 @@ def parse(artifact, body):
         http_status=artifact.metadata.get('http_status'),status='SUCCESS')
     if artifact.metadata.get('catalog_candidate'):source['catalog_candidate']=artifact.metadata['catalog_candidate']
     try:
+        if request.provider=='FotMob' and request.category=='team_identity_hints':
+            from .international_discovery import team_identity_hints
+            asked=request.expected_ids.get('team')
+            if asked is None:return _result(artifact,'INCOMPLETE',{}, {},['Independent team ID required'])
+            rows=team_identity_hints(body.decode('utf8'),source,str(asked))
+            return _result(artifact,'PARSED',dict(players=rows),dict(identity_discovery=True,historical_roster=False),['Only independently observed historical squad entities may use these identity hints'],parser='international_discovery.team_identity_hints@'+PARSER_VERSION)
         if request.provider=='FotMob' and request.category in {'player_history','team_history'}:
             from .international_discovery import profile_hints,team_fixture_hints,payload
             context=request.context;left=context.get('start');right=context.get('cutoff')
@@ -53,6 +59,11 @@ def parse(artifact, body):
             return _result(artifact,'PARSED',dict(matches=matches),dict(source_identity=True,history_complete=False),
                 ['Fixture hints require independent detail/canonical verification'],
                 'international_discovery.team_fixture_hints@'+PARSER_VERSION)
+        if request.category=='fixture_catalogue' and request.provider=='Mancity':
+            from .live_parse import mancity_catalogue
+            rows=mancity_catalogue(body.decode('utf8'),request.target_url,request.context.get('club_id'))
+            return _result(artifact,'PARSED',dict(fixtures=rows),dict(catalogue_page=True,season_complete=False,canonical_adjudication=False),
+                ['Competition identities and kickoff disagreements require independent detail verification; visible seasonal page is not independent scope-completeness proof'],parser='live_parse.mancity_catalogue@'+PARSER_VERSION)
         if request.category=='fixture_catalogue' and request.provider in {'Sky','Torlytics'}:
             from .live_parse import catalogs
             context=request.context

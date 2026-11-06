@@ -216,3 +216,39 @@ def catalogs(raw,provider,tid,asof):
    out.append(dict(url=url,date=date_,provider=provider,club_id=tid,catalog_completed=bool(d['isResult']) and d['status']=='FT',catalog_provider_id=str(d['id']),catalog_competition=d['competition']['name']['full'],catalog_home=canon(d['teams']['home']['name']['full']),catalog_away=canon(d['teams']['away']['name']['full']),date_precision='CURRENT_MONTH_DIRECTORY;DETAIL_VERIFIES_YEAR_AND_KICKOFF',catalog_team_labels={side:dict(provider_team_id=str(d['teams'][side].get('id','')),full_name=d['teams'][side]['name']['full'],short_name=d['teams'][side]['name'].get('short')) for side in ('home','away')}))
  if not out:raise ParseError('EMPTY_DIRECTORY_IS_NOT_NO_MATCHES')
  return out
+
+
+def mancity_catalogue(raw, source_url, club_id):
+ """Retained seasonal results format; discovery observations, not fixture admission."""
+ from urllib.parse import urlsplit,urljoin
+ from .identity_sources import jsonld
+ u=urlsplit(source_url);m=re.fullmatch(r'/results/mens/season-(20[0-9]{2})-([0-9]{2})',u.path)
+ if u.scheme!='https' or u.netloc!='www.mancity.com' or u.query or u.fragment or not m or club_id!=8456:raise ParseError('OFFICIAL_CATALOGUE_REQUEST_IDENTITY_MISMATCH')
+ year=int(m[1])
+ if int(m[2])!=(year+1)%100:raise ParseError('OFFICIAL_CATALOGUE_SEASON_IDENTITY_MISMATCH')
+ root=Tree(raw).root;bindings=[n.attrs['data-season-id'] for n in root.all() if 'data-season-id' in n.attrs]
+ if bindings!=[str(year)]:raise ParseError('OFFICIAL_CATALOGUE_SEASON_IDENTITY_MISMATCH')
+ selected=[n.attrs.get('value') for n in root.all(tag='option') if 'selected' in n.attrs and n.attrs.get('value','').startswith('/results/mens')]
+ if selected!=[u.path]:raise ParseError('OFFICIAL_CATALOGUE_SELECTED_SEASON_IDENTITY_MISMATCH')
+ actions=[d for d in jsonld(raw) if isinstance(d,dict) and isinstance(d.get('object'),dict) and d.get('@type') in {'WinAction','LoseAction','TieAction'} and d.get('object',{}).get('@type')=='SportsEvent']
+ blocks=root.all('fixtures-list-item')
+ if not actions or len(actions)!=len(blocks):raise Pending('OFFICIAL_CATALOGUE_VISIBLE_STRUCTURED_COVERAGE_DIFFERS')
+ out=[];seen=set()
+ for d,block in zip(actions,blocks):
+  e=d['object'];names=html.unescape(e.get('name','')).split(' vs ')
+  if len(names)!=2 or 'manchestercity' not in {canon(x) for x in names}:raise ParseError('OFFICIAL_CATALOGUE_TEAM_IDENTITY_MISMATCH')
+  if canon(block.attrs.get('aria-label',''))!=canon(names[0]+' versus '+names[1]):raise ParseError('OFFICIAL_CATALOGUE_VISIBLE_TEAM_IDENTITY_MISMATCH')
+  start=html.unescape(e['startDate']);instant=datetime.fromisoformat(start)
+  if instant.tzinfo is None:raise ParseError('OFFICIAL_CATALOGUE_EXPLICIT_TIMEZONE_REQUIRED')
+  score=d.get('result');visible=[x.txt() for x in block.all('fixture-body__score-goals')]
+  if not re.fullmatch(r'[0-9]+-[0-9]+',score or '') or visible!=score.split('-'):raise ParseError('OFFICIAL_CATALOGUE_SCORE_IDENTITY_MISMATCH')
+  times=block.all(tag='time')
+  if len(times)!=1:raise Pending('OFFICIAL_CATALOGUE_VISIBLE_DATE_REQUIRED')
+  shown=times[0].attrs.get('datetime');shown_dt=datetime.fromisoformat(shown)
+  if shown_dt.tzinfo is None:raise ParseError('OFFICIAL_CATALOGUE_EXPLICIT_VISIBLE_TIMEZONE_REQUIRED')
+  key=(start,*names)
+  if key in seen:raise ParseError('OFFICIAL_CATALOGUE_DUPLICATE_EVENT')
+  seen.add(key)
+  links=[dict(url=urljoin(source_url,n.attrs['href']),label=n.txt()) for n in block.all(tag='a') if n.attrs.get('href')]
+  out.append(dict(provider='Mancity',club_id=club_id,source_season=f'{year}/{str(year+1)[2:]}',source_event_name=e['name'],source_start=start,visible_datetime=shown,datetime_conflict=shown_dt!=instant,date_conflict=shown_dt.date()!=instant.date(),home_name=names[0],away_name=names[1],score=score,competition_label=None,detail_links=links,canonical_adjudication=False,scope_verified=False))
+ return out
