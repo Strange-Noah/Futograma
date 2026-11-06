@@ -1,0 +1,42 @@
+{
+  "repository": "Strange-Noah/Futograma",
+  "branch": "codex/historical-six-club-20261106",
+  "base": "e4666ea252896d5bcfd46648a74ffff026f7ad51",
+  "tip": "77f196565f4be3b9d095fb0101c911eaf3d83344",
+  "commits": [
+    "77f196565f4be3b9d095fb0101c911eaf3d83344"
+  ],
+  "files": [
+    {
+      "path": "squad_pipeline/international_discovery.py",
+      "sha256": "dc9569bea9e3c2aa90b2a79d02beea0b49bd1f4753417844d5a5be9440b9e373",
+      "git_blob": "7a4f5b3abe8959a81d59ffcf9339183034883f1f"
+    },
+    {
+      "path": "squad_pipeline/live_parse.py",
+      "sha256": "08e3bce9f0bb8bd8ea569c9c3f8bf604a5d2473ff123930a1b3c89cbab3f81f1",
+      "git_blob": "fc2bb83f402c0cd2e29e5ef7672df799b038fcbf"
+    },
+    {
+      "path": "squad_pipeline/source_parsing.py",
+      "sha256": "79b5e36fbf7911647bd6f836d61f734704a8c311ab67c9b7d8c866397884d948",
+      "git_blob": "789f9a57b8f92edf97b10daaaa16618742c8a90f"
+    },
+    {
+      "path": "tests/cloud/test_official_season_results.py",
+      "sha256": "84bc4a8f195a1913900dd58be626074ef85ce3cab8316514df418b7ba36cb098",
+      "git_blob": "d402b181b4c8a041cac5ffe01c3661406862ff7f"
+    },
+    {
+      "path": "tests/cloud/test_team_identity_index.py",
+      "sha256": "4f83f11921fadafde62bcf37d82b95e875ea82b690f85731a86da75dac9314ce",
+      "git_blob": "803f86b216b8967439ea7053b884ed051fb8f06c"
+    }
+  ],
+  "security_review": "PASS; manually reviewed exact five code/test files, no raw/archive/database/export/credential/local-path/private-identity payload",
+  "local_tests": {
+    "total": 534,
+    "passed": 476,
+    "known_hosted_skips": 58
+  }
+}

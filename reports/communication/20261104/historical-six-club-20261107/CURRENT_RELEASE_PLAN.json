@@ -1,0 +1,65 @@
+{
+  "status": "READY_FOR_EXACT_PRODUCTION_AUTHORIZATION;NOT_EXECUTED",
+  "repository": "Strange-Noah/Futograma",
+  "release_code": "9acd42e73882020dca5f7820c80c61cc7bc8b187",
+  "candidate_ref": "acceptance/code-release-42263589840",
+  "candidate_head": "997c16c29b32859549270e58e56c69a18067d237",
+  "sqlite_sha256": "dd49dddbce8f5ed1b7f5f878855f4937d13131cf4e95077f94b617e2b08aefc0",
+  "schema_sha256": "98745a959bbb386f4ed7e99a1e793a391a04d59a3e5acd8f9765505ab9d6f650",
+  "expected_private_production_head_before": "339c6976414809b1f75d226b67945f0b653a5141",
+  "private_workflow_pin_commit": "aa8cdaa24ce321a6f7dc5f02ebc9bb3c15539754",
+  "private_workflow_parent": "339c6976414809b1f75d226b67945f0b653a5141",
+  "private_workflow_files": [
+    {
+      "path": ".github/workflows/data-platform.yml",
+      "sha256": "08205802e23498edc74e3ef686e9087a25aeccdac80abb455f0576273ce1c892",
+      "git_blob": "00112f982f8b0d60510abdbabc9aff705e96a54c"
+    },
+    {
+      "path": ".github/workflows/release-operations.yml",
+      "sha256": "cb1b35e7288815170d8c02e459399941cf16f0308c02bde782d92373b33dbb55",
+      "git_blob": "615c2189ffcb46fb33bd05927c93685d33e5f39f"
+    }
+  ],
+  "workflow_pin_replacements": 7,
+  "expected_production_head_at_promotion": "aa8cdaa24ce321a6f7dc5f02ebc9bb3c15539754",
+  "source_ref_must_remain_unchanged": true,
+  "private_site_before": "35d81673cb6bb0dd04690d83e1845c0f3f8b56a4",
+  "private_site_previous": "93c56e9183878d39e8dd7699a11a60987dcf218e",
+  "release_variable": {
+    "repository": "Strange-Noah/Futograma",
+    "name": "FUTOGRAMA_RELEASE_CODE_SHA",
+    "before": "666255afe5bb565f82156ba9908713a5bcbab8ed",
+    "after": "9acd42e73882020dca5f7820c80c61cc7bc8b187"
+  },
+  "site_branch": "site",
+  "site_data_ref": "main",
+  "public_pages_url": "https://strange-noah.github.io/Futograma/",
+  "database_bytes_changed": false,
+  "football_records": 2887,
+  "football_field_changes": 0,
+  "public_main_merge": false,
+  "acquisition_triggered": false,
+  "schedules_changed": false,
+  "paid_resources": false,
+  "production_authorized": false,
+  "readiness_evidence": {
+    "exact_release_ci": 42236914802,
+    "smoke_recovery": 42253702587,
+    "marker_free_preparation": 42263589840,
+    "independent_current_previous_asset_restore": true,
+    "six_club_browser_navigation": true
+  },
+  "rollback": {
+    "code": "666255afe5bb565f82156ba9908713a5bcbab8ed",
+    "sqlite_sha256": "dd49dddbce8f5ed1b7f5f878855f4937d13131cf4e95077f94b617e2b08aefc0",
+    "current_and_previous_site_files_backed_up": true,
+    "retain_history": true,
+    "method": "Existing reviewed rollback operation; restore workflow/frontend code pins and regenerate matching site transport. Never force-rewind refs or discard newer football facts."
+  },
+  "actual_public_records_clubs_players_identical": true,
+  "new_export_root_fields": {
+    "quality_issues": []
+  },
+  "supplementary_audit_dossiers_exported": false
+}

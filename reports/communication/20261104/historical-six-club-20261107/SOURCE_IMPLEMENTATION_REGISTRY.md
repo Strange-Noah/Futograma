@@ -17,3 +17,9 @@ Duplication audit: older direct Client callers, acquisition.Controller, text-ros
 The code-only release preparation uses the existing GitHubStore backup publisher and explicit isolated refs. This is release orchestration, not football fact adjudication or a replacement canonical writer. Its current/previous byte checks must pass before any production proposal.
 
 Deferred work: establish real historical caller integration after source/identity admission; investigate retained alias/fixture identity gaps; finish official calendar/window evidence; qualify export coverage; retire nothing until separate migration/rollback acceptance. Whole-repository cleanup is not a historical acceptance prerequisite.
+
+## Third-batch caller checkpoint
+
+Published development77f1965, exact534-test hosted pass. SourceService dispatch now reuses live_parse.mancity_catalogue with identity_sources.jsonld/Tree for the observed official seasonal result format, preserving missing competitions and contradictory timestamps; no canonical writer or completeness authority. international_discovery.team_payload is shared by existing team fixture hints and team_identity_hints, with explicit requested/returned team binding. Identity hints are never historical roster inputs. Existing P1 verifier and alias writer are exercised on an isolated copy with idempotence and table preservation; roster/minute/football writers remain unchanged.
+
+The public archive opt-in probe is an inactive, local-only experiment in Git after the provider robots denial. It is not a second active source stack or accepted provider parser. Legacy consumers remain untouched and no retirement/deletion of production code is declared. Current production release remains9acd42e; later historical77f1965 and probe34ed712 are excluded. Actual official profile payload/DOB extraction gaps are demonstrated repairs for the existing identity_sources parser, not grounds to add a parallel parser family.
