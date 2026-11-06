@@ -144,12 +144,44 @@ def certified_catalog_side(observed,fixture,side,source):
  provider_id=str(c.get('catalog_provider_id') or '')
  return bool(provider_id and source['url'].rstrip('/').rsplit('/',1)[-1]==provider_id and len(catalog.get('sha256',''))==64 and catalog.get('url','').startswith('https://www.skysports.com/') and str(label.get('provider_team_id','')).isdigit() and str(other.get('provider_team_id','')).isdigit() and int(label['provider_team_id'])>0 and int(other['provider_team_id'])>0 and label['provider_team_id']!=other['provider_team_id'] and canon(label.get('full_name',''))==fixture[side+'_team'] and canon(label.get('short_name',''))==canon(observed) and c.get('catalog_'+side)==fixture[side+'_team'])
 
+def certified_badge_sides(cols,fixture,source):
+ """Same-page ordered badge captions bind abbreviated lineup headings.
+
+ This proves a presentation label only, never a cross-source team identity.
+ Both columns must independently agree with the already parsed match header.
+ """
+ from urllib.parse import urlsplit
+ if len(cols)!=2 or urlsplit(source.get('url','')).hostname!='www.skysports.com':return False
+ if not re.fullmatch(r'[a-f0-9]{64}',source.get('sha256','')):return False
+ ids=[]
+ for side,col in zip(('home','away'),cols):
+  badges=col.all('sdc-site-team-lineup__team-badge-image')
+  if len(badges)!=1:return False
+  b=badges[0].attrs;u=urlsplit(b.get('src',''))
+  m=re.fullmatch(r'/football/badges/96/([1-9][0-9]*)\.png',u.path)
+  if u.scheme!='https' or u.netloc!='e0.365dm.com' or u.query or u.fragment or not m:return False
+  if canon(b.get('alt',''))!=fixture[side+'_team']:return False
+  own=col.one('sdc-site-team-lineup__team-name').txt()
+  full=re.findall(r'[a-z0-9]+',b.get('alt','').lower());short=re.findall(r'[a-z0-9]+',own.lower())
+  # Permit ordered whole words or >=3-letter prefixes; initials require another word.
+  if canon(own)!=fixture[side+'_team']:
+   pos=0
+   for word in short:
+    while pos<len(full) and not (word==full[pos] or len(word)>=3 and full[pos].startswith(word) or len(word)==1 and len(short)>1 and any(len(w)>=3 for w in short) and full[pos].startswith(word)):pos+=1
+    if pos==len(full):break
+    pos+=1
+   else:
+    if short:ids.append(m[1]);continue
+   if ''.join(short)!=''.join(w[0] for w in full) or len(short)!=1:return False
+  ids.append(m[1])
+ return len(ids)==2 and ids[0]!=ids[1]
+
 def _sky_lineups(root,f,r):
  cols=root.all('sdc-site-team-lineup__col');sheets=[];all_names=[]
  if len(cols)!=2:raise Pending('SKY_TWO_LINEUP_COLUMNS_REQUIRED')
  for side,col in zip(['home','away'],cols):
   own=col.one('sdc-site-team-lineup__team-name').txt()
-  if canon(own)!=f[side+'_team'] and not certified_catalog_side(own,f,side,r):raise ParseError('SKY_ROSTER_SIDE_MISMATCH')
+  if canon(own)!=f[side+'_team'] and not certified_catalog_side(own,f,side,r) and not certified_badge_sides(cols,f,r):raise ParseError('SKY_ROSTER_SIDE_MISMATCH')
   tid=f.get(side+'_id');ps=[];evs=[]
   for group in col.all('sdc-site-team-lineup__players'):
    role='bench' if 'sdc-site-team-lineup__players--subs' in group.attrs.get('class','') else 'starters';numbers=group.all('sdc-site-team-lineup__player-number');dds=group.all('sdc-site-team-lineup__player-name')
@@ -164,7 +196,7 @@ def _sky_lineups(root,f,r):
      evs.append(dict(type=types[0],provider_key=key,clock=clock(e.one('sdc-site-team-lineup__event_time').txt())))
   all_names.append({norm(p['name']) for p in ps})
   if tid:
-   s=finish(ps,evs,src(r),tid,'Sky');s['match_id']=f['match_id'];sheets.append(s)
+   s=finish(ps,evs,src(r),tid,'Sky');s['match_id']=f['match_id'];s['source_label_binding']='SAME_PAGE_ORDERED_BADGE_CAPTIONS' if certified_badge_sides(cols,f,r) else 'HEADER_OR_CERTIFIED_DIRECTORY';sheets.append(s)
  if all_names[0]&all_names[1]:raise ParseError('PLAYER_ON_BOTH_SIDES')
  return f,sheets
 

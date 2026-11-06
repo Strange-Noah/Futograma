@@ -1,5 +1,5 @@
 """Bounded, anonymous public HTML acquisition. No restricted provider APIs."""
-import json,re,time,ssl,urllib.request,urllib.error,urllib.parse,socket,email.utils
+import json,re,time,ssl,urllib.request,urllib.error,urllib.parse,socket,email.utils,http.client
 from datetime import datetime,timezone
 from pathlib import Path
 from .core import ROOT,BASE,read,write,digest,now
@@ -44,7 +44,9 @@ class Client:
    if self.calls>=self.budget:raise RuntimeError('NETWORK_BUDGET_EXHAUSTED')
    self.sleep(max(0,self.last.get(host,-1e8)+2-time.monotonic()));started=now();code=None;h={};body=b'';error=None
    try:code,h,body=self._request(url,headers)
-   except (urllib.error.URLError,TimeoutError,OSError,socket.timeout) as e:error=type(e).__name__+': '+str(e)
+   except http.client.IncompleteRead as e:
+    body=e.partial;error='IncompleteRead: truncated HTTP response'
+   except (urllib.error.URLError,TimeoutError,OSError,socket.timeout,http.client.HTTPException) as e:error=type(e).__name__+': '+str(e)
    self.calls+=1;self.last[host]=time.monotonic();sha=digest(body);rid=digest((self.run_id+url+started+str(attempt)).encode());folder=self.raw_dir/self.run_id
    if self.isolated_storage and not folder.resolve().is_relative_to(self.root):raise ValueError('SOURCE_STORAGE_BOUNDARY')
    folder.mkdir(parents=True,exist_ok=True);path=folder/(rid+'.response');

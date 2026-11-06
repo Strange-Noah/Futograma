@@ -20,3 +20,12 @@ class ClubSourceLabelTests(unittest.TestCase):
   from squad_pipeline.live_parse import canon
   for club in json.loads((ROOT/'ops/cloud/clubs.json').read_text()):
    for field in ('name','sky_slug','torlytics_slug'):self.assertEqual(canon(club[field]),club['canonical_slug'])
+
+class ExistingGlobalClubScope(unittest.TestCase):
+ def test_explicit_fifa_club_world_cup_keeps_existing_competition_id(self):
+  from squad_pipeline.live_parse import fixture
+  result=fixture('FIFA Club World Cup','2025-06-18T01:00:00Z','Monterrey','Inter Milan','1-1',dict(url='https://source.example/controlled'))
+  self.assertEqual(result['competition_id'],78)
+
+ def test_sky_spanish_cup_label_uses_existing_copa_identity(self):
+  self.assertEqual(COMP['Spanish Copa del Rey'],138)
