@@ -1,9 +1,9 @@
-# B6 — Regression and reproducibility
+# B6 — exact-candidate hosted acceptance, 2026-11-06
 
-Local current candidate: **500 discovered, 442 passed, 58 known hosted-only skips; zero failures**. This adds three independence/failure-isolation integration tests to the previous 497-test candidate. Exact identities of all 58 locally skipped cases are retained for later hosted log verification.
+PASS. [Code commit](https://github.com/Strange-Noah/Futograma/commit/51c7bf988ffdd2ed2232cc238a48f92c4fd6e481) and [existing free hosted run 42229323426](https://github.com/Strange-Noah/Futograma/actions/runs/42229323426), job 127930822855.
 
-The preserved Gate S [433/433 hosted run](https://github.com/Strange-Noah/Futograma/actions/runs/41885610724) remains valid for Gate S. It does not validate current candidate `51c7bf988ffdd2ed2232cc238a48f92c4fd6e481`. Current code hosted execution: **NOT EXECUTED**.
+500 tests executed, 500 passed, zero failures, zero skips. The 58 exact test identities previously skipped locally were each matched to a successful hosted test line. The complete log summary says Ran 500 tests and OK; all workflow steps, tracked-file and frontend/module syntax checks succeeded. This is evidence for the current Gate B candidate, independent of the earlier Gate S 433-test run. Local 442 passing plus 58 guarded skips reconcile to the hosted 500.
 
-Normal approval permitted a Git HTTPS HTTP/1.1 push of that exact candidate to `Strange-Noah/Futograma`, branch `codex/gate-b-obligations-20261105`. The push failed: `Failed to connect to github.com port 443 after 75003 ms: Couldn't connect to server`, exit 128. No GitHub request ID was returned. Independent read-only GitHub inspection confirms the branch remains absent. No retry, credential change, alternate transport or API publication was attempted.
+The published branch, two outgoing parent links and all 20 final file contents match the reviewed manifest. No code was changed for publication. Two existing Python runtime warnings were observed; no failure or skip resulted. Defer warning remediation to a later reviewed change.
 
-B6 status: BLOCKED by publication transport. Required next evidence: successful separately authorized exact-payload publication, independently verified branch SHA and all outgoing file blobs, the existing free CI run, 500 executed tests with zero failures/unexplained skips, and explicit successful execution of each of the 58 formerly skipped cases. No hosted run URL exists for the new candidate yet.
+B1–B5 retain their earlier evidence. With B6 PASS, Gate B is ACCEPTED. Production remains NO-GO; the CI itself does not certify deployment authority, fresh sources or a new team.

@@ -1,0 +1,11 @@
+# Real Madrid independent cold-start preparation
+
+Prerequisite satisfied: six-club Gate B ACCEPTED, exact code 51c7bf9 and hosted 500/500. Status: preparation complete; fresh acquisition and execution NOT STARTED. No Real Madrid production activation is authorized.
+
+Use an isolated copy of the accepted six-club reference and the accepted original acquisition/data pipeline. Preserve existing global opponent identities and cross-club physical fixtures. Do not copy any prior Real Madrid candidate database, roster, fixture list, expected counts or classifications. Archive older Real Madrid acceptance as a comparison-only reference, unread as seeding input until the independent run is frozen.
+
+Execution sequence: discover stable team identity and official first-team roster using existing source and roster policies; verify provider/official identities, loans, departures, youth and temporal boundaries; discover club and national history through existing collectors/parsers; adjudicate fixtures and participation through established identity/minute/canonical mechanisms; export through the normal pipeline. Run R1→R2→R5→R3/R4→R6 only as supplementary consumers/proposal generators. Keep accepted facts authoritative and use existing adjudication for any correction. Repeat through the same update workflow and verify idempotence, rollback provenance and normal export.
+
+Before fresh external acquisition, obtain authorization for the exact public sources, date interval and bounded resource envelope. Proposed scope: official Real Madrid public squad/profile pages and already supported public provider histories/fixture pages; anonymous HTTPS only, robots/access restrictions respected, deduplicated cache/archive reuse, explicit per-batch call/byte caps and no paid services. Do not invent IDs or bypass denied hosts. Unsupported formats require a demonstrated need and reuse-first review, not a second collector/parser.
+
+Freeze independent observations and results before comparing with older cold-start evidence. Report differences in membership, identity, physical matches, scores, minutes, national scope and unresolved evidence without fitting expected counts. Production or website inclusion remains a separately authorized release.

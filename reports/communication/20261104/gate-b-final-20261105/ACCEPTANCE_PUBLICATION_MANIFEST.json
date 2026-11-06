@@ -1,0 +1,45 @@
+{
+  "repository": "Strange-Noah/Futograma",
+  "branch": "codex/communication-20261104",
+  "base": "63c01052006cb8b3c88f6ea25b8f8ff8882c51ab",
+  "files": [
+    {
+      "path": "reports/communication/20261104/gate-b-final-20261105/ACCEPTANCE_MATRIX.md",
+      "sha256": "25d7c829688d8780b18b1a9fb4fa213ce18f79f241bb02d23f5d9f3eb7d83bcc",
+      "bytes": 3571
+    },
+    {
+      "path": "reports/communication/20261104/gate-b-final-20261105/AGGREGATES.json",
+      "sha256": "9ebdced22ae3cee714ffc143d14cc61bdd5945fe2b0e915cf20c798f9118924f",
+      "bytes": 3272
+    },
+    {
+      "path": "reports/communication/20261104/gate-b-final-20261105/HANDOFF.md",
+      "sha256": "ddf42dfe0a9f080b346fe096a0b238c79ca28c2798f61143cf34bd4b835503da",
+      "bytes": 1958
+    },
+    {
+      "path": "reports/communication/20261104/gate-b-final-20261105/HOSTED_ACCEPTANCE.json",
+      "sha256": "f03caa173b788955f8816b87d27129f1cde85b4168a806e9bd9b2bcf9e338717",
+      "bytes": 809
+    },
+    {
+      "path": "reports/communication/20261104/gate-b-final-20261105/REAL_MADRID_COLDSTART_PREPARATION.md",
+      "sha256": "c902b816a5f22e8440f4ae9ee0d2ead87f092eef202b6864bdac9f1d8060a8ca",
+      "bytes": 2255
+    },
+    {
+      "path": "reports/communication/20261104/gate-b-final-20261105/REGRESSION.md",
+      "sha256": "add220d5bdcd39f64fb80419a6b869848cd31b63c61a08b8a9f71de2d82f0f5c",
+      "bytes": 1226
+    },
+    {
+      "path": "reports/communication/20261104/gate-b-final-20261105/WEBSITE_DEPLOYMENT_READINESS.md",
+      "sha256": "d04f618ac250c07b0f18e7597b1ad3c1bcb2307cb1e6c9d5182ce6906b3abd43",
+      "bytes": 3599
+    }
+  ],
+  "self_hash": "Excluded; verify Git blob after commit",
+  "security_review": "PASS: sanitized acceptance, verification and preparation reports only; no raw logs, private records, captures, DBs, exports, credentials or sensitive paths",
+  "production": "NO-GO"
+}

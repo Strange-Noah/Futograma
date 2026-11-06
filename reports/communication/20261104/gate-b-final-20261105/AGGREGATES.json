@@ -6,9 +6,9 @@
     "B3": "PASS",
     "B4": "PASS",
     "B5": "PASS",
-    "B6": "BLOCKED"
+    "B6": "PASS"
   },
-  "overall": "BLOCKED",
+  "overall": "ACCEPTED",
   "development_commit": "89746b34c6cab0dae30506d3c3f1f55781d6908a",
   "publication_commit": "51c7bf988ffdd2ed2232cc238a48f92c4fd6e481",
   "original_tables": 90,
@@ -18,7 +18,33 @@
     "passed": 442,
     "hosted_only_skips": 58
   },
-  "hosted": "NOT_EXECUTED_FOR_CURRENT_CANDIDATE",
+  "hosted": {
+    "date": "2026-11-06",
+    "repository": "Strange-Noah/Futograma",
+    "commit": "51c7bf988ffdd2ed2232cc238a48f92c4fd6e481",
+    "base": "53ace3a29596263ca57f39370e39f1243160fcdc",
+    "commits": [
+      "76d4b236f12adb5bb24ebb82d84a4581cd3eeeb2",
+      "51c7bf988ffdd2ed2232cc238a48f92c4fd6e481"
+    ],
+    "remote_files_verified": 20,
+    "sha256_manifest_match": true,
+    "run": 42229323426,
+    "job": 127930822855,
+    "run_url": "https://github.com/Strange-Noah/Futograma/actions/runs/42229323426",
+    "passed": 500,
+    "failures": 0,
+    "skips": 0,
+    "hosted_only_expected": 58,
+    "hosted_only_executed_successfully": 58,
+    "warning_notes": [
+      "Existing yearless-date parser deprecation",
+      "ResourceWarning during test execution; suite successful"
+    ],
+    "B6": "PASS",
+    "gate_b": "ACCEPTED",
+    "production": "NO-GO"
+  },
   "obligations": {
     "RESOLVED_ACCEPTED_EVIDENCE": 168,
     "RESOLVED_DEFENSIBLE_INFERENCE": 30
@@ -56,13 +82,13 @@
     "branch": "codex/gate-b-obligations-20261105",
     "commit": "51c7bf988ffdd2ed2232cc238a48f92c4fd6e481",
     "operation": "NORMAL_GIT_HTTPS_HTTP_1_1_PUSH",
-    "result": "FAILED",
+    "result": "SUCCESS",
     "exit_code": 128,
     "error": "Failed to connect to github.com port 443 after 75003 ms: Couldn't connect to server",
     "github_request_id": null,
     "retries": 0,
     "alternate_routes": 0,
-    "remote_branch": "ABSENT_404",
+    "remote_branch": "EXACT_COMMIT_VERIFIED",
     "hosted_run": "NOT_EXECUTED",
     "website_extra_record_types": {
       "CLUB": 20
@@ -72,6 +98,6 @@
     }
   },
   "production": "NO-GO",
-  "website_readiness": "DEFERRED_UNTIL_GATE_B_PASS",
-  "real_madrid": "NOT_STARTED;PLANNING_DEFERRED_UNTIL_GATE_B_PASS"
+  "website_readiness": "ASSESSED_CONDITIONAL_NO_DEPLOYMENT",
+  "real_madrid": "PREPARATION_ONLY_NO_EXTERNAL_ACQUISITION"
 }
