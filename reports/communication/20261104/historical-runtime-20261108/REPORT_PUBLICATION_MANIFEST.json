@@ -9,7 +9,11 @@
     },
     {
       "path": "reports/communication/20261104/historical-runtime-20261108/ARCHITECTURE_STATUS.md",
-      "sha256": "b4aaf3ebae14e5248ba8a53d3ef2e408224c57411ce745f844312bd3697b6959"
+      "sha256": "aa9429a6bb0cc3a2b8ee51527863cd31a2c46ceb1bbb8325e3bc85186288cc0b"
+    },
+    {
+      "path": "reports/communication/20261104/historical-runtime-20261108/CODE_PUBLICATION_ACCEPTANCE.json",
+      "sha256": "b5f2655dc95fc9c2901f9ed668e7d9a3945d226b9947e389b54a5eea6842ba4a"
     },
     {
       "path": "reports/communication/20261104/historical-runtime-20261108/COMMITTED_REGRESSION.json",
@@ -21,12 +25,17 @@
     },
     {
       "path": "reports/communication/20261104/historical-runtime-20261108/EXECUTION_SUMMARY.md",
-      "sha256": "a5623654e1ce3b765da93aea92ac4490dd52e3a3b4df8f512c71f23497fad02f"
+      "sha256": "5cc8347620eb89a646cd2e8aaf633107acb63712afd53cc3a36cb6fd87f1e0ac"
     },
     {
       "path": "reports/communication/20261104/historical-runtime-20261108/HANDOFF.md",
-      "sha256": "ff1c25e3d192a1d36da4f3dcaa3bb5eeb2465211064ae23760c3d4a05e8c31ae"
+      "sha256": "f169ad6b1e08abcde95484915bafd52625364ec3520efd3069d68e968a25d245"
+    },
+    {
+      "path": "reports/communication/20261104/historical-runtime-20261108/HOSTED_ACCEPTANCE.json",
+      "sha256": "7e2feabd7a3a08190e8ef4909dbea275b1f88200e8dde8018a03a88e3515f33b"
     }
   ],
-  "security_review": "PASS; sanitized reports/aggregate receipts only, no code publication or private artifacts"
+  "security_review": "PASS; sanitized reports, code publication/CI receipts and aggregates only; no private artifacts",
+  "transport": "Prior f90fa44 report push failed Git443 timeout; remote stayed2721587. Do not retry publication without authorization."
 }

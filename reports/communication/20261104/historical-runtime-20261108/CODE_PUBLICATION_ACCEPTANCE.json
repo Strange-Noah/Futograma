@@ -1,0 +1,36 @@
+{
+  "ref": "7d50d4ce2590a86572193af4578187c99991ee90",
+  "files": [
+    {
+      "path": "ops/cloud/historical_unit.py",
+      "sha": "1333bfefbfbd4458c6243d7373b67e40b344fe3a"
+    },
+    {
+      "path": "squad_pipeline/identity_pipeline.py",
+      "sha": "9e1afa9d1749725135c6f2b3051c1da8d400da8b"
+    },
+    {
+      "path": "tests/cloud/test_fixture_identity_bridge.py",
+      "sha": "648ab15b9a4b216a6337609e838f199cb03cfa5a"
+    },
+    {
+      "path": "tests/cloud/test_historical_unit.py",
+      "sha": "c3d98c4fef951c9cc7def73825b435b6410c7461"
+    }
+  ],
+  "commits": [
+    {
+      "sha": "548bf412264ef120b9813e15bc6ecbafef849b3a",
+      "parents": [
+        "1c397ff2d40be8467475a232b8db03245cdde458"
+      ]
+    },
+    {
+      "sha": "7d50d4ce2590a86572193af4578187c99991ee90",
+      "parents": [
+        "548bf412264ef120b9813e15bc6ecbafef849b3a"
+      ]
+    }
+  ],
+  "verified": "Exact remote tip, both outgoing parents and four reviewed blobs match"
+}
