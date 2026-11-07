@@ -1,0 +1,34 @@
+{
+  "repository": "Strange-Noah/Futograma",
+  "branch": "codex/communication-20261104",
+  "base": "5318b947f2128a4f61560414869c24f4b2c8b786",
+  "scope": "Sanitized runtime audit reports and exact offline audit harness only; manifest excluded from its own hash list",
+  "files": [
+    {
+      "path": "reports/communication/20261104/runtime-agent-independence-20261108/AGENT_ABSENT_EXECUTION.json",
+      "sha256": "899c0071bfca7f92da5e38722c1f8e30d760928c87770aad06cf057711297c20",
+      "bytes": 21024
+    },
+    {
+      "path": "reports/communication/20261104/runtime-agent-independence-20261108/HANDOFF.md",
+      "sha256": "dab7fe8f31f980a3782e0b9896a4933a7fb488c292091d5d9ac0bda842ed7b5e",
+      "bytes": 1745
+    },
+    {
+      "path": "reports/communication/20261104/runtime-agent-independence-20261108/RUNTIME_AGENT_INDEPENDENCE_AUDIT.md",
+      "sha256": "2ec23e9814a5ec2d4590c3d063b8d72ee40d623b845051cd96ac307627b3b01f",
+      "bytes": 18684
+    },
+    {
+      "path": "reports/communication/20261104/runtime-agent-independence-20261108/SOURCE_IMPLEMENTATION_REGISTRY.md",
+      "sha256": "b9451edb045aa587df8bc43f3c37c7fa14204119eb0352fe0a002dc369b2e00e",
+      "bytes": 2349
+    },
+    {
+      "path": "reports/communication/20261104/runtime-agent-independence-20261108/run_guarded.py",
+      "sha256": "5bed0856902c2bcaf7a478ce41c7ba269ace6641be879a985af77fb1e3fa3c35",
+      "bytes": 4956
+    }
+  ],
+  "security_review": "Reviewed complete report text and harness: no credentials, private DB/source captures, identity-debt records, sensitive local paths or exports; code development and production unchanged"
+}
