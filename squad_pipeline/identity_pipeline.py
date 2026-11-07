@@ -76,6 +76,47 @@ def ranked_candidates(record,candidates,limit=8):
         if score>=.4:ranked.append({'player_id':str(c.player_id),'score':score,'shared_stable_ids':shared,'variants':[variants(n) for n in c.names]})
     return sorted(ranked,key=lambda r:(-r['score'],r['player_id']))[:limit]
 
+def fixture_source_identity_bridge(record,candidate):
+    """Closed-fixture source-ID correspondence; no roster or interval authority."""
+    b=record.raw_fields.get('same_fixture_identity_bridge') or {}
+    if not isinstance(b,dict):return None
+    if record.authority!='OFFICIAL' or record.scope!='IDENTITY_ONLY' or str(b.get('canonical_player_id'))!=str(candidate.player_id):return None
+    flags=('raw_bodies_hash_verified','source_resource_identity_verified','anchor_resource_identity_verified','source_squad_complete','anchor_squad_complete')
+    if any(b.get(k) is not True for k in flags) or b.get('source_starter_count')!=11 or b.get('anchor_starter_count')!=11:return None
+    ns=b.get('source_namespace');sid=b.get('source_player_id')
+    if not ns or not sid or ns not in record.provider_ids or str(record.provider_ids[ns])!=str(sid) or not b.get('anchor_provider') or not b.get('anchor_player_id'):return None
+    anchor_hash=b.get('anchor_source_sha256');anchor_url=b.get('anchor_source_url')
+    if not re.fullmatch(r'[0-9a-f]{64}',str(anchor_hash or '')) or anchor_hash==record.source_sha256 or not re.fullmatch(r'[0-9a-f]{64}',record.source_sha256):return None
+    try:urls=[urlsplit(record.source_url),urlsplit(anchor_url or '')]
+    except ValueError:return None
+    if any(u.scheme!='https' or not u.hostname or u.username or u.password for u in urls) or urls[0].hostname==urls[1].hostname:return None
+    keys=('match_id','domain','home_key','away_key','competition_key','kickoff_utc','status','home_score','away_score')
+    fixtures=[b.get(k) or {} for k in ('accepted_fixture','source_fixture','anchor_fixture')]
+    if any(not isinstance(f,dict) or any(k not in f for k in keys) for f in fixtures) or any({k:f[k] for k in keys}!={k:fixtures[0][k] for k in keys} for f in fixtures[1:]):return None
+    f=fixtures[0]
+    if any(not isinstance(f[k],str) or not f[k] for k in ('match_id','home_key','away_key','competition_key','kickoff_utc')):return None
+    if not f['match_id'] or f['domain']!='CLUB' or f['status']!='FINISHED' or not f['home_key'] or not f['away_key'] or f['home_key']==f['away_key'] or not f['competition_key']:return None
+    if any(type(f[k]) is not int or f[k]<0 for k in ('home_score','away_score')):return None
+    from datetime import datetime
+    try:
+        if datetime.fromisoformat(f['kickoff_utc'].replace('Z','+00:00')).tzinfo is None:return None
+    except (ValueError,AttributeError,TypeError):return None
+    targets=[b.get(k) or {} for k in ('source_target','anchor_target')]
+    if any(not isinstance(t,dict) for t in targets):return None
+    normal=lambda name:variants(name)['forms'].get('LATIN_TRANSLITERATION','')
+    if any(type(t.get('occurrences')) is not int or t['occurrences']!=1 or len(normal(t.get('name','')).split())<2 for t in targets):return None
+    if normal(targets[0]['name'])!=normal(targets[1]['name']) or not any(normal(n)==normal(targets[0]['name']) for n in record.names):return None
+    if targets[0].get('role') not in ('starters','bench') or targets[0]['role']!=targets[1].get('role'):return None
+    shirts=[str(t.get('shirt','')) for t in targets]
+    if shirts[0]!=shirts[1] or not shirts[0].isdigit() or not 1<=int(shirts[0])<=999:return None
+    mates=b.get('corroborated_teammates') or []
+    if len(mates)<8 or any(not isinstance(m,dict) or any(not m.get(k) for k in ('canonical_player_id','source_id','anchor_id')) or str(m['canonical_player_id'])==str(candidate.player_id) for m in mates):return None
+    if any(len({str(m[k]) for m in mates})!=len(mates) for k in ('canonical_player_id','source_id','anchor_id')):return None
+    anchors=[r for r in candidate.records if r.raw_fields.get('_verified_identity') and r.retrieved and r.source_status=='SUCCESS' and r.source_url==anchor_url and r.source_sha256==anchor_hash and str(r.provider_ids.get(b.get('anchor_provider')))==str(b.get('anchor_player_id')) and any(normal(n)==normal(targets[1]['name']) for n in r.names)]
+    if not anchors:return None
+    return dict(method='CROSS_PROVIDER_SAME_CANONICAL_FIXTURE_FULL_SQUAD_BRIDGE',fixture=f,source_url=record.source_url,source_sha256=record.source_sha256,anchor_url=anchor_url,anchor_sha256=anchor_hash,source_namespace=ns,source_player_id=str(sid),anchor_provider=b['anchor_provider'],anchor_player_id=b['anchor_player_id'],exact_full_name=targets[0]['name'],shirt=shirts[0],role=targets[0]['role'],corroborated_teammates=len(mates),scope='SOURCE_IDENTIFIER_CORRESPONDENCE;NO_MANAGEMENT_INTERVAL_AUTHORITY',limitation='Separately retained provider views; upstream data independence is not established')
+
+
 def verify_identity(record,candidate):
     reasons=[];proof=[]
     if not record.retrieved or record.source_status!='SUCCESS' or not record.source_sha256:return {'verified':False,'reasons':['RAW_SOURCE_UNAVAILABLE_OR_UNHASHED'],'proof':[]}
@@ -109,6 +150,8 @@ def verify_identity(record,candidate):
             career_club=record.raw_fields.get('career_club')
             if career_club and career_club not in other.raw_fields.get('career_clubs',[]):continue
             proof.append({'method':'DOCUMENTED_OFFICIAL_SAME_PERSON_NAME_BRIDGE','bridge':bridge,'other_url':other.source_url,'other_sha256':other.source_sha256})
+    fixture_bridge=fixture_source_identity_bridge(record,candidate)
+    if fixture_bridge:proof.append(fixture_bridge)
     career=record.raw_fields.get('career_bridge')
     if career and record.authority=='OFFICIAL':
         anchors=[r for r in candidate.records if r.raw_fields.get('_verified_identity') and r.source_url==career.get('profile_url') and r.source_sha256==career.get('profile_sha256') and r.provider_ids.get('FotMob')==career.get('fotmob_id')]
