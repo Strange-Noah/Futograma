@@ -26,3 +26,7 @@ class PsgMatchSquad(unittest.TestCase):
    if mode=='conflict':ps[-1]['stat']=[dict(type='gameStarted',value='1')]
    else:ps[0]['stat']=[]
    with self.assertRaises(ValueError):self.parse(d)
+ def test_legal_common_name_bridge_requires_exact_observed_native_id(self):
+  d=self.data();d['initialMatchData']['teams']['home']['players'][0].update(firstName='Observed Middle',lastName='Player');d['lineupPlayers']=[dict(mdmPlayerId='p0',link=dict(id='cms-id',contentType='playerPage',name='Observed Player'))]
+  p=self.parse(d)['sheets'][0]['players'][0];self.assertEqual(p['documented_alias_bridge']['common_name'],'Observed Player')
+  d['lineupPlayers'][0]['mdmPlayerId']='unrelated-current-player';p=self.parse(d)['sheets'][0]['players'][0];self.assertNotIn('documented_alias_bridge',p)

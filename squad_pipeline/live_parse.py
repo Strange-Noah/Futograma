@@ -277,7 +277,16 @@ def psg_match_squad(raw, source_url, match_id, team_id, club_id):
   seen.add(str(native_id));stats=p.get('stat') or [];started=[x.get('value') for x in stats if x.get('type')=='gameStarted'];bench=p.get('position')=='Substitute'
   if started not in [[],['1']] or bench and started:raise ParseError('PSG_PLAYER_ROLE_CONFLICT')
   if not bench and started!=['1']:raise Pending('PSG_STARTER_ROLE_EVIDENCE_REQUIRED')
-  out.append(dict(provider_key='PSG_STATS_PERFORM:'+str(native_id),provider_player_id=str(native_id),provider_id_namespace='PSG_STATS_PERFORM',name=name,source_names=[n for n in [p.get('knownName'),p.get('matchName')] if isinstance(n,str) and n and not n.startswith('$')],role='bench' if bench else 'starters',reported_stats=stats,substitution=p.get('substitution'),json_path=path+f'.initialMatchData.teams.{side}.players[{i}]'))
+  item=dict(provider_key='PSG_STATS_PERFORM:'+str(native_id),provider_player_id=str(native_id),provider_id_namespace='PSG_STATS_PERFORM',name=name,source_names=[n for n in [p.get('knownName'),p.get('matchName')] if isinstance(n,str) and n and not n.startswith('$')],role='bench' if bench else 'starters',reported_stats=stats,substitution=p.get('substitution'),json_path=path+f'.initialMatchData.teams.{side}.players[{i}]')
+  # A related/current card contributes a name bridge only for the exact
+  # native player ID already present in this historical match squad.
+  cards=[(j,c) for j,c in enumerate(v.get('lineupPlayers') or []) if str(c.get('mdmPlayerId'))==str(native_id)]
+  if len(cards)==1:
+   from .identity_pipeline import variants
+   j,card=cards[0];link=card.get('link') or {};common=link.get('name') or '';tokens=lambda n:set(variants(n)['forms'].get('LATIN_TRANSLITERATION','').split())
+   if link.get('contentType')=='playerPage' and link.get('id') and len(tokens(common))>=2 and tokens(common)<tokens(name):
+    item['documented_alias_bridge']=dict(common_name=common,legal_name=name,native_player_id=str(native_id),common_name_locator=path+f'.lineupPlayers[{j}].link.name',legal_name_locator=item['json_path']+'.firstName+lastName',method='EXPLICIT_SAME_NATIVE_PLAYER_ID')
+  out.append(item)
  if sum(p['role']=='starters' for p in out)!=11:raise Pending('PSG_ELEVEN_STARTERS_REQUIRED')
  return dict(fixture=fixture,sheets=[dict(provider='PSG',configured_club_id=club_id,provider_team_id=str(team_id),players=out,complete_squad=True,source_completeness_basis='Explicit available lineup with eleven source-typed starters and source-listed substitutes; canonical identity not adjudicated')],lineup_available=True,related_profile_cards_are_not_squad=True)
 

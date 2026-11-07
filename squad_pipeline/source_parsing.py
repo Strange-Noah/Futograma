@@ -5,7 +5,7 @@ from urllib.parse import urlsplit,parse_qs
 from .source_interface import ParsedSourceObservation,sha,VERSION
 from .acquisition import detect_type
 
-PARSER_VERSION='source-parser/12'
+PARSER_VERSION='source-parser/13'
 
 
 def _result(artifact,outcome,native,complete,uncertainties=(),parser=PARSER_VERSION):
