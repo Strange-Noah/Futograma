@@ -1,0 +1,9 @@
+# Historical runtime handoff — 2026-11-08
+
+[Summary](EXECUTION_SUMMARY.md), [mandatory published audit](../runtime-agent-independence-20261108/RUNTIME_AGENT_INDEPENDENCE_AUDIT.md), [execution evidence](ACCEPTANCE_SUMMARY.json), [architecture](ARCHITECTURE_STATUS.md).
+
+Local historical HEAD7d50d4ce2590a86572193af4578187c99991ee90, parent548bf412264ef120b9813e15bc6ecbafef849b3a, published base1c397ff2d40be8467475a232b8db03245cdde458. Two commits/four code-test files are security reviewed, not pushed. [Exact manifest](DEVELOPMENT_PUBLICATION_MANIFEST.json). Preserve three dirty parser/test files; they are excluded from that candidate. Exact committed local regression584/526pass/58skip; working tree585/527pass/58skip. Hosted exact-candidate run pending publication authorization.
+
+New command is archive replay and union evaluation only. Four PSG units run and repeated identically; no canonical/network writes. Do not confuse replay completion with catalogue completeness. Historical0/24 accepted; Gate B stays ACCEPTED. Existing111 accepted fixture-only candidates and46 prior observed-entity conclusions remain; strict source packet certificate reuse still has unresolved obligations, not changed accepted facts. Two fixture holds retained.
+
+Remaining batch budget and access stops are in summary; do not reset collection. No RMA. Current previously authorized deployed release remains unchanged; browser interaction service limitation retained. Continue minimal runtime wiring and independent source coverage; preserve all private state and original recovery evidence. No code transport retry without the applicable authorization, no production change, main merge, paid activity, schedule/pointer change or cleanup.

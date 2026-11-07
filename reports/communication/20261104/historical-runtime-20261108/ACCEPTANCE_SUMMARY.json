@@ -1,0 +1,122 @@
+[
+  {
+    "unit": "9847:2024/25:H1",
+    "status": "ROSTER_INCOMPLETE",
+    "source_tasks": {
+      "unique_tasks": 113,
+      "processed": 0,
+      "reused": 113,
+      "remaining": 0
+    },
+    "repeat_tasks": {
+      "unique_tasks": 113,
+      "processed": 0,
+      "reused": 113,
+      "remaining": 0
+    },
+    "parser_outcomes": {
+      "PARSED": 72,
+      "INCOMPLETE": 41
+    },
+    "catalogue_fixtures": 22,
+    "full_squads": 1,
+    "missing_squads": 21,
+    "observed_players": 20,
+    "unresolved_entity_obligations": 0,
+    "fixture_binding_holds": 1,
+    "roster_accepted": false,
+    "repeat_population_identical": true,
+    "network_requests": 0,
+    "canonical_writes": 0
+  },
+  {
+    "unit": "9847:2024/25:H2",
+    "status": "ROSTER_INCOMPLETE",
+    "source_tasks": {
+      "unique_tasks": 113,
+      "processed": 113,
+      "reused": 0,
+      "remaining": 0
+    },
+    "repeat_tasks": {
+      "unique_tasks": 113,
+      "processed": 0,
+      "reused": 113,
+      "remaining": 0
+    },
+    "parser_outcomes": {
+      "PARSED": 72,
+      "INCOMPLETE": 41
+    },
+    "catalogue_fixtures": 35,
+    "full_squads": 16,
+    "missing_squads": 19,
+    "observed_players": 27,
+    "unresolved_entity_obligations": 5,
+    "fixture_binding_holds": 0,
+    "roster_accepted": false,
+    "repeat_population_identical": true,
+    "network_requests": 0,
+    "canonical_writes": 0
+  },
+  {
+    "unit": "9847:2025/26:H1",
+    "status": "ROSTER_INCOMPLETE",
+    "source_tasks": {
+      "unique_tasks": 113,
+      "processed": 113,
+      "reused": 0,
+      "remaining": 0
+    },
+    "repeat_tasks": {
+      "unique_tasks": 113,
+      "processed": 0,
+      "reused": 113,
+      "remaining": 0
+    },
+    "parser_outcomes": {
+      "PARSED": 72,
+      "INCOMPLETE": 41
+    },
+    "catalogue_fixtures": 24,
+    "full_squads": 24,
+    "missing_squads": 0,
+    "observed_players": 28,
+    "unresolved_entity_obligations": 43,
+    "fixture_binding_holds": 0,
+    "roster_accepted": false,
+    "repeat_population_identical": true,
+    "network_requests": 0,
+    "canonical_writes": 0
+  },
+  {
+    "unit": "9847:2025/26:H2",
+    "status": "ROSTER_INCOMPLETE",
+    "source_tasks": {
+      "unique_tasks": 113,
+      "processed": 113,
+      "reused": 0,
+      "remaining": 0
+    },
+    "repeat_tasks": {
+      "unique_tasks": 113,
+      "processed": 0,
+      "reused": 113,
+      "remaining": 0
+    },
+    "parser_outcomes": {
+      "PARSED": 72,
+      "INCOMPLETE": 41
+    },
+    "catalogue_fixtures": 30,
+    "full_squads": 30,
+    "missing_squads": 0,
+    "observed_players": 30,
+    "unresolved_entity_obligations": 52,
+    "fixture_binding_holds": 1,
+    "roster_accepted": false,
+    "repeat_population_identical": true,
+    "network_requests": 0,
+    "canonical_writes": 0
+  }
+]

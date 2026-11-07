@@ -1,0 +1,14 @@
+{
+  "commit": "7d50d4ce2590a86572193af4578187c99991ee90",
+  "tests": 584,
+  "passed": 526,
+  "skips": 58,
+  "errors": 0,
+  "failures": 0,
+  "method": "Load the three dirty tracked modules from exact git HEAD in process memory; all other files match HEAD; working files preserved",
+  "overridden_files": [
+    "squad_pipeline/live_parse.py",
+    "squad_pipeline/source_parsing.py",
+    "tests/cloud/test_psg_catalogue.py"
+  ]
+}

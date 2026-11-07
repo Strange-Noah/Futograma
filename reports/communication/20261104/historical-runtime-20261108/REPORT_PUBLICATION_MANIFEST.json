@@ -1,0 +1,32 @@
+{
+  "repository": "Strange-Noah/Futograma",
+  "branch": "codex/communication-20261104",
+  "base": "2721587dc8c516a49edba8bc3d21c799bfb0c389",
+  "files": [
+    {
+      "path": "reports/communication/20261104/historical-runtime-20261108/ACCEPTANCE_SUMMARY.json",
+      "sha256": "f132edae9df897188b89de88c8650238ca4493c8eb22edff77b3bf49813cc1fc"
+    },
+    {
+      "path": "reports/communication/20261104/historical-runtime-20261108/ARCHITECTURE_STATUS.md",
+      "sha256": "b4aaf3ebae14e5248ba8a53d3ef2e408224c57411ce745f844312bd3697b6959"
+    },
+    {
+      "path": "reports/communication/20261104/historical-runtime-20261108/COMMITTED_REGRESSION.json",
+      "sha256": "e8175401aa6f82e9428792fb8d63a5b4b30f0e8044217dfaacad94ee0c96bdde"
+    },
+    {
+      "path": "reports/communication/20261104/historical-runtime-20261108/DEVELOPMENT_PUBLICATION_MANIFEST.json",
+      "sha256": "fd318dc037c46d3b2ea2711b4e155df65d05467f95c49728c7ca5d6f951d6366"
+    },
+    {
+      "path": "reports/communication/20261104/historical-runtime-20261108/EXECUTION_SUMMARY.md",
+      "sha256": "a5623654e1ce3b765da93aea92ac4490dd52e3a3b4df8f512c71f23497fad02f"
+    },
+    {
+      "path": "reports/communication/20261104/historical-runtime-20261108/HANDOFF.md",
+      "sha256": "ff1c25e3d192a1d36da4f3dcaa3bb5eeb2465211064ae23760c3d4a05e8c31ae"
+    }
+  ],
+  "security_review": "PASS; sanitized reports/aggregate receipts only, no code publication or private artifacts"
+}

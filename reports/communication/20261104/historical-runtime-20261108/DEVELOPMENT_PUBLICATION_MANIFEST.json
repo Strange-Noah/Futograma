@@ -1,0 +1,58 @@
+{
+  "repository": "Strange-Noah/Futograma",
+  "remote": "https://github.com/Strange-Noah/Futograma.git",
+  "branch": "codex/historical-six-club-20261106",
+  "base": "1c397ff2d40be8467475a232b8db03245cdde458",
+  "target": "7d50d4ce2590a86572193af4578187c99991ee90",
+  "outgoing_commits": [
+    "548bf412264ef120b9813e15bc6ecbafef849b3a",
+    "7d50d4ce2590a86572193af4578187c99991ee90"
+  ],
+  "files": [
+    {
+      "path": "ops/cloud/historical_unit.py",
+      "sha256": "7dc3f9268129e144f2a192b30c91d272fc440c17f74592250a3d121ba0852bc2"
+    },
+    {
+      "path": "squad_pipeline/identity_pipeline.py",
+      "sha256": "c4db45665461e64f388bf2090979acbd49023caab09fbd54d6c4867e40dd6769"
+    },
+    {
+      "path": "tests/cloud/test_fixture_identity_bridge.py",
+      "sha256": "f096ba3be46a6ee78bc6806077f39839ea6f90afd1d219534385fab12105b82a"
+    },
+    {
+      "path": "tests/cloud/test_historical_unit.py",
+      "sha256": "0700300ee67b03c2a210b1d5c81ed84ac03c456c0c6031ce3939e1f7060e5950"
+    }
+  ],
+  "intermediate_versions": [
+    {
+      "commit": "548bf412264ef120b9813e15bc6ecbafef849b3a",
+      "path": "squad_pipeline/identity_pipeline.py",
+      "sha256": "c4db45665461e64f388bf2090979acbd49023caab09fbd54d6c4867e40dd6769"
+    },
+    {
+      "commit": "548bf412264ef120b9813e15bc6ecbafef849b3a",
+      "path": "tests/cloud/test_fixture_identity_bridge.py",
+      "sha256": "f096ba3be46a6ee78bc6806077f39839ea6f90afd1d219534385fab12105b82a"
+    },
+    {
+      "commit": "7d50d4ce2590a86572193af4578187c99991ee90",
+      "path": "ops/cloud/historical_unit.py",
+      "sha256": "7dc3f9268129e144f2a192b30c91d272fc440c17f74592250a3d121ba0852bc2"
+    },
+    {
+      "commit": "7d50d4ce2590a86572193af4578187c99991ee90",
+      "path": "tests/cloud/test_historical_unit.py",
+      "sha256": "0700300ee67b03c2a210b1d5c81ed84ac03c456c0c6031ce3939e1f7060e5950"
+    }
+  ],
+  "security_review": "PASS: complete outgoing history and four code/test files reviewed; synthetic tests only; no captures, databases, private records, credentials, generated exports or local paths",
+  "publication": "NOT_ATTEMPTED;EXACT_PUBLICATION_APPROVAL_REQUIRED",
+  "excluded_uncommitted_files": [
+    "squad_pipeline/live_parse.py",
+    "squad_pipeline/source_parsing.py",
+    "tests/cloud/test_psg_catalogue.py"
+  ]
+}
