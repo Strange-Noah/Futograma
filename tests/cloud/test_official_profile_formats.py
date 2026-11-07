@@ -57,3 +57,12 @@ class OfficialProfileFormats(unittest.TestCase):
  def test_psg_handball_cannot_become_football_profile(self):
   d=self.person();d['teamType']='Handball'
   with self.assertRaisesRegex(ValueError,'FOOTBALL'):person_profile(self.psg([d]),self.capture('https://www.psg.fr/joueurs/full-name'),9847)
+ def test_psg_dedicated_mononym_retains_full_legal_person_and_dob(self):
+  raw=self.psg([self.person()]).replace('content="Full Name"','content="Mononym"');r=person_profile(raw,self.capture('https://www.psg.fr/joueurs/mononym'),9847)[0]
+  self.assertEqual(r.names,['Full Legal Name','Mononym']);self.assertEqual(r.birth_date,'2000-01-01');self.assertEqual(r.scope,'IDENTITY_ONLY')
+ def test_psg_demonstrated_title_suffix_and_documented_name_subset(self):
+  raw=self.psg([self.person()]).replace('content="Full Name"','content="Full Name : Statistiques et palmarès"');r=person_profile(raw,self.capture('https://www.psg.fr/joueurs/full-legal-name'),9847)[0]
+  self.assertEqual(r.names,['Full Legal Name','Full Name']);self.assertIn('Statistiques',r.raw_fields['profile_name_fields']['og:title'])
+  with self.assertRaisesRegex(ValueError,'RESOURCE_MISMATCH'):person_profile(raw.replace('Full Name :','Unrelated Person :'),self.capture('https://www.psg.fr/joueurs/full-legal-name'),9847)
+ def test_psg_retired_metadata_without_person_is_incomplete_not_a_person(self):
+  self.assertEqual(person_profile(self.psg([]),self.capture('https://www.psg.fr/joueurs/full-name'),9847),[])

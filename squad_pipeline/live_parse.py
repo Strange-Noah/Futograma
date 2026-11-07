@@ -218,6 +218,33 @@ def catalogs(raw,provider,tid,asof):
  return out
 
 
+def psg_catalogue(raw, source_url, club_id, season):
+ """Native official season discovery, with retained identities and visible coverage."""
+ from urllib.parse import urlsplit,urljoin
+ from .identity_sources import flight_objects
+ u=urlsplit(source_url);match=re.fullmatch(r'/en/mens-football/fixtures/season/(20\d{2}-\d{2})',u.path)
+ if club_id!=9847 or u.scheme!='https' or u.netloc!='www.psg.fr' or u.query or u.fragment or not match or match[1]!=season:raise ParseError('PSG_CATALOGUE_REQUEST_IDENTITY_MISMATCH')
+ if int(season[-2:])!=(int(season[:4])+1)%100:raise ParseError('PSG_CATALOGUE_SEASON_INVALID')
+ payloads=[(path,v) for _,_,path,v in flight_objects(raw) if 'initialItems' in v and 'seasonId' in v and 'teamIds' in v]
+ if len(payloads)!=1:raise Pending('PSG_UNIQUE_CATALOGUE_REQUIRED')
+ path,v=payloads[0]
+ if v['seasonId']!=season or len(v['teamIds'])!=1:raise ParseError('PSG_CATALOGUE_RETURNED_SEASON_MISMATCH')
+ team_id=str(v['teamIds'][0]);out=[];seen=set()
+ for i,item in enumerate(v['initialItems']):
+  props=item.get('properties') or {};m=props.get('mdmMatch') or {};mid=m.get('id_statsperf')
+  if item.get('contentType')!='matchSheet' or not mid or m.get('id')!=mid or props.get('mdmMatchFixture')!=mid or mid in seen:raise ParseError('PSG_CATALOGUE_NATIVE_MATCH_ID_INVALID')
+  teams={side:m.get(side+'_team_id') or {} for side in ['home','away']};own=[t for t in teams.values() if str(t.get('id'))==team_id]
+  if len(own)!=1 or own[0].get('Gender')!='Male' or own[0].get('Local_section')!='Pros' or canon(own[0].get('Name_official',''))!=canon('Paris Saint-Germain'):raise ParseError('PSG_CATALOGUE_TEAM_SCOPE_MISMATCH')
+  route=(item.get('route') or {}).get('path','');url=urljoin(source_url,route).rstrip('/');target=urlsplit(url)
+  if target.scheme!='https' or target.netloc!='www.psg.fr' or target.query or target.fragment or not re.fullmatch(r'/en/matches/mens-football/20\d{6}/[^/]+',target.path):raise ParseError('PSG_CATALOGUE_DETAIL_LINK_SCOPE_MISMATCH')
+  kickoff=m.get('timeUtc');dt=datetime.fromisoformat((kickoff or '').replace('Z','+00:00'))
+  if dt.tzinfo is None:raise Pending('PSG_CATALOGUE_EXPLICIT_UTC_REQUIRED')
+  seen.add(mid);out.append(dict(provider='PSG',provider_match_id=mid,provider_team_id=team_id,club_id=club_id,source_season=season,kickoff=kickoff,source_match_date=m.get('matchDate'),source_local_datetime=m.get('localmatchdatetime'),teams=teams,competition=props.get('mdmCompetition') or m.get('tournament_id'),source_status=m.get('match_status'),home_score=m.get('home_team_score'),away_score=m.get('away_team_score'),url=url,source_field_path=path+f'.initialItems[{i}]',canonical_adjudication=False))
+ visible={urljoin(source_url,n.attrs['href']).rstrip('/') for n in Tree(raw).root.all(tag='a') if '/en/matches/mens-football/' in n.attrs.get('href','')}
+ if visible!={f['url'] for f in out}:raise Pending('PSG_CATALOGUE_VISIBLE_NATIVE_COVERAGE_DIFFERS')
+ if not out:raise Pending('EMPTY_DIRECTORY_IS_NOT_NO_MATCHES')
+ return out
+
 def psg_match_squad(raw, source_url, match_id, team_id, club_id):
  """Read the retained official match payload, never the related profile-card list."""
  from urllib.parse import urlsplit

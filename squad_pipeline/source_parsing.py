@@ -5,7 +5,7 @@ from urllib.parse import urlsplit,parse_qs
 from .source_interface import ParsedSourceObservation,sha,VERSION
 from .acquisition import detect_type
 
-PARSER_VERSION='source-parser/11'
+PARSER_VERSION='source-parser/12'
 
 
 def _result(artifact,outcome,native,complete,uncertainties=(),parser=PARSER_VERSION):
@@ -59,6 +59,10 @@ def parse(artifact, body):
             return _result(artifact,'PARSED',dict(matches=matches),dict(source_identity=True,history_complete=False),
                 ['Fixture hints require independent detail/canonical verification'],
                 'international_discovery.team_fixture_hints@'+PARSER_VERSION)
+        if request.category=='fixture_catalogue' and request.provider=='PSG':
+            from .live_parse import psg_catalogue
+            native=psg_catalogue(body.decode('utf8'),request.target_url,request.context.get('club_id'),request.context.get('season'))
+            return _result(artifact,'PARSED',dict(fixtures=native),dict(catalogue_page=True,season_complete=False,canonical_adjudication=False),['Native season and visible links verified; competitive scope and independent catalogue completeness remain separate acceptance obligations'],parser='live_parse.psg_catalogue@'+PARSER_VERSION)
         if request.category=='match_squad' and request.provider=='PSG':
             from .live_parse import psg_match_squad
             native=psg_match_squad(body.decode('utf8'),request.target_url,request.expected_ids.get('match'),request.expected_ids.get('team'),request.context.get('club_id'))

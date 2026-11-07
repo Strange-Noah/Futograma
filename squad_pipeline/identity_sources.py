@@ -177,21 +177,26 @@ def person_profile(raw,capture,club_id=None):
         return [base(capture,locator,'OfficialClub',names,provider_ids=ids,birth_date=profile_birth_date(d['dateOfBirth']),official_clubs=[str(club_id)],authority='OFFICIAL',scope='IDENTITY_ONLY',raw_fields={'profile_url':capture['url'],'raw_birth_date':d['dateOfBirth'],'no_historical_membership_assertion':True})]
     if club_id==9847 and re.fullmatch(r'/joueurs/[a-z0-9-]+',url.path):
         from .identity_pipeline import variants
-        title=meta(raw).get('og:title','').strip();form=lambda text:variants(text)['forms'].get('LATIN_TRANSLITERATION_JOINED','')
-        if len(title.split())<2 or form(url.path.rsplit('/',1)[1])!=form(title):raise ValueError('PSG_DEDICATED_PROFILE_TITLE_RESOURCE_MISMATCH')
-        candidates={};football_ids=set()
+        raw_title=meta(raw).get('og:title','').strip();title=re.sub(r'\s*:\s*Statistiques et palmarès$','',raw_title,flags=re.I).strip();form=lambda text:variants(text)['forms'].get('LATIN_TRANSLITERATION_JOINED','')
+        candidates={};football_ids=set();saw_player=False
         for si,li,path,d in flight_objects(raw):
+            if d.get('type')=='Player':saw_player=True
             if d.get('type')!='Player' or d.get('gender')!='Male' or not d.get('birthDate'):continue
             if not d.get('id') or not d.get('fullName'):raise ValueError('PSG_NATIVE_PERSON_ID_NAME_REQUIRED')
             if not str(d['id']).isdigit() or int(d['id'])<=0:raise ValueError('PSG_POSITIVE_NATIVE_PERSON_ID_REQUIRED')
             if d.get('teamType')=='Football':football_ids.add(str(d['id']))
             identity=(str(d['id']),d['fullName'],profile_birth_date(d['birthDate']))
             candidates[identity]=(si,li,path,d)
+        if not candidates and not saw_player:return []
         if len(candidates)!=1:raise ValueError('PSG_UNIQUE_NATIVE_PROFILE_PERSON_REQUIRED')
         (pid,full,dob),(si,li,path,d)=next(iter(candidates.items()))
         if pid not in football_ids:raise ValueError('PSG_MENS_FOOTBALL_PROFILE_REQUIRED')
+        tokens=lambda text:set(variants(text)['forms'].get('LATIN_TRANSLITERATION','').split())
+        slug=url.path.rsplit('/',1)[1];st,tt,ft=tokens(slug),tokens(title),tokens(full)
+        bound=form(slug)==form(title) or len(tt)>=2 and tt<=st<=ft
+        if not title or max(len(title.split()),len(full.split()))<2 or not bound:raise ValueError('PSG_DEDICATED_PROFILE_TITLE_RESOURCE_MISMATCH')
         names=list(dict.fromkeys([full,title]))
-        return [base(capture,f'script[{si}]/frame_line[{li}]/{path}','OfficialClub',names,provider_ids={'PSG':pid},birth_date=dob,official_clubs=[str(club_id)],authority='OFFICIAL',scope='IDENTITY_ONLY',raw_fields={'profile_url':capture['url'],'native_team_id':d.get('teamId'),'profile_name_fields':{'fullName':full,'og:title':title},'no_historical_membership_assertion':True})]
+        return [base(capture,f'script[{si}]/frame_line[{li}]/{path}','OfficialClub',names,provider_ids={'PSG':pid},birth_date=dob,official_clubs=[str(club_id)],authority='OFFICIAL',scope='IDENTITY_ONLY',raw_fields={'profile_url':capture['url'],'native_team_id':d.get('teamId'),'profile_name_fields':{'fullName':full,'og:title':raw_title,'normalized_title':title},'no_historical_membership_assertion':True})]
     return []
 
 
