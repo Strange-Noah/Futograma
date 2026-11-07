@@ -30,3 +30,4 @@ class PsgMatchSquad(unittest.TestCase):
   d=self.data();d['initialMatchData']['teams']['home']['players'][0].update(firstName='Observed Middle',lastName='Player');d['lineupPlayers']=[dict(mdmPlayerId='p0',link=dict(id='cms-id',contentType='playerPage',name='Observed Player'))]
   p=self.parse(d)['sheets'][0]['players'][0];self.assertEqual(p['documented_alias_bridge']['common_name'],'Observed Player')
   d['lineupPlayers'][0]['mdmPlayerId']='unrelated-current-player';p=self.parse(d)['sheets'][0]['players'][0];self.assertNotIn('documented_alias_bridge',p)
+  d['lineupPlayers']=['$unresolved-reference',dict(mdmPlayerId='p0',link='$unresolved-reference')];r=self.parse(d);self.assertTrue(r['lineup_available']);self.assertNotIn('documented_alias_bridge',r['sheets'][0]['players'][0])

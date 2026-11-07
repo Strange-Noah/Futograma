@@ -280,10 +280,11 @@ def psg_match_squad(raw, source_url, match_id, team_id, club_id):
   item=dict(provider_key='PSG_STATS_PERFORM:'+str(native_id),provider_player_id=str(native_id),provider_id_namespace='PSG_STATS_PERFORM',name=name,source_names=[n for n in [p.get('knownName'),p.get('matchName')] if isinstance(n,str) and n and not n.startswith('$')],role='bench' if bench else 'starters',reported_stats=stats,substitution=p.get('substitution'),json_path=path+f'.initialMatchData.teams.{side}.players[{i}]')
   # A related/current card contributes a name bridge only for the exact
   # native player ID already present in this historical match squad.
-  cards=[(j,c) for j,c in enumerate(v.get('lineupPlayers') or []) if str(c.get('mdmPlayerId'))==str(native_id)]
+  card_list=v.get('lineupPlayers');card_list=card_list if isinstance(card_list,list) else []
+  cards=[(j,c) for j,c in enumerate(card_list) if isinstance(c,dict) and str(c.get('mdmPlayerId'))==str(native_id)]
   if len(cards)==1:
    from .identity_pipeline import variants
-   j,card=cards[0];link=card.get('link') or {};common=link.get('name') or '';tokens=lambda n:set(variants(n)['forms'].get('LATIN_TRANSLITERATION','').split())
+   j,card=cards[0];link=card.get('link');link=link if isinstance(link,dict) else {};common=link.get('name');common=common if isinstance(common,str) else '';tokens=lambda n:set(variants(n)['forms'].get('LATIN_TRANSLITERATION','').split())
    if link.get('contentType')=='playerPage' and link.get('id') and len(tokens(common))>=2 and tokens(common)<tokens(name):
     item['documented_alias_bridge']=dict(common_name=common,legal_name=name,native_player_id=str(native_id),common_name_locator=path+f'.lineupPlayers[{j}].link.name',legal_name_locator=item['json_path']+'.firstName+lastName',method='EXPLICIT_SAME_NATIVE_PLAYER_ID')
   out.append(item)
