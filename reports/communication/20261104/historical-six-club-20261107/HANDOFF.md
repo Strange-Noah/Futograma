@@ -14,3 +14,9 @@ Original uncommitted work, accepted historical conflicts, recovery evidence and 
 ## Later checkpoint — concrete release proposal and continued sources
 
 [Exact production review payload](CURRENT_RELEASE_READY_FOR_APPROVAL.md), [machine-readable release plan](CURRENT_RELEASE_PLAN.json), [third-batch progress and provider limitation](THIRD_BATCH_PROGRESS.md), [new534-test hosted acceptance](HOSTED_ACCEPTANCE_77f1965.json). Production remains unauthorized. All current-release preparation gates pass on the selected marker-free candidate; preserve exact CAS pins and rollback evidence. Historical source work continues under the existing third-batch budget and must not stop because one provider archive is robots-restricted. Official profile format repairs remain open. No historical unit has been frozen or accepted, and no RMA work has started.
+
+## Execution continuation — 2026-11-07
+
+The user subsequently authorized the exact current six-club production release and necessary rollback. It executed with application9acd42e, unchanged football database bytes and retained rollback assets; see CURRENT_RELEASE_EXECUTION_ACCEPTANCE.md. Public-main was not merged. Browser post-deploy interaction is explicitly BLOCKED by computer-use service timeout; exact public files and fresh private pointers passed independent verification. Historical production release/RMA remain unauthorized.
+
+Historical development641b72b published normally and independently verified;553/553 hosted tests,zero failures/skips,all58 hosted-only cases. Current production excludes this development code. See EXECUTION_UPDATE_20261107.md for investigated obligation transitions,source limitations and resource checkpoint. PSG historical match-page acquisition continues within the third approved budget; no claim of24-unit acceptance. Preserve all archives and original facts.

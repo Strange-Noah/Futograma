@@ -1,0 +1,177 @@
+[
+  {
+    "module": "squad_pipeline/identity_sources.py",
+    "line": 256,
+    "call": "person_profile"
+  },
+  {
+    "module": "squad_pipeline/identity_sources.py",
+    "line": 183,
+    "call": "flight_objects"
+  },
+  {
+    "module": "squad_pipeline/source_parsing.py",
+    "line": 64,
+    "call": "mancity_report_squad"
+  },
+  {
+    "module": "squad_pipeline/roster_import.py",
+    "line": 64,
+    "call": "flight_objects"
+  },
+  {
+    "module": "squad_pipeline/reconstruction/retained_adapter.py",
+    "line": 25,
+    "call": "SourceService"
+  },
+  {
+    "module": "tests/cloud/test_season_catalogue_admission.py",
+    "line": 9,
+    "call": "SourceService"
+  },
+  {
+    "module": "tests/cloud/test_official_profile_formats.py",
+    "line": 11,
+    "call": "person_profile"
+  },
+  {
+    "module": "tests/cloud/test_official_profile_formats.py",
+    "line": 14,
+    "call": "person_profile"
+  },
+  {
+    "module": "tests/cloud/test_official_profile_formats.py",
+    "line": 21,
+    "call": "person_profile"
+  },
+  {
+    "module": "tests/cloud/test_official_profile_formats.py",
+    "line": 30,
+    "call": "person_profile"
+  },
+  {
+    "module": "tests/cloud/test_official_profile_formats.py",
+    "line": 59,
+    "call": "person_profile"
+  },
+  {
+    "module": "tests/cloud/test_official_profile_formats.py",
+    "line": 18,
+    "call": "person_profile"
+  },
+  {
+    "module": "tests/cloud/test_official_profile_formats.py",
+    "line": 25,
+    "call": "person_profile"
+  },
+  {
+    "module": "tests/cloud/test_official_profile_formats.py",
+    "line": 33,
+    "call": "person_profile"
+  },
+  {
+    "module": "tests/cloud/test_official_profile_formats.py",
+    "line": 43,
+    "call": "person_profile"
+  },
+  {
+    "module": "tests/cloud/test_identity_source_boundaries.py",
+    "line": 8,
+    "call": "person_profile"
+  },
+  {
+    "module": "tests/cloud/test_identity_source_boundaries.py",
+    "line": 11,
+    "call": "person_profile"
+  },
+  {
+    "module": "tests/cloud/test_source_interface.py",
+    "line": 32,
+    "call": "SourceService"
+  },
+  {
+    "module": "tests/cloud/test_source_interface.py",
+    "line": 75,
+    "call": "SourceService"
+  },
+  {
+    "module": "tests/cloud/test_source_interface.py",
+    "line": 80,
+    "call": "SourceService"
+  },
+  {
+    "module": "tests/cloud/test_source_interface.py",
+    "line": 89,
+    "call": "SourceService"
+  },
+  {
+    "module": "tests/cloud/test_source_interface.py",
+    "line": 179,
+    "call": "SourceService"
+  },
+  {
+    "module": "tests/cloud/test_source_interface.py",
+    "line": 518,
+    "call": "SourceService"
+  },
+  {
+    "module": "tests/cloud/test_source_interface.py",
+    "line": 514,
+    "call": "SourceService"
+  },
+  {
+    "module": "tests/cloud/test_official_report_squad.py",
+    "line": 11,
+    "call": "mancity_report_squad"
+  },
+  {
+    "module": "tests/cloud/test_official_report_squad.py",
+    "line": 14,
+    "call": "mancity_report_squad"
+  },
+  {
+    "module": "tests/cloud/test_official_report_squad.py",
+    "line": 22,
+    "call": "mancity_report_squad"
+  },
+  {
+    "module": "tests/cloud/test_official_report_squad.py",
+    "line": 25,
+    "call": "mancity_report_squad"
+  },
+  {
+    "module": "tests/cloud/test_official_report_squad.py",
+    "line": 35,
+    "call": "SourceService"
+  },
+  {
+    "module": "tests/cloud/test_official_report_squad.py",
+    "line": 17,
+    "call": "mancity_report_squad"
+  },
+  {
+    "module": "tests/cloud/test_official_report_squad.py",
+    "line": 20,
+    "call": "mancity_report_squad"
+  },
+  {
+    "module": "tests/cloud/test_official_report_squad.py",
+    "line": 29,
+    "call": "mancity_report_squad"
+  },
+  {
+    "module": "tests/cloud/test_coldstart_persistence.py",
+    "line": 23,
+    "call": "SourceService"
+  },
+  {
+    "module": "tests/cloud/test_reconstruction.py",
+    "line": 151,
+    "call": "SourceService"
+  },
+  {
+    "module": "tests/cloud/test_source_http_failures.py",
+    "line": 14,
+    "call": "SourceService"
+  }
+]

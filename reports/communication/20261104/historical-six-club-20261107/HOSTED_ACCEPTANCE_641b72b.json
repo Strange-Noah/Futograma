@@ -1,0 +1,12 @@
+{
+  "commit": "641b72bd3b9049c64a755d5ada4c1be8c7b9fdd7",
+  "run_id": 42354697375,
+  "job_id": 128350098613,
+  "total": 553,
+  "passed": 553,
+  "failures": 0,
+  "skips": 0,
+  "hosted_only_verified": 58,
+  "remote_files_verified": 3,
+  "software_only": true
+}

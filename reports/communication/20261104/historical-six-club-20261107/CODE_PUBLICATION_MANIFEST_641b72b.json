@@ -1,0 +1,33 @@
+{
+  "repository": "Strange-Noah/Futograma",
+  "branch": "codex/historical-six-club-20261106",
+  "base": "2c19c6f84e9338d6edccdccd78f663b1883fcb09",
+  "tip": "641b72bd3b9049c64a755d5ada4c1be8c7b9fdd7",
+  "commits": [
+    "641b72bd3b9049c64a755d5ada4c1be8c7b9fdd7"
+  ],
+  "files": [
+    {
+      "path": "squad_pipeline/live_parse.py",
+      "sha256": "418d3a0f90a311fc79be64b888756391ed0fe95a6b6126e746e4fbcb8b0e9f45",
+      "git_blob": "124ce8e616b8cd253b1e2eb7db7a6c18e15c3b4e"
+    },
+    {
+      "path": "squad_pipeline/source_parsing.py",
+      "sha256": "a4ff74a46cb91380ecfe1db2c8c235bbecfdc8e7348cce484e080d3714ca3387",
+      "git_blob": "b2e90b7b46cbf08284825597660790bc3f333298"
+    },
+    {
+      "path": "tests/cloud/test_official_report_squad.py",
+      "sha256": "f237daf8bd9959ed68643b2ecb4aa079bd6ce36dc68d76df4e2a81414b26cbe3",
+      "git_blob": "1113aa2425b668f7675fe6660d41245b67ca2e39"
+    }
+  ],
+  "security_review": "PASS: three reviewed source/test files only; no database, captured bodies, identity debt, exports, local paths, credentials, configuration or unrelated history",
+  "local_tests": {
+    "total": 553,
+    "passed": 495,
+    "hosted_only_skips": 58
+  },
+  "production_code_unchanged": "9acd42e73882020dca5f7820c80c61cc7bc8b187"
+}

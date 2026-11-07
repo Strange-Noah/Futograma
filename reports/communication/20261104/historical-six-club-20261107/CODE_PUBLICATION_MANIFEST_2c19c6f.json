@@ -1,0 +1,38 @@
+{
+  "repository": "Strange-Noah/Futograma",
+  "branch": "codex/historical-six-club-20261106",
+  "base": "77f196565f4be3b9d095fb0101c911eaf3d83344",
+  "tip": "2c19c6f84e9338d6edccdccd78f663b1883fcb09",
+  "commits": [
+    "2c19c6f84e9338d6edccdccd78f663b1883fcb09"
+  ],
+  "files": [
+    {
+      "path": "squad_pipeline/identity_sources.py",
+      "sha256": "deba129026f9e55a3e7489dd3aac6194d994d645052ca1f79ffce4ace44ed141",
+      "git_blob": "2f848e6b815893ac5feb8a15e5ea14a4592adf64"
+    },
+    {
+      "path": "squad_pipeline/roster_import.py",
+      "sha256": "32994d1c41d2c38eb070c1549f79c47cca9989a6c22004f33104749f3000e30c",
+      "git_blob": "48104b3f4073b78ba85c7ef383ee31fd02f34945"
+    },
+    {
+      "path": "squad_pipeline/source_parsing.py",
+      "sha256": "8d1df1a08937c3168d3835cd244dce39839764eccc314275cd3498ccc90c4446",
+      "git_blob": "f38e4917ba0a2a0883ff5de6e23dcd17928357e6"
+    },
+    {
+      "path": "tests/cloud/test_official_profile_formats.py",
+      "sha256": "5f84030704ae3e357cf43890af281630a826ff7439c8769138fd7f7ce6a65248",
+      "git_blob": "59b0321428018ee53eea30dc41cfe0268237f11a"
+    }
+  ],
+  "security_review": "PASS: one commit, four manually reviewed source/test files; no private artifacts, raw captures, credentials, local paths, database or identity-debt payload",
+  "local_tests": {
+    "total": 545,
+    "passed": 487,
+    "hosted_only_skips": 58
+  },
+  "production_release_code_unchanged": "9acd42e73882020dca5f7820c80c61cc7bc8b187"
+}

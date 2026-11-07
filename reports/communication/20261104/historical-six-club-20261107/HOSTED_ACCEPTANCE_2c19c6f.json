@@ -1,0 +1,11 @@
+{
+  "commit": "2c19c6f84e9338d6edccdccd78f663b1883fcb09",
+  "run_id": 42270117421,
+  "job_id": 128072186900,
+  "total": 545,
+  "passed": 545,
+  "failures": 0,
+  "skips": 0,
+  "hosted_only_verified": 58,
+  "individual_expected_cases_all_ok": true
+}
