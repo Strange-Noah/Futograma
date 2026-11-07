@@ -1,5 +1,5 @@
 """Strict identity lookup after P1 verification; generated name keys are never stable IDs."""
-import json
+import json,re
 from .identity_pipeline import variants
 
 def forms(name):return set(variants(name)['forms'].values())
@@ -8,6 +8,7 @@ def lookup(db,club_id,player):
     provider_key=player.get('provider_key','');stable=None
     if provider_key.startswith('fotmob:'):stable=('FotMob',provider_key.split(':',1)[1])
     elif provider_key.startswith('https://torlytics.de/spieler/'):stable=('Torlytics',provider_key)
+    elif re.fullmatch(r'PSG_STATS_PERFORM:[a-z0-9]{1,64}',provider_key):stable=('PSG_STATS_PERFORM',provider_key.split(':',1)[1])
     if stable:
         row=db.execute('SELECT player_id FROM verified_identity_links WHERE provider=? AND provider_player_id=?',stable).fetchone()
         if row:return row[0]
