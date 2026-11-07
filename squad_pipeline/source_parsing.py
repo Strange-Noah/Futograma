@@ -5,7 +5,7 @@ from urllib.parse import urlsplit,parse_qs
 from .source_interface import ParsedSourceObservation,sha,VERSION
 from .acquisition import detect_type
 
-PARSER_VERSION='source-parser/9'
+PARSER_VERSION='source-parser/10'
 
 
 def _result(artifact,outcome,native,complete,uncertainties=(),parser=PARSER_VERSION):
@@ -59,6 +59,11 @@ def parse(artifact, body):
             return _result(artifact,'PARSED',dict(matches=matches),dict(source_identity=True,history_complete=False),
                 ['Fixture hints require independent detail/canonical verification'],
                 'international_discovery.team_fixture_hints@'+PARSER_VERSION)
+        if request.category=='match_report' and request.provider=='Mancity':
+            from .live_parse import mancity_report_squad
+            native=mancity_report_squad(body.decode('utf8'),request.target_url,request.context.get('club_id'))
+            return _result(artifact,'PARSED',native,dict(starting_labels=True,bench_labels=True,complete_squad=False,canonical_adjudication=False),
+                ['Report labels require identity verification; bench wording does not certify unused status, full squad completeness, fixture identity or playing minutes'],parser='live_parse.mancity_report_squad@'+PARSER_VERSION)
         if request.category=='fixture_catalogue' and request.provider=='Mancity':
             from .live_parse import mancity_catalogue
             rows=mancity_catalogue(body.decode('utf8'),request.target_url,request.context.get('club_id'))

@@ -218,6 +218,38 @@ def catalogs(raw,provider,tid,asof):
  return out
 
 
+def mancity_report_squad(raw, source_url, club_id):
+ """Official report labels, without invented identities, unused status or minutes."""
+ from urllib.parse import urlsplit
+ from .identity_sources import jsonld
+ u=urlsplit(source_url)
+ if club_id!=8456 or u.scheme!='https' or u.netloc!='www.mancity.com' or not u.path.startswith('/news/mens/') or u.query or u.fragment:
+  raise ParseError('OFFICIAL_REPORT_REQUEST_IDENTITY_MISMATCH')
+ articles=[a for a in jsonld(raw) if a.get('@type')=='NewsArticle' and isinstance(a.get('mainEntityOfPage'),dict) and a['mainEntityOfPage'].get('@id')==source_url]
+ if len(articles)!=1:raise ParseError('OFFICIAL_REPORT_RETURNED_IDENTITY_MISMATCH')
+ paragraphs=[' '.join(p.txt().split()) for p in Tree(raw).root.all(tag='p')]
+ xi_prefix=r'^CITY(?: XI)?\s*[:|]\s*'
+ bench_prefix=r'^(Subs(?: not used)?|Unused subs)\s*:\s*'
+ indices=[i for i,p in enumerate(paragraphs) if re.match(xi_prefix,p)]
+ if len(indices)!=1:raise Pending('OFFICIAL_REPORT_UNIQUE_CITY_XI_REQUIRED')
+ i=indices[0]
+ if i+1>=len(paragraphs) or not re.match(bench_prefix,paragraphs[i+1],re.I):raise Pending('OFFICIAL_REPORT_ADJACENT_BENCH_REQUIRED')
+ bench_label=re.match(bench_prefix,paragraphs[i+1],re.I)[1]
+ xi=re.sub(xi_prefix,'',paragraphs[i]);bench=re.sub(bench_prefix,'',paragraphs[i+1],flags=re.I)
+ entries=[v.strip() for v in xi.split(',')]
+ if len(entries)!=11 or any(not v for v in entries):raise Pending('OFFICIAL_REPORT_ELEVEN_STARTERS_REQUIRED')
+ starters=[];replacement_mentions=[]
+ for entry in entries:
+  if entry.count('(')!=entry.count(')'):raise Pending('OFFICIAL_REPORT_UNBALANCED_SUBSTITUTION_TEXT')
+  name=re.sub(r'\([^)]*\)','',entry).strip()
+  if not name or re.search(r'\d',name):raise Pending('OFFICIAL_REPORT_PLAYER_LABEL_REQUIRED')
+  starters.append(name)
+  replacement_mentions.extend(v.strip() for v in re.findall(r'\(([^)]*)\)',entry) if v.strip().upper()!='C')
+ if len({base_canon(n) for n in starters})!=11:raise Pending('OFFICIAL_REPORT_DUPLICATE_STARTER_LABEL')
+ listed=[v.strip() for v in bench.split(',')]
+ if not listed or any(not v or re.search(r'[()\d]',v) for v in listed):raise Pending('OFFICIAL_REPORT_BENCH_LABEL_REQUIRED')
+ return dict(club_id=club_id,starters=starters,listed_bench=listed,replacement_mentions=replacement_mentions,raw_xi=xi,raw_bench=bench,bench_wording=bench_label,article_date=articles[0].get('datePublished'),article_headline=articles[0].get('headline'),complete_squad=False,canonical_adjudication=False,unused_substitutes_confirmed=False)
+
 def mancity_catalogue(raw, source_url, club_id):
  """Retained seasonal results format; discovery observations, not fixture admission."""
  from urllib.parse import urlsplit,urljoin
