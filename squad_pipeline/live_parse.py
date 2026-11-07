@@ -218,6 +218,42 @@ def catalogs(raw,provider,tid,asof):
  return out
 
 
+def psg_match_squad(raw, source_url, match_id, team_id, club_id):
+ """Read the retained official match payload, never the related profile-card list."""
+ from urllib.parse import urlsplit
+ from .identity_sources import flight_objects
+ u=urlsplit(source_url)
+ if club_id!=9847 or u.scheme!='https' or u.netloc!='www.psg.fr' or not re.fullmatch(r'/en/matches/mens-football/20\d{6}/[^/]+',u.path) or u.query or u.fragment:
+  raise ParseError('PSG_MATCH_REQUEST_SCOPE_MISMATCH')
+ if not match_id or not team_id:raise Pending('PSG_INDEPENDENT_MATCH_AND_TEAM_IDS_REQUIRED')
+ payloads=[(path,v) for _,_,path,v in flight_objects(raw) if isinstance(v.get('initialMatchData'),dict) and 'matchId' in v]
+ if len(payloads)!=1:raise Pending('PSG_UNIQUE_MATCH_PAYLOAD_REQUIRED')
+ path,v=payloads[0];m=v['initialMatchData']
+ if str(v['matchId'])!=str(match_id) or m.get('id') not in [None,'',str(match_id)]:raise ParseError('PSG_RETURNED_MATCH_ID_MISMATCH')
+ teams=m.get('teams') or {};own=[(side,t) for side,t in teams.items() if str(t.get('id'))==str(team_id)]
+ if len(own)!=1:raise ParseError('PSG_RETURNED_TEAM_ID_MISMATCH')
+ side,t=own[0]
+ if t.get('Gender')!='Male' or t.get('Local_section')!='Pros' or canon(t.get('Name_official') or t.get('officialName') or '')!=canon('Paris Saint-Germain'):raise ParseError('PSG_MATCH_TEAM_SCOPE_MISMATCH')
+ kickoff=m.get('matchStartDateTime')
+ if not isinstance(kickoff,str):raise Pending('PSG_MATCH_KICKOFF_REQUIRED')
+ kickoff=kickoff.removeprefix('$D');dt=datetime.fromisoformat(kickoff.replace('Z','+00:00'))
+ if dt.tzinfo is None:raise Pending('PSG_MATCH_EXPLICIT_TIMEZONE_REQUIRED')
+ fixture=dict(provider='PSG',provider_match_id=str(match_id),kickoff=kickoff,source_teams=teams,competition=m.get('competition'),match_state=m.get('matchStatus'),source_field_path=path+'.initialMatchData')
+ availability=m.get('lineupStatus') or {};players=t.get('players')
+ if availability.get('available') is not True or availability.get('show') is not True or not isinstance(players,list) or not players:
+  return dict(fixture=fixture,sheets=[],lineup_available=False,related_profile_cards_are_not_squad=True)
+ if not m.get('id'):raise Pending('PSG_SQUAD_PAYLOAD_MATCH_ID_REQUIRED')
+ out=[];seen=set()
+ for i,p in enumerate(players):
+  native_id=p.get('id');name=' '.join(str(p.get(k) or '') for k in ['firstName','lastName']).strip()
+  if not native_id or str(native_id) in seen or not name or '$' in name:raise ParseError('PSG_PLAYER_ID_OR_NAME_INVALID')
+  seen.add(str(native_id));stats=p.get('stat') or [];started=[x.get('value') for x in stats if x.get('type')=='gameStarted'];bench=p.get('position')=='Substitute'
+  if started not in [[],['1']] or bench and started:raise ParseError('PSG_PLAYER_ROLE_CONFLICT')
+  if not bench and started!=['1']:raise Pending('PSG_STARTER_ROLE_EVIDENCE_REQUIRED')
+  out.append(dict(provider_key='PSG_STATS_PERFORM:'+str(native_id),provider_player_id=str(native_id),provider_id_namespace='PSG_STATS_PERFORM',name=name,source_names=[n for n in [p.get('knownName'),p.get('matchName')] if isinstance(n,str) and n and not n.startswith('$')],role='bench' if bench else 'starters',reported_stats=stats,substitution=p.get('substitution'),json_path=path+f'.initialMatchData.teams.{side}.players[{i}]'))
+ if sum(p['role']=='starters' for p in out)!=11:raise Pending('PSG_ELEVEN_STARTERS_REQUIRED')
+ return dict(fixture=fixture,sheets=[dict(provider='PSG',configured_club_id=club_id,provider_team_id=str(team_id),players=out,complete_squad=True,source_completeness_basis='Explicit available lineup with eleven source-typed starters and source-listed substitutes; canonical identity not adjudicated')],lineup_available=True,related_profile_cards_are_not_squad=True)
+
 def mancity_report_squad(raw, source_url, club_id):
  """Official report labels, without invented identities, unused status or minutes."""
  from urllib.parse import urlsplit

@@ -5,7 +5,7 @@ from urllib.parse import urlsplit,parse_qs
 from .source_interface import ParsedSourceObservation,sha,VERSION
 from .acquisition import detect_type
 
-PARSER_VERSION='source-parser/10'
+PARSER_VERSION='source-parser/11'
 
 
 def _result(artifact,outcome,native,complete,uncertainties=(),parser=PARSER_VERSION):
@@ -59,6 +59,12 @@ def parse(artifact, body):
             return _result(artifact,'PARSED',dict(matches=matches),dict(source_identity=True,history_complete=False),
                 ['Fixture hints require independent detail/canonical verification'],
                 'international_discovery.team_fixture_hints@'+PARSER_VERSION)
+        if request.category=='match_squad' and request.provider=='PSG':
+            from .live_parse import psg_match_squad
+            native=psg_match_squad(body.decode('utf8'),request.target_url,request.expected_ids.get('match'),request.expected_ids.get('team'),request.context.get('club_id'))
+            available=native['lineup_available']
+            return _result(artifact,'PARSED' if available else 'INCOMPLETE',native,dict(source_identity=True,roster_structure=available,canonical_adjudication=False),
+                ['Native provider identities, stats and roles require shared canonical identity/minute adjudication' if available else 'This retained response explicitly supplies no available squad; related profile cards cannot seed a roster'],parser='live_parse.psg_match_squad@'+PARSER_VERSION)
         if request.category=='match_report' and request.provider=='Mancity':
             from .live_parse import mancity_report_squad
             native=mancity_report_squad(body.decode('utf8'),request.target_url,request.context.get('club_id'))
