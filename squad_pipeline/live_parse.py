@@ -282,6 +282,24 @@ def psg_match_squad(raw, source_url, match_id, team_id, club_id):
   if started not in [[],['1']] or bench and started:raise ParseError('PSG_PLAYER_ROLE_CONFLICT')
   if not bench and started!=['1']:raise Pending('PSG_STARTER_ROLE_EVIDENCE_REQUIRED')
   item=dict(provider_key='PSG_STATS_PERFORM:'+str(native_id),provider_player_id=str(native_id),provider_id_namespace='PSG_STATS_PERFORM',name=name,source_names=[n for n in [p.get('knownName'),p.get('matchName')] if isinstance(n,str) and n and not n.startswith('$')],role='bench' if bench else 'starters',reported_stats=stats,substitution=p.get('substitution'),json_path=path+f'.initialMatchData.teams.{side}.players[{i}]')
+  # Preserve direct official minutes; no stats on a listed substitute do
+  # not prove nonparticipation. Selection remains the shared minute policy.
+  reported=[(j,x.get('value')) for j,x in enumerate(stats) if x.get('type')=='minsPlayed']
+  if len(reported)>1:raise ParseError('PSG_DUPLICATE_MINUTES_STAT')
+  minutes=None
+  if reported:
+   value=reported[0][1]
+   if isinstance(value,bool) or not re.fullmatch(r'[0-9]{1,3}',str(value)) or int(value)>150:raise ParseError('PSG_INVALID_REPORTED_MINUTES')
+   minutes=int(value)
+  substitution=p.get('substitution')
+  explicit_in=isinstance(substitution,dict) and substitution.get('type')=='in'
+  status='STARTER' if not bench else 'SUBSTITUTE_USED' if (minutes is not None and minutes>0) or explicit_in else 'BENCH_PARTICIPATION_UNKNOWN'
+  from .minute_policy import select
+  selected=select([dict(status=status,minutes=minutes,provider='OFFICIAL_REPORTED',source_url=source_url)])
+  item.update(participation_status=status,reported_minutes=minutes,minutes=selected['minutes'] if selected['accepted'] else None,
+   minutes_precision='DIRECT_OFFICIAL_MINS_PLAYED' if selected['accepted'] else 'UNKNOWN_NOT_ZERO',
+   source_path=item['json_path'],minute_policy=selected,
+   reported_minutes_source_path=item['json_path']+f'.stat[{reported[0][0]}].value' if reported else None)
   # A related/current card contributes a name bridge only for the exact
   # native player ID already present in this historical match squad.
   card_list=v.get('lineupPlayers');card_list=card_list if isinstance(card_list,list) else []
