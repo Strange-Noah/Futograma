@@ -144,6 +144,7 @@ def profile_birth_date(value):
     from datetime import datetime,date
     value=str(value or '').strip()
     if re.match(r'^\d{4}-\d{2}-\d{2}(?:$|T)',value):return date.fromisoformat(value[:10]).isoformat()
+    if re.fullmatch(r'\d{2}/\d{2}/\d{4}',value):return datetime.strptime(value,'%d/%m/%Y').date().isoformat()
     try:return datetime.strptime(value,'%d %B %Y').date().isoformat()
     except ValueError:raise ValueError('OFFICIAL_PROFILE_BIRTH_DATE_FORMAT_UNSUPPORTED') from None
 
@@ -175,6 +176,13 @@ def person_profile(raw,capture,club_id=None):
             names=[' '.join(x for x in [d.get('firstName'),d.get('lastName')] if x)];ids={'Inter':str(d['sys']['id'])};locator='$.props.pageProps.player'
         if not all(names) or not d.get('dateOfBirth'):raise ValueError('OFFICIAL_PROFILE_NAME_AND_BIRTH_DATE_REQUIRED')
         return [base(capture,locator,'OfficialClub',names,provider_ids=ids,birth_date=profile_birth_date(d['dateOfBirth']),official_clubs=[str(club_id)],authority='OFFICIAL',scope='IDENTITY_ONLY',raw_fields={'profile_url':capture['url'],'raw_birth_date':d['dateOfBirth'],'no_historical_membership_assertion':True})]
+    if club_id==8634 and re.fullmatch(r'/en/football/first-team/players/\d+/[^/]+',url.path):
+        root=Tree(raw).root
+        canonical=[n.attrs.get('href') for n in root.all(tag='link') if n.attrs.get('rel')=='canonical']
+        names=[n.txt().strip() for n in root.all('player-hero__just-name')]
+        birthdays=[n.one('player-strip__data').txt().strip() for n in root.all('player-strip__info') if n.one('player-strip__label').txt().strip()=='Date of birth']
+        if canonical!=[capture['url']] or len(names)!=1 or len(names[0].split())<2 or len(birthdays)!=1:return []
+        return [base(capture,'Dedicated canonical player resource: hero name + labelled birth-date strip','OfficialClub',names,provider_ids={'Barcelona':url.path.split('/')[-2]},birth_date=profile_birth_date(birthdays[0]),official_clubs=[str(club_id)],authority='OFFICIAL',scope='IDENTITY_ONLY',raw_fields={'profile_url':capture['url'],'no_current_membership_assertion':True})]
     if club_id==9847 and re.fullmatch(r'/joueurs/[a-z0-9-]+',url.path):
         from .identity_pipeline import variants
         raw_title=meta(raw).get('og:title','').strip();title=re.sub(r'\s*:\s*Statistiques et palmarès$','',raw_title,flags=re.I).strip();form=lambda text:variants(text)['forms'].get('LATIN_TRANSLITERATION_JOINED','')
@@ -260,7 +268,8 @@ def torly_profile(raw,capture):
 def current_official_profile(raw,capture,club_id):
     rows=person_profile(raw,capture,club_id)
     if rows:
-        for r in rows:r.scope='FIRST_TEAM_CARD'
+        for r in rows:
+            if not r.raw_fields.get('no_current_membership_assertion'):r.scope='FIRST_TEAM_CARD'
         return rows
     # Only an acquired dedicated men's player profile, not an academy news/camp or a name in page navigation.
     if club_id!=9825 or not re.fullmatch(r'https://www\.arsenal\.com/fixtures/men/players/[^/?#]+',capture['url']):return []
@@ -307,7 +316,20 @@ def dfb_profile(raw,capture):
 def laliga_profile(raw,capture,candidate_names=()):
     if urlsplit(capture['url']).hostname!='www.laliga.com' or '/player/' not in capture['url']:return []
     root=Tree(raw).root;headings=root.all(tag='h1');text=root.txt();birthday=re.search(r'DATE\s+OF\s+BIRTH\s*(\d{2})-(\d{2})-(\d{4})',text,re.I)
-    if not headings or not birthday:return []
+    if not headings or not birthday:
+        # Departed players can lose visible statistics while the public page
+        # still retains its exact native biography. Do not infer club membership.
+        try:person=next_data(raw).get('player') or {}
+        except (ValueError,KeyError):return []
+        birth=str(person.get('date_of_birth') or '')[:10]
+        if (not isinstance(person.get('id'),int) or person['id']<=0
+            or person.get('slug')!=urlsplit(capture['url']).path.rstrip('/').rsplit('/',1)[-1]
+            or not person.get('name') or not re.fullmatch(r'\d{4}-\d{2}-\d{2}',birth)
+            or not any(r.get('slug')=='jugador' for r in person.get('roles',[]))):return []
+        from datetime import date
+        date.fromisoformat(birth)
+        names=list(dict.fromkeys(n for n in [person['name'],person.get('nickname')] if n))
+        return [base(capture,'$.props.pageProps.player: exact slug/id, player role, names and explicit DOB','LaLiga',names,provider_ids={'LaLigaProfile':capture['url'],'LaLiga':str(person['id'])},birth_date=birth,scope='IDENTITY_ONLY',authority='OFFICIAL',raw_fields={'visible_biography_available':False,'no_membership_assertion':True})]
     names=[headings[-1].txt().strip()]
     # Only distinct, complete displayed name fields; no first-name/surname token inference.
     for n in root.all(tag='p')+root.all(tag='h2')+root.all(tag='span'):
@@ -315,6 +337,18 @@ def laliga_profile(raw,capture,candidate_names=()):
         if any(key(value)==key(c) for c in candidate_names if c) and value not in names:names.append(value)
     from .live_parse import canon,CLUBS
     labels=[n.txt() for n in root.all(tag='h2')];clubs=[str(cid) for cid,(_,slug) in CLUBS.items() if any(canon(label)==slug for label in labels)]
+    # The visible legal club name can differ from its configured common name.
+    # Join only names carried by the same native team object, never fuzzy labels.
+    try:native=next_data(raw).get('player')
+    except (ValueError,KeyError):native=None
+    if native:
+        if key(native.get('name',''))!=key(names[0]) or str(native.get('date_of_birth',''))[:10]!=f'{birthday[3]}-{birthday[2]}-{birthday[1]}':raise ValueError('LALIGA_PROFILE_DOM_NATIVE_IDENTITY_CONFLICT')
+        for squad in native.get('squads',[]):
+            team=squad.get('team') or {}
+            if not any(key(label)==key(team.get('name','')) for label in labels):continue
+            for cid,(_,slug) in CLUBS.items():
+                if any(canon(team.get(field,''))==slug for field in ('nickname','slug')):clubs.append(str(cid))
+        clubs=sorted(set(clubs))
     return [base(capture,'LaLiga h1 legal name; complete displayed common-name field; DATE OF BIRTH; club h2','LaLiga',names,provider_ids={'LaLigaProfile':capture['url']},birth_date=f'{birthday[3]}-{birthday[2]}-{birthday[1]}',official_clubs=clubs,scope='IDENTITY_ONLY',authority='OFFICIAL')]
 
 
