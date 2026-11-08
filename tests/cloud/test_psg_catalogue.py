@@ -23,3 +23,7 @@ class PsgCatalogue(unittest.TestCase):
   with self.assertRaises(ValueError):self.parse(self.data(),False)
   d=self.data();d['initialItems'][0]['properties']['mdmMatch']['home_team_id']['Gender']='Female'
   with self.assertRaises(ValueError):self.parse(d)
+ def test_display_alias_is_bound_to_ordered_fixture_date_and_own_team(self):
+  d=self.data();d['initialItems'][0]['name']='Paris vs Source Nickname 2024-10-01';d['initialItems'][0]['properties']['mdmMatch']['home_team_id']['name_short']='Paris';r=self.parse(d)[0];self.assertEqual(r['source_display_team_names'],dict(home='Paris',away='Source Nickname'))
+  d['initialItems'][0]['name']='Paris vs Source Nickname 2024-10-02';self.assertEqual(self.parse(d)[0]['source_display_team_names'],{})
+  d['initialItems'][0]['name']='Other Club vs Source Nickname 2024-10-01';self.assertEqual(self.parse(d)[0]['source_display_team_names'],{})

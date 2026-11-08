@@ -239,7 +239,11 @@ def psg_catalogue(raw, source_url, club_id, season):
   if target.scheme!='https' or target.netloc!='www.psg.fr' or target.query or target.fragment or not re.fullmatch(r'/en/matches/mens-football/20\d{6}/[^/]+',target.path):raise ParseError('PSG_CATALOGUE_DETAIL_LINK_SCOPE_MISMATCH')
   kickoff=m.get('timeUtc');dt=datetime.fromisoformat((kickoff or '').replace('Z','+00:00'))
   if dt.tzinfo is None:raise Pending('PSG_CATALOGUE_EXPLICIT_UTC_REQUIRED')
-  seen.add(mid);out.append(dict(provider='PSG',provider_match_id=mid,provider_team_id=team_id,club_id=club_id,source_season=season,kickoff=kickoff,source_match_date=m.get('matchDate'),source_local_datetime=m.get('localmatchdatetime'),teams=teams,competition=props.get('mdmCompetition') or m.get('tournament_id'),source_status=m.get('match_status'),home_score=m.get('home_team_score'),away_score=m.get('away_team_score'),url=url,source_field_path=path+f'.initialItems[{i}]',canonical_adjudication=False))
+  display={};event=re.fullmatch(r'(.+?) vs (.+?) (\d{4}-\d{2}-\d{2})',item.get('name') or '');own_side='home' if str(teams['home'].get('id'))==team_id else 'away'
+  if event and event[3]==m.get('matchDate'):
+   labels=dict(home=event[1],away=event[2]);own_labels={canon(n) for n in [own[0].get('Name_official'),own[0].get('name_short')] if n}
+   if canon(labels[own_side]) in own_labels:display=labels
+  seen.add(mid);out.append(dict(provider='PSG',provider_match_id=mid,provider_team_id=team_id,club_id=club_id,source_season=season,kickoff=kickoff,source_match_date=m.get('matchDate'),source_local_datetime=m.get('localmatchdatetime'),source_event_name=item.get('name'),source_display_team_names=display,teams=teams,competition=props.get('mdmCompetition') or m.get('tournament_id'),source_status=m.get('match_status'),home_score=m.get('home_team_score'),away_score=m.get('away_team_score'),url=url,source_field_path=path+f'.initialItems[{i}]',canonical_adjudication=False))
  visible={urljoin(source_url,n.attrs['href']).rstrip('/') for n in Tree(raw).root.all(tag='a') if '/en/matches/mens-football/' in n.attrs.get('href','')}
  if visible!={f['url'] for f in out}:raise Pending('PSG_CATALOGUE_VISIBLE_NATIVE_COVERAGE_DIFFERS')
  if not out:raise Pending('EMPTY_DIRECTORY_IS_NOT_NO_MATCHES')
