@@ -1,8 +1,8 @@
 {
   "state": "PASS / VERIFIED",
   "scope": "Source XI/bench extraction only; unit acceptance remains unfinished",
-  "source_match_observations": 335,
-  "source_player_squad_rows": 7346,
+  "source_match_observations": 407,
+  "source_player_squad_rows": 8866,
   "full_units_accepted": 0,
   "units": [
     {
@@ -141,28 +141,30 @@
     {
       "club_id": 9823,
       "unit": "2025/26-H1",
-      "source_match_observations": 9,
+      "source_match_observations": 24,
       "by_provider": {
         "UEFA": 6,
+        "BUNDESLIGA": 15,
         "DFB": 3
       },
-      "source_labels": 52,
+      "source_labels": 83,
       "existing_verified_canonical_ids": 21,
-      "identity_unfinished_source_labels": 12,
+      "identity_unfinished_source_labels": 22,
       "full_unit_accepted": false,
       "roster_frozen": false
     },
     {
       "club_id": 9823,
       "unit": "2025/26-H2",
-      "source_match_observations": 11,
+      "source_match_observations": 30,
       "by_provider": {
         "UEFA": 8,
+        "BUNDESLIGA": 19,
         "DFB": 3
       },
-      "source_labels": 55,
+      "source_labels": 91,
       "existing_verified_canonical_ids": 23,
-      "identity_unfinished_source_labels": 13,
+      "identity_unfinished_source_labels": 26,
       "full_unit_accepted": false,
       "roster_frozen": false
     },
@@ -249,26 +251,28 @@
     {
       "club_id": 8634,
       "unit": "2025/26-H1",
-      "source_match_observations": 6,
+      "source_match_observations": 24,
       "by_provider": {
-        "UEFA": 6
+        "UEFA": 6,
+        "LALIGA": 18
       },
-      "source_labels": 31,
+      "source_labels": 64,
       "existing_verified_canonical_ids": 18,
-      "identity_unfinished_source_labels": 13,
+      "identity_unfinished_source_labels": 31,
       "full_unit_accepted": false,
       "roster_frozen": false
     },
     {
       "club_id": 8634,
       "unit": "2025/26-H2",
-      "source_match_observations": 6,
+      "source_match_observations": 26,
       "by_provider": {
-        "UEFA": 6
+        "UEFA": 6,
+        "LALIGA": 20
       },
-      "source_labels": 29,
-      "existing_verified_canonical_ids": 19,
-      "identity_unfinished_source_labels": 10,
+      "source_labels": 62,
+      "existing_verified_canonical_ids": 21,
+      "identity_unfinished_source_labels": 27,
       "full_unit_accepted": false,
       "roster_frozen": false
     },
