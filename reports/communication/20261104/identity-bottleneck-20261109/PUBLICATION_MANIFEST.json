@@ -1,0 +1,10 @@
+{
+  "repository": "Strange-Noah/Futograma",
+  "branch": "codex/communication-20261104",
+  "base": "c2757f4b0a439f220634afb6493c6cb9f08bb242",
+  "files": {
+    "RESULTS.json": "0a3861b0d19aa7aa330f25e442a1554ac00d87d35a2e5516cc00b8a3b88ac5f4",
+    "ACCEPTANCE_AND_HANDOFF.md": "86acb937ffcc03b57bbdfd327c9dda9019a6f9fd93ff0c02a3d7dc29b7570af2"
+  },
+  "security_review": "PASS: complete sanitized report payload inspected; no personal identity records, raw captures, databases, sensitive paths, credentials, exports or code included"
+}

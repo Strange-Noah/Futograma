@@ -1,0 +1,24 @@
+{
+  "distinct_identity_problems": 61,
+  "resolved": 34,
+  "remaining": 27,
+  "missing_starter_problems": 30,
+  "missing_starter_problems_resolved": 30,
+  "remaining_missing_starters": 0,
+  "canonical_player_match_rows_recovered": 1181,
+  "league_identity_linked_rows": 2901,
+  "source_identity_rows_remaining": 128,
+  "nominal_minutes_recovered": 1600,
+  "ordinary_export": "PASS / VERIFIED",
+  "export_timelines": 18,
+  "independent_inter_core_fixtures_admitted": 76,
+  "full_units_DATA_ACCEPTED": 0,
+  "local_tests": {
+    "selected": 594,
+    "passed": 536,
+    "hosted_only_skips": 58,
+    "failures": 0
+  },
+  "hosted_regression": "NOT TESTED / UNKNOWN",
+  "production_writes": 0
+}
