@@ -1,0 +1,18 @@
+{
+  "repository": "Strange-Noah/Futograma",
+  "branch": "codex/communication-20261104",
+  "base": "7b5f1586e132d1d7751dee0b2991b773aae1fe44",
+  "payload": "Five sanitized reports plus this manifest; one report-only commit, no code/private-data changes or unrelated history",
+  "files": {
+    "ACQUISITION_ACCOUNTING.json": "231b200bfdfcdef86cb1754b136a20daf139b8a366800212351912ad0abb5863",
+    "ARCHITECTURE_STATUS.md": "4679d94dbd90524108ac926e62bbec3f08d62dbe4eedb49d170ec5e395d8cb08",
+    "EXECUTION_SUMMARY.md": "9d4c15b1b605544d66df9eb668240d3e63f8fa5d129137d75fd4f2e56d855771",
+    "HANDOFF.md": "f39dd49031bd5c588191fd73f6c7aadadfca950db5812f88ce2e6ac25f43f913",
+    "SOURCE_COVERAGE.json": "b355c190b3126a1964c94edcd960874bc8ae45700709091d1c0a22d2eb88c52d"
+  },
+  "security_review": {
+    "result": "PASS",
+    "scope": "Every complete outgoing file and report body inspected; no credentials, private identities, local paths, raw source captures, databases, exports, configuration, unrelated history or production changes",
+    "manifest_self_hash": "Excluded to avoid circular hashing; Git blob and remote tree verification cover manifest"
+  }
+}

@@ -1,0 +1,332 @@
+{
+  "state": "PASS / VERIFIED",
+  "scope": "Source XI/bench extraction only; unit acceptance remains unfinished",
+  "source_match_observations": 335,
+  "source_player_squad_rows": 7346,
+  "full_units_accepted": 0,
+  "units": [
+    {
+      "club_id": 8456,
+      "unit": "2024/25-H1",
+      "source_match_observations": 6,
+      "by_provider": {
+        "UEFA": 6
+      },
+      "source_labels": 27,
+      "existing_verified_canonical_ids": 12,
+      "identity_unfinished_source_labels": 15,
+      "full_unit_accepted": false,
+      "roster_frozen": false
+    },
+    {
+      "club_id": 8456,
+      "unit": "2024/25-H2",
+      "source_match_observations": 4,
+      "by_provider": {
+        "UEFA": 4
+      },
+      "source_labels": 26,
+      "existing_verified_canonical_ids": 15,
+      "identity_unfinished_source_labels": 11,
+      "full_unit_accepted": false,
+      "roster_frozen": false
+    },
+    {
+      "club_id": 8456,
+      "unit": "2025/26-H1",
+      "source_match_observations": 6,
+      "by_provider": {
+        "UEFA": 6
+      },
+      "source_labels": 27,
+      "existing_verified_canonical_ids": 17,
+      "identity_unfinished_source_labels": 9,
+      "full_unit_accepted": false,
+      "roster_frozen": false
+    },
+    {
+      "club_id": 8456,
+      "unit": "2025/26-H2",
+      "source_match_observations": 4,
+      "by_provider": {
+        "UEFA": 4
+      },
+      "source_labels": 30,
+      "existing_verified_canonical_ids": 18,
+      "identity_unfinished_source_labels": 12,
+      "full_unit_accepted": false,
+      "roster_frozen": false
+    },
+    {
+      "club_id": 9825,
+      "unit": "2024/25-H1",
+      "source_match_observations": 6,
+      "by_provider": {
+        "UEFA": 6
+      },
+      "source_labels": 32,
+      "existing_verified_canonical_ids": 14,
+      "identity_unfinished_source_labels": 18,
+      "full_unit_accepted": false,
+      "roster_frozen": false
+    },
+    {
+      "club_id": 9825,
+      "unit": "2024/25-H2",
+      "source_match_observations": 8,
+      "by_provider": {
+        "UEFA": 8
+      },
+      "source_labels": 31,
+      "existing_verified_canonical_ids": 13,
+      "identity_unfinished_source_labels": 18,
+      "full_unit_accepted": false,
+      "roster_frozen": false
+    },
+    {
+      "club_id": 9825,
+      "unit": "2025/26-H1",
+      "source_match_observations": 6,
+      "by_provider": {
+        "UEFA": 6
+      },
+      "source_labels": 32,
+      "existing_verified_canonical_ids": 21,
+      "identity_unfinished_source_labels": 11,
+      "full_unit_accepted": false,
+      "roster_frozen": false
+    },
+    {
+      "club_id": 9825,
+      "unit": "2025/26-H2",
+      "source_match_observations": 9,
+      "by_provider": {
+        "UEFA": 9
+      },
+      "source_labels": 33,
+      "existing_verified_canonical_ids": 23,
+      "identity_unfinished_source_labels": 10,
+      "full_unit_accepted": false,
+      "roster_frozen": false
+    },
+    {
+      "club_id": 9823,
+      "unit": "2024/25-H1",
+      "source_match_observations": 24,
+      "by_provider": {
+        "UEFA": 6,
+        "BUNDESLIGA": 15,
+        "DFB": 3
+      },
+      "source_labels": 84,
+      "existing_verified_canonical_ids": 15,
+      "identity_unfinished_source_labels": 39,
+      "full_unit_accepted": false,
+      "roster_frozen": false
+    },
+    {
+      "club_id": 9823,
+      "unit": "2024/25-H2",
+      "source_match_observations": 27,
+      "by_provider": {
+        "UEFA": 8,
+        "BUNDESLIGA": 19
+      },
+      "source_labels": 66,
+      "existing_verified_canonical_ids": 18,
+      "identity_unfinished_source_labels": 31,
+      "full_unit_accepted": false,
+      "roster_frozen": false
+    },
+    {
+      "club_id": 9823,
+      "unit": "2025/26-H1",
+      "source_match_observations": 9,
+      "by_provider": {
+        "UEFA": 6,
+        "DFB": 3
+      },
+      "source_labels": 52,
+      "existing_verified_canonical_ids": 21,
+      "identity_unfinished_source_labels": 12,
+      "full_unit_accepted": false,
+      "roster_frozen": false
+    },
+    {
+      "club_id": 9823,
+      "unit": "2025/26-H2",
+      "source_match_observations": 11,
+      "by_provider": {
+        "UEFA": 8,
+        "DFB": 3
+      },
+      "source_labels": 55,
+      "existing_verified_canonical_ids": 23,
+      "identity_unfinished_source_labels": 13,
+      "full_unit_accepted": false,
+      "roster_frozen": false
+    },
+    {
+      "club_id": 9847,
+      "unit": "2024/25-H1",
+      "source_match_observations": 6,
+      "by_provider": {
+        "UEFA": 6
+      },
+      "source_labels": 26,
+      "existing_verified_canonical_ids": 17,
+      "identity_unfinished_source_labels": 9,
+      "full_unit_accepted": false,
+      "roster_frozen": false
+    },
+    {
+      "club_id": 9847,
+      "unit": "2024/25-H2",
+      "source_match_observations": 11,
+      "by_provider": {
+        "UEFA": 11
+      },
+      "source_labels": 33,
+      "existing_verified_canonical_ids": 18,
+      "identity_unfinished_source_labels": 8,
+      "full_unit_accepted": false,
+      "roster_frozen": false
+    },
+    {
+      "club_id": 9847,
+      "unit": "2025/26-H1",
+      "source_match_observations": 6,
+      "by_provider": {
+        "UEFA": 6
+      },
+      "source_labels": 25,
+      "existing_verified_canonical_ids": 20,
+      "identity_unfinished_source_labels": 5,
+      "full_unit_accepted": false,
+      "roster_frozen": false
+    },
+    {
+      "club_id": 9847,
+      "unit": "2025/26-H2",
+      "source_match_observations": 11,
+      "by_provider": {
+        "UEFA": 11
+      },
+      "source_labels": 27,
+      "existing_verified_canonical_ids": 20,
+      "identity_unfinished_source_labels": 7,
+      "full_unit_accepted": false,
+      "roster_frozen": false
+    },
+    {
+      "club_id": 8634,
+      "unit": "2024/25-H1",
+      "source_match_observations": 25,
+      "by_provider": {
+        "UEFA": 6,
+        "LALIGA": 19
+      },
+      "source_labels": 68,
+      "existing_verified_canonical_ids": 17,
+      "identity_unfinished_source_labels": 41,
+      "full_unit_accepted": false,
+      "roster_frozen": false
+    },
+    {
+      "club_id": 8634,
+      "unit": "2024/25-H2",
+      "source_match_observations": 27,
+      "by_provider": {
+        "UEFA": 8,
+        "LALIGA": 19
+      },
+      "source_labels": 60,
+      "existing_verified_canonical_ids": 15,
+      "identity_unfinished_source_labels": 34,
+      "full_unit_accepted": false,
+      "roster_frozen": false
+    },
+    {
+      "club_id": 8634,
+      "unit": "2025/26-H1",
+      "source_match_observations": 6,
+      "by_provider": {
+        "UEFA": 6
+      },
+      "source_labels": 31,
+      "existing_verified_canonical_ids": 18,
+      "identity_unfinished_source_labels": 13,
+      "full_unit_accepted": false,
+      "roster_frozen": false
+    },
+    {
+      "club_id": 8634,
+      "unit": "2025/26-H2",
+      "source_match_observations": 6,
+      "by_provider": {
+        "UEFA": 6
+      },
+      "source_labels": 29,
+      "existing_verified_canonical_ids": 19,
+      "identity_unfinished_source_labels": 10,
+      "full_unit_accepted": false,
+      "roster_frozen": false
+    },
+    {
+      "club_id": 8636,
+      "unit": "2024/25-H1",
+      "source_match_observations": 24,
+      "by_provider": {
+        "UEFA": 6,
+        "INTER": 18
+      },
+      "source_labels": 56,
+      "existing_verified_canonical_ids": 13,
+      "identity_unfinished_source_labels": 42,
+      "full_unit_accepted": false,
+      "roster_frozen": false
+    },
+    {
+      "club_id": 8636,
+      "unit": "2024/25-H2",
+      "source_match_observations": 39,
+      "by_provider": {
+        "UEFA": 9,
+        "INTER": 30
+      },
+      "source_labels": 89,
+      "existing_verified_canonical_ids": 14,
+      "identity_unfinished_source_labels": 66,
+      "full_unit_accepted": false,
+      "roster_frozen": false
+    },
+    {
+      "club_id": 8636,
+      "unit": "2025/26-H1",
+      "source_match_observations": 24,
+      "by_provider": {
+        "UEFA": 6,
+        "INTER": 18
+      },
+      "source_labels": 66,
+      "existing_verified_canonical_ids": 18,
+      "identity_unfinished_source_labels": 46,
+      "full_unit_accepted": false,
+      "roster_frozen": false
+    },
+    {
+      "club_id": 8636,
+      "unit": "2025/26-H2",
+      "source_match_observations": 30,
+      "by_provider": {
+        "UEFA": 4,
+        "INTER": 26
+      },
+      "source_labels": 65,
+      "existing_verified_canonical_ids": 18,
+      "identity_unfinished_source_labels": 45,
+      "full_unit_accepted": false,
+      "roster_frozen": false
+    }
+  ]
+}

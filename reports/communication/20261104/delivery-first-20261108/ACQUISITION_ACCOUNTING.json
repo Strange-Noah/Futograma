@@ -1,0 +1,39 @@
+{
+  "closed_batches_1_through_7": {
+    "requests": 1245,
+    "response_bytes_upper_bound": 442626582,
+    "includes_prior_interrupted_capture_reserve": true
+  },
+  "newly_closed_batches": [
+    {
+      "batch": 5,
+      "requests": 128,
+      "response_bytes": 106830654,
+      "scope": "official domestic catalogues, UCL tail reports, 2024/25 Barca/Bayern league squads and DFB cup source captures"
+    },
+    {
+      "batch": 6,
+      "requests": 115,
+      "response_bytes": 32150565,
+      "scope": "official domestic source investigation, Inter two-season catalogues and 91 additional non-UCL squad pages, nine DFB cup match sheets"
+    },
+    {
+      "batch": 7,
+      "requests": 2,
+      "response_bytes": 400000,
+      "scope": "Only missing archived Arsenal/PSG monthly catalogue: PSG June2026, HTTP500 twice; no more blind retry"
+    }
+  ],
+  "active_batch_8": {
+    "state": "IN_PROGRESS",
+    "limits": {
+      "requests": 200,
+      "response_bytes": 180000000
+    },
+    "scope": "Barca2025/26 league catalogue, Barca/Bayern2025/26 XI/bench",
+    "excluded_from_closed_totals": true
+  },
+  "network_policy": "Existing SourceService, anonymous public HTTPS, robots/source stops retained, archived evidence reused",
+  "paid_operations": 0,
+  "production_writes": 0
+}
