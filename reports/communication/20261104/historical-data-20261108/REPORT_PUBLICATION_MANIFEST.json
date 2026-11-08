@@ -1,0 +1,36 @@
+{
+  "repository": "Strange-Noah/Futograma",
+  "branch": "codex/communication-20261104",
+  "base": "67dd1db2b08d178317be07e902cc9f6c23657738",
+  "files": [
+    {
+      "path": "reports/communication/20261104/historical-data-20261108/CODE_PUBLICATION_MANIFEST.json",
+      "sha256": "a4ea224bfce507057b848058f64b0650487a40cf4476bd147dbf4285f823d216"
+    },
+    {
+      "path": "reports/communication/20261104/historical-data-20261108/DATA_ACCEPTANCE.json",
+      "sha256": "c928d6d57a6cff2fde6585fce42b9adbb12b76743e8c1ffc6581fb7d07601bf9"
+    },
+    {
+      "path": "reports/communication/20261104/historical-data-20261108/DELIVERY_PROGRESS.md",
+      "sha256": "476a3a72b5156bb309451155d35581590d50f3210722e88bfe05a3f21b981e8f"
+    },
+    {
+      "path": "reports/communication/20261104/historical-data-20261108/PUBLICATION_ATTEMPTS.json",
+      "sha256": "35e3ea17876a898c2393b350268b5ed56f7547c631ebb5df751043b321b4f0ba"
+    },
+    {
+      "path": "reports/communication/20261104/historical-data-20261108/SOURCE_ACQUISITION.json",
+      "sha256": "09f245d4d6fd447074572e62c521f0b2b03f3b82b09c3a953b1bad183b2638f1"
+    },
+    {
+      "path": "reports/communication/20261104/historical-data-20261108/SOURCE_IDENTITY_COVERAGE.json",
+      "sha256": "883dbbb307420437c397840ba2de9b66a415c5481669cc3ebf8e294f0e7f7e7f"
+    },
+    {
+      "path": "reports/communication/20261104/historical-runtime-20261108/HANDOFF.md",
+      "sha256": "4cffee4a2603014c4b38f94f5a931ecbc84769acdf1f40b7c2af1ff327b10acb"
+    }
+  ],
+  "security_review": "PASS: sanitized reports, aggregate counts, reviewed code manifest and infrastructure errors; no raw captures, databases, private identity debt, credentials, local paths or generated exports"
+}

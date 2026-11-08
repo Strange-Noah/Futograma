@@ -1,0 +1,80 @@
+{
+  "unit_metrics": {
+    "8456:2024/25:H1": {
+      "source_full_squads": 6,
+      "unresolved_observed_rows": 64,
+      "resolved_observed_rows": 60,
+      "fully_identity_bound_squads": 0
+    },
+    "8456:2024/25:H2": {
+      "source_full_squads": 2,
+      "unresolved_observed_rows": 20,
+      "resolved_observed_rows": 21,
+      "fully_identity_bound_squads": 0
+    },
+    "8634:2024/25:H1": {
+      "source_full_squads": 6,
+      "unresolved_observed_rows": 68,
+      "resolved_observed_rows": 68,
+      "fully_identity_bound_squads": 0
+    },
+    "8634:2024/25:H2": {
+      "source_full_squads": 2,
+      "resolved_observed_rows": 27,
+      "unresolved_observed_rows": 18,
+      "fully_identity_bound_squads": 0
+    },
+    "8636:2024/25:H1": {
+      "source_full_squads": 6,
+      "unresolved_observed_rows": 55,
+      "resolved_observed_rows": 72,
+      "fully_identity_bound_squads": 0
+    },
+    "8636:2024/25:H2": {
+      "source_full_squads": 2,
+      "unresolved_observed_rows": 22,
+      "resolved_observed_rows": 21,
+      "fully_identity_bound_squads": 0
+    },
+    "9823:2024/25:H1": {
+      "source_full_squads": 6,
+      "unresolved_observed_rows": 64,
+      "resolved_observed_rows": 63,
+      "fully_identity_bound_squads": 0
+    },
+    "9823:2024/25:H2": {
+      "source_full_squads": 2,
+      "unresolved_observed_rows": 21,
+      "resolved_observed_rows": 23,
+      "fully_identity_bound_squads": 0
+    },
+    "9825:2024/25:H1": {
+      "source_full_squads": 6,
+      "resolved_observed_rows": 71,
+      "unresolved_observed_rows": 67,
+      "fully_identity_bound_squads": 0
+    },
+    "9825:2024/25:H2": {
+      "source_full_squads": 2,
+      "resolved_observed_rows": 19,
+      "unresolved_observed_rows": 26,
+      "fully_identity_bound_squads": 0
+    },
+    "9847:2024/25:H1": {
+      "source_full_squads": 6,
+      "resolved_observed_rows": 87,
+      "unresolved_observed_rows": 40,
+      "fully_identity_bound_squads": 0
+    },
+    "9847:2024/25:H2": {
+      "source_full_squads": 2,
+      "resolved_observed_rows": 31,
+      "unresolved_observed_rows": 13,
+      "fully_identity_bound_squads": 0
+    }
+  },
+  "network_requests": 0,
+  "canonical_writes": 0,
+  "units_accepted": 0,
+  "scope": "Source full squad labels plus strict existing identity lookup; no new canonical identities or fixture admissions"
+}

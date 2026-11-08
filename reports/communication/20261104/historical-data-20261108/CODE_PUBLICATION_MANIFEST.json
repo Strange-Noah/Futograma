@@ -1,0 +1,70 @@
+{
+  "repository": "Strange-Noah/Futograma",
+  "remote": "https://github.com/Strange-Noah/Futograma.git",
+  "branch": "codex/historical-six-club-20261106",
+  "base": "7d50d4ce2590a86572193af4578187c99991ee90",
+  "target": "9c7dfac0e736eebf566c3bf9755b5ad98f4a8aae",
+  "outgoing_commits": [
+    "5531667471f05295da013d726f54f3a2f305f19f",
+    "9c7dfac0e736eebf566c3bf9755b5ad98f4a8aae"
+  ],
+  "files": [
+    {
+      "path": "squad_pipeline/live_parse.py",
+      "sha256": "5b3d5eb9426b16fdba7e7ac68a173f0802d562de9bc24732f936c538345707bc"
+    },
+    {
+      "path": "squad_pipeline/source_parsing.py",
+      "sha256": "286f713508e0d0990c9f5fbcda67e4ec7e0ff3b936ead7db1dbe4097c94c021d"
+    },
+    {
+      "path": "tests/cloud/test_psg_catalogue.py",
+      "sha256": "6b2a80809d56ca2bb0a964919b2ba99d1b4d4c5106e489792d997b048ec7609e"
+    },
+    {
+      "path": "tests/cloud/test_psg_match_squad.py",
+      "sha256": "6848554394159039034aa1f869882c055f8bd0bed3c4c8134aaa62055c411829"
+    }
+  ],
+  "intermediate_versions": [
+    {
+      "commit": "5531667471f05295da013d726f54f3a2f305f19f",
+      "path": "squad_pipeline/live_parse.py",
+      "sha256": "63c8d9b3bd892eba95fe87c8e9ff9f5f6832e49a3370d0a386dc1063bea62306"
+    },
+    {
+      "commit": "5531667471f05295da013d726f54f3a2f305f19f",
+      "path": "squad_pipeline/source_parsing.py",
+      "sha256": "a9b67aa72281d6e02cd7834a1d3571958ab3faa1df83602a20939dcc17dc015b"
+    },
+    {
+      "commit": "5531667471f05295da013d726f54f3a2f305f19f",
+      "path": "tests/cloud/test_psg_catalogue.py",
+      "sha256": "6b2a80809d56ca2bb0a964919b2ba99d1b4d4c5106e489792d997b048ec7609e"
+    },
+    {
+      "commit": "9c7dfac0e736eebf566c3bf9755b5ad98f4a8aae",
+      "path": "squad_pipeline/live_parse.py",
+      "sha256": "5b3d5eb9426b16fdba7e7ac68a173f0802d562de9bc24732f936c538345707bc"
+    },
+    {
+      "commit": "9c7dfac0e736eebf566c3bf9755b5ad98f4a8aae",
+      "path": "squad_pipeline/source_parsing.py",
+      "sha256": "286f713508e0d0990c9f5fbcda67e4ec7e0ff3b936ead7db1dbe4097c94c021d"
+    },
+    {
+      "commit": "9c7dfac0e736eebf566c3bf9755b5ad98f4a8aae",
+      "path": "tests/cloud/test_psg_match_squad.py",
+      "sha256": "6848554394159039034aa1f869882c055f8bd0bed3c4c8134aaa62055c411829"
+    }
+  ],
+  "security_review": "PASS: entire two-commit payload/four final source-test files reviewed; synthetic tests only; no database/raw capture/private identity records/exports/credentials/local paths",
+  "regression": {
+    "selected": 590,
+    "passed": 532,
+    "local_hosted_skips": 58,
+    "failures": 0,
+    "errors": 0
+  },
+  "publication": "NOT_ATTEMPTED;candidate reviewed for one normal authorized Git publication"
+}

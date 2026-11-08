@@ -1,0 +1,26 @@
+{
+  "existing_source_database_unchanged": true,
+  "all_original_rows_preserved": true,
+  "repeat_logical_rows_identical": true,
+  "integrity": "ok",
+  "foreign_key_violations": 0,
+  "first_counts": {
+    "admitted_matches": 71,
+    "RECORDED": 1432,
+    "verified_numeric": 1070,
+    "retained_unknown": 362,
+    "held_fixture": 1,
+    "held_identity": 1
+  },
+  "new_core_matches": 71,
+  "new_player_match_rows": 1432,
+  "new_squad_rows": 1432,
+  "management_rows_added": 0,
+  "rosters_frozen": 0,
+  "network_requests": 0,
+  "production_writes": 0,
+  "limitation": "Only verified-identity observations on existing accepted fixture subset; bench unknown retained; no full period acceptance",
+  "normal_export_passed": true,
+  "export_period_timelines": 10,
+  "sqlite_sha256": "cd52779951e2ab97462c6ac3d7243753af7676621fd24e0cdbb12fd201ec170a"
+}

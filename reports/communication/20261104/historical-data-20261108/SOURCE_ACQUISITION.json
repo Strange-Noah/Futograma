@@ -1,0 +1,34 @@
+{
+  "batch4": {
+    "batch": 4,
+    "limit_calls": 200,
+    "limit_bytes": 100000000,
+    "calls": 103,
+    "bytes": 28206552,
+    "prior_batches_calls": 800,
+    "prior_batches_bytes_upper_bound": 237200895,
+    "cumulative_calls": 903,
+    "cumulative_bytes_upper_bound": 265407447,
+    "authorization": "Corrected delivery instruction: reasonable bounded free batches through existing permitted public sources",
+    "paid_operations": 0,
+    "production_writes": 0,
+    "RMA_requests": 0,
+    "actual_robot_requests": 9,
+    "actual_target_requests": 94,
+    "source_operations": 98,
+    "accounting_independently_reconciled": true
+  },
+  "uefa_source_checkpoint": {
+    "distinct_reports": 42,
+    "source_label_layout_pass": 42,
+    "matching_official_header_dates": 42,
+    "target_club_fixture_observations": 48,
+    "source_scope": "2024/25 UEFA Champions League league phase only",
+    "canonical_writes": 0,
+    "full_season_completeness": false,
+    "units_accepted": 0
+  },
+  "new_source_requests_this_offline_identity_pass": 0,
+  "human_pending_added": 0,
+  "canonical_changes_from_uefa_reports": 0
+}
