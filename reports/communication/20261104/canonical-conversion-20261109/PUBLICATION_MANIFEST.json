@@ -1,0 +1,10 @@
+{
+  "repository": "Strange-Noah/Futograma",
+  "branch": "codex/communication-20261104",
+  "base": "80876f03c2a5074211cca3762312c5f3ebc51403",
+  "files": {
+    "UNIT_DELIVERY_MATRIX.json": "664fd1bbca3fdfcbcaf57f0e89e55b143578cba7e69b9386eeaa1546a5417412",
+    "EXECUTION_AND_HANDOFF.md": "6d6d4f46fee1cbf352e7ee5ec3d9dd9b5a2fca5642f7b0201819c83cde35297f"
+  },
+  "security_review": "PASS: complete report payload inspected; no private records, raw captures, local paths, credentials, databases, exports or code; manifest covered by Git tree readback"
+}
