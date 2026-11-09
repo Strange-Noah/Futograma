@@ -1,11 +1,11 @@
 {
   "repository": "Strange-Noah/Futograma",
   "branch": "codex/communication-20261104",
-  "base": "37d5b7c95a551cfdbdd9e1f4bb1b4eb276e4a5b6",
+  "base": "e4ad830f1d697b39d2e7cdac9d45a9a84caa9642",
   "files": {
-    "UNIT_DELIVERY_MATRIX.json": "d32be0a91ada2311a6bf9c9692f2ddfa27169a525653b0d714b4b446b5d55432",
-    "HISTORICAL_ACCEPTANCE_AND_HANDOFF.md": "c4cd5571942ebe4a3f440206873742835790885bdcc45b00ae4179258375ec12",
-    "PRODUCTION_ACCEPTANCE_AND_HANDOFF.md": "030a41e490f0f45765a3c41a1c3cb54e1ee02f2091d0a2067f33b745089f26ee"
+    "UNIT_DELIVERY_MATRIX.json": "7203ae588316567549e73d2ea57ee3cb1b17c9d1c52134965cf3ddbce7c61cd2",
+    "HISTORICAL_ACCEPTANCE_AND_HANDOFF.md": "136e05933d2beeace5999e76da68bb98114c9415b5e6266d70a0930e8a5af92e",
+    "PRODUCTION_ACCEPTANCE_AND_HANDOFF.md": "0d2d136f5d6c53a7ed766f2702bfae39462d037e1ff1f8df980903e69badac00"
   },
-  "security_review": "PASS: sanitized reports and aggregate matrix only; no source captures, databases, identities, personal data, credentials, local paths, generated exports or code"
+  "security_review": "PASS: four sanitized aggregate reports/manifest only; no code, databases, source bodies, personal identities, credentials, local paths or generated exports"
 }

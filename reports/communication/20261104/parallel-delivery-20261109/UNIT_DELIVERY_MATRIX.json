@@ -1,5 +1,5 @@
 {
-  "note": "Main Barcelona/Bayern and Inter remain separate candidates; counts scoped to respective club fixtures, not a merged database. Source-ready whole-unit scope closure remains unaccepted; complete competition subsets converted immediately.",
+  "note": "Inter four units SOURCE-READY; DATA-ACCEPTED remains0/24. Inter and Barcelona/Bayern are separate isolated candidates, not a merged database.",
   "units": [
     {
       "club_id": 8456,
@@ -245,8 +245,8 @@
       "club_id": 8636,
       "unit": "2024/25-H1",
       "source_match_observations": 24,
-      "fixture_catalogue_completion": "NOT TESTED / UNKNOWN: all-competition closure acceptance unfinished",
-      "source_ready": false,
+      "fixture_catalogue_completion": "PASS / VERIFIED: two closed official season groups, date-scoped into independent half-seasons",
+      "source_ready": true,
       "canonical_matches": 24,
       "canonical_player_rows": 505,
       "numeric_minutes": 0,
@@ -257,10 +257,10 @@
       "club_id": 8636,
       "unit": "2024/25-H2",
       "source_match_observations": 39,
-      "fixture_catalogue_completion": "NOT TESTED / UNKNOWN: all-competition closure acceptance unfinished",
-      "source_ready": false,
+      "fixture_catalogue_completion": "PASS / VERIFIED: two closed official season groups, date-scoped into independent half-seasons",
+      "source_ready": true,
       "canonical_matches": 39,
-      "canonical_player_rows": 776,
+      "canonical_player_rows": 778,
       "numeric_minutes": 0,
       "R1_R6": "NOT TESTED / UNKNOWN",
       "data_accepted": false
@@ -269,11 +269,11 @@
       "club_id": 8636,
       "unit": "2025/26-H1",
       "source_match_observations": 24,
-      "fixture_catalogue_completion": "NOT TESTED / UNKNOWN: all-competition closure acceptance unfinished",
-      "source_ready": false,
+      "fixture_catalogue_completion": "PASS / VERIFIED: two closed official season groups, date-scoped into independent half-seasons",
+      "source_ready": true,
       "canonical_matches": 24,
-      "canonical_player_rows": 503,
-      "numeric_minutes": 0,
+      "canonical_player_rows": 505,
+      "numeric_minutes": 31,
       "R1_R6": "NOT TESTED / UNKNOWN",
       "data_accepted": false
     },
@@ -281,11 +281,11 @@
       "club_id": 8636,
       "unit": "2025/26-H2",
       "source_match_observations": 30,
-      "fixture_catalogue_completion": "NOT TESTED / UNKNOWN: all-competition closure acceptance unfinished",
-      "source_ready": false,
+      "fixture_catalogue_completion": "PASS / VERIFIED: two closed official season groups, date-scoped into independent half-seasons",
+      "source_ready": true,
       "canonical_matches": 30,
-      "canonical_player_rows": 629,
-      "numeric_minutes": 0,
+      "canonical_player_rows": 631,
+      "numeric_minutes": 147,
       "R1_R6": "NOT TESTED / UNKNOWN",
       "data_accepted": false
     }
