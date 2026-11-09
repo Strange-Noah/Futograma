@@ -248,8 +248,8 @@
       "fixture_catalogue_completion": "PASS / VERIFIED: two closed official season groups, date-scoped into independent half-seasons",
       "source_ready": true,
       "canonical_matches": 24,
-      "canonical_player_rows": 505,
-      "numeric_minutes": 0,
+      "canonical_player_rows": 536,
+      "numeric_minutes": 1,
       "R1_R6": "NOT TESTED / UNKNOWN",
       "data_accepted": false
     },
@@ -260,8 +260,8 @@
       "fixture_catalogue_completion": "PASS / VERIFIED: two closed official season groups, date-scoped into independent half-seasons",
       "source_ready": true,
       "canonical_matches": 39,
-      "canonical_player_rows": 778,
-      "numeric_minutes": 0,
+      "canonical_player_rows": 874,
+      "numeric_minutes": 36,
       "R1_R6": "NOT TESTED / UNKNOWN",
       "data_accepted": false
     },
@@ -272,8 +272,8 @@
       "fixture_catalogue_completion": "PASS / VERIFIED: two closed official season groups, date-scoped into independent half-seasons",
       "source_ready": true,
       "canonical_matches": 24,
-      "canonical_player_rows": 505,
-      "numeric_minutes": 31,
+      "canonical_player_rows": 541,
+      "numeric_minutes": 170,
       "R1_R6": "NOT TESTED / UNKNOWN",
       "data_accepted": false
     },
@@ -284,8 +284,8 @@
       "fixture_catalogue_completion": "PASS / VERIFIED: two closed official season groups, date-scoped into independent half-seasons",
       "source_ready": true,
       "canonical_matches": 30,
-      "canonical_player_rows": 631,
-      "numeric_minutes": 147,
+      "canonical_player_rows": 680,
+      "numeric_minutes": 602,
       "R1_R6": "NOT TESTED / UNKNOWN",
       "data_accepted": false
     }

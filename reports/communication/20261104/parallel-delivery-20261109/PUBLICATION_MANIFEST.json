@@ -1,11 +1,10 @@
 {
   "repository": "Strange-Noah/Futograma",
   "branch": "codex/communication-20261104",
-  "base": "e4ad830f1d697b39d2e7cdac9d45a9a84caa9642",
+  "base": "c52a6f99f2068f65a1bf4ebb0380dfc0c98cca7e",
   "files": {
-    "UNIT_DELIVERY_MATRIX.json": "7203ae588316567549e73d2ea57ee3cb1b17c9d1c52134965cf3ddbce7c61cd2",
-    "HISTORICAL_ACCEPTANCE_AND_HANDOFF.md": "136e05933d2beeace5999e76da68bb98114c9415b5e6266d70a0930e8a5af92e",
-    "PRODUCTION_ACCEPTANCE_AND_HANDOFF.md": "0d2d136f5d6c53a7ed766f2702bfae39462d037e1ff1f8df980903e69badac00"
+    "HISTORICAL_ACCEPTANCE_AND_HANDOFF.md": "d132142ecec1a0c013ee91fdded7e6eca7d8c85c1e718596457642a86bab8a15",
+    "UNIT_DELIVERY_MATRIX.json": "bb3acc74e0576042ed3d7ea7bcdc197e6c35c85555e3bdea7d03d5625f433cb8"
   },
-  "security_review": "PASS: four sanitized aggregate reports/manifest only; no code, databases, source bodies, personal identities, credentials, local paths or generated exports"
+  "security_review": "PASS: three sanitized report/matrix/manifest files only; no code, raw captures, databases, personal identities, credentials, sensitive local paths or generated exports; outgoing history must be one report commit"
 }
