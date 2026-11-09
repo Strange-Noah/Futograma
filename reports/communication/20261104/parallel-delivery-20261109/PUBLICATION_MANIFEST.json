@@ -1,0 +1,11 @@
+{
+  "repository": "Strange-Noah/Futograma",
+  "branch": "codex/communication-20261104",
+  "base": "37d5b7c95a551cfdbdd9e1f4bb1b4eb276e4a5b6",
+  "files": {
+    "UNIT_DELIVERY_MATRIX.json": "d32be0a91ada2311a6bf9c9692f2ddfa27169a525653b0d714b4b446b5d55432",
+    "HISTORICAL_ACCEPTANCE_AND_HANDOFF.md": "c4cd5571942ebe4a3f440206873742835790885bdcc45b00ae4179258375ec12",
+    "PRODUCTION_ACCEPTANCE_AND_HANDOFF.md": "030a41e490f0f45765a3c41a1c3cb54e1ee02f2091d0a2067f33b745089f26ee"
+  },
+  "security_review": "PASS: sanitized reports and aggregate matrix only; no source captures, databases, identities, personal data, credentials, local paths, generated exports or code"
+}
