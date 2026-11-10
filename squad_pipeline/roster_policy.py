@@ -23,6 +23,20 @@ def roster_decision(db,club_id,player_id,on,dossiers=None):
     prior=decision(db,club_id,player_id,on);d=(dossiers if dossiers is not None else latest(db)).get((club_id,player_id),{})
     # Explicit current events win over a historic dossier; age or U21 eligibility never downgrades a first-team player.
     if prior['state'] in ('INCLUDED','EXCLUDED') or prior.get('status')=='RETURN_UNVERIFIED':return classify(dict(d,management=prior))
+    # A dossier records a conclusion at its evidence dates, not an unbounded
+    # historical assertion. Reuse the original dated management policy for its
+    # retained source Records, including explicit retrospective intervals.
+    management=d.get('management') or {};records=[];seen=set()
+    for field in ('evidence','academy_affiliation','registration'):
+        for reference in management.get(field,[]):
+            if not isinstance(reference,dict) or not all(k in reference for k in ('source_url','source_sha256','locator','provider','names')):continue
+            encoded=json.dumps(reference,sort_keys=True)
+            if encoded in seen:continue
+            seen.add(encoded)
+            records.append(Record(**{k:v for k,v in reference.items() if k in Record.__dataclass_fields__}))
+    if records:
+        scoped=management_state(records,on)
+        d=dict(d,management=scoped,academy_affiliation_status=d.get('academy_affiliation_status','') if scoped.get('academy_affiliation') else '')
     return classify(d,prior)
 
 def population(db,on):
