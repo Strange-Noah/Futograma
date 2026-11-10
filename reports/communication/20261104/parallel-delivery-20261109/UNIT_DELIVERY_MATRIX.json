@@ -1,5 +1,5 @@
 {
-  "note": "Inter four independent observed unions frozen;117clubfixtures2709canonicalfacts2708numericminutes;one supported complete-squad absence intentionallyNULL. FullDATAaccepted0/24: downstream historical eligibility/national/window work remains. Barcelona/Bayern separate candidate carried forward; no database merge. Other clubs retain prior reported partial source counts, not fresh all-competition acceptance.",
+  "note": "Separate isolated candidates:Inter117clubfixtures2709clubfacts2708numeric plus15nationalfixtures26facts1565minutes;Barcelona/Bayern197club-fixture observations4039facts1600numeric afterimmediate conversion of54UCLown-team sheets(53physical fixtures).Repeat/exportPASS,oldfacts preserved.No database merge or production promotion.FullDATAaccepted0/24;othercompetitions,national windows andeligibility/audits unfinished.",
   "units": [
     {
       "club_id": 8456,
@@ -103,11 +103,15 @@
       "source_match_observations": 24,
       "fixture_catalogue_completion": "NOT TESTED / UNKNOWN: all-competition closure acceptance unfinished",
       "source_ready": false,
-      "canonical_matches": 15,
-      "canonical_player_rows": 296,
+      "canonical_matches": 21,
+      "canonical_player_rows": 417,
       "numeric_minutes": 0,
       "R1_R6": "NOT TESTED / UNKNOWN",
-      "data_accepted": false
+      "data_accepted": false,
+      "ucl_matches": 6,
+      "ucl_rows": 121,
+      "canonical_scope": "COMPLETE_LEAGUE_AND_UCL_SUBSETS;OTHER_COMPETITIONS_UNFINISHED;ONE_RETAINED_LEAGUE_KICKOFF_OBLIGATION",
+      "remaining_identity_minutes": "23distinct UCL bench identity investigations/59source rows across these two clubs;all UCL starters mapped;UCL minutes unknown,not zero"
     },
     {
       "club_id": 9823,
@@ -115,11 +119,15 @@
       "source_match_observations": 27,
       "fixture_catalogue_completion": "NOT TESTED / UNKNOWN: all-competition closure acceptance unfinished",
       "source_ready": false,
-      "canonical_matches": 19,
-      "canonical_player_rows": 376,
+      "canonical_matches": 27,
+      "canonical_player_rows": 550,
       "numeric_minutes": 0,
       "R1_R6": "NOT TESTED / UNKNOWN",
-      "data_accepted": false
+      "data_accepted": false,
+      "ucl_matches": 8,
+      "ucl_rows": 174,
+      "canonical_scope": "COMPLETE_LEAGUE_AND_UCL_SUBSETS;OTHER_COMPETITIONS_UNFINISHED;ONE_RETAINED_LEAGUE_KICKOFF_OBLIGATION",
+      "remaining_identity_minutes": "23distinct UCL bench identity investigations/59source rows across these two clubs;all UCL starters mapped;UCL minutes unknown,not zero"
     },
     {
       "club_id": 9823,
@@ -127,11 +135,15 @@
       "source_match_observations": 24,
       "fixture_catalogue_completion": "NOT TESTED / UNKNOWN: all-competition closure acceptance unfinished",
       "source_ready": false,
-      "canonical_matches": 15,
-      "canonical_player_rows": 286,
+      "canonical_matches": 21,
+      "canonical_player_rows": 404,
       "numeric_minutes": 0,
       "R1_R6": "NOT TESTED / UNKNOWN",
-      "data_accepted": false
+      "data_accepted": false,
+      "ucl_matches": 6,
+      "ucl_rows": 118,
+      "canonical_scope": "COMPLETE_LEAGUE_AND_UCL_SUBSETS;OTHER_COMPETITIONS_UNFINISHED;ONE_RETAINED_LEAGUE_KICKOFF_OBLIGATION",
+      "remaining_identity_minutes": "23distinct UCL bench identity investigations/59source rows across these two clubs;all UCL starters mapped;UCL minutes unknown,not zero"
     },
     {
       "club_id": 9823,
@@ -139,11 +151,15 @@
       "source_match_observations": 30,
       "fixture_catalogue_completion": "NOT TESTED / UNKNOWN: all-competition closure acceptance unfinished",
       "source_ready": false,
-      "canonical_matches": 19,
-      "canonical_player_rows": 357,
+      "canonical_matches": 27,
+      "canonical_player_rows": 512,
       "numeric_minutes": 0,
       "R1_R6": "NOT TESTED / UNKNOWN",
-      "data_accepted": false
+      "data_accepted": false,
+      "ucl_matches": 8,
+      "ucl_rows": 155,
+      "canonical_scope": "COMPLETE_LEAGUE_AND_UCL_SUBSETS;OTHER_COMPETITIONS_UNFINISHED;ONE_RETAINED_LEAGUE_KICKOFF_OBLIGATION",
+      "remaining_identity_minutes": "23distinct UCL bench identity investigations/59source rows across these two clubs;all UCL starters mapped;UCL minutes unknown,not zero"
     },
     {
       "club_id": 9847,
@@ -199,11 +215,15 @@
       "source_match_observations": 25,
       "fixture_catalogue_completion": "NOT TESTED / UNKNOWN: all-competition closure acceptance unfinished",
       "source_ready": false,
-      "canonical_matches": 19,
-      "canonical_player_rows": 405,
+      "canonical_matches": 25,
+      "canonical_player_rows": 532,
       "numeric_minutes": 405,
       "R1_R6": "NOT TESTED / UNKNOWN",
-      "data_accepted": false
+      "data_accepted": false,
+      "ucl_matches": 6,
+      "ucl_rows": 127,
+      "canonical_scope": "COMPLETE_LEAGUE_AND_UCL_SUBSETS;OTHER_COMPETITIONS_UNFINISHED;ONE_RETAINED_LEAGUE_KICKOFF_OBLIGATION",
+      "remaining_identity_minutes": "23distinct UCL bench identity investigations/59source rows across these two clubs;all UCL starters mapped;UCL minutes unknown,not zero"
     },
     {
       "club_id": 8634,
@@ -211,11 +231,15 @@
       "source_match_observations": 27,
       "fixture_catalogue_completion": "NOT TESTED / UNKNOWN: all-competition closure acceptance unfinished",
       "source_ready": false,
-      "canonical_matches": 19,
-      "canonical_player_rows": 428,
+      "canonical_matches": 27,
+      "canonical_player_rows": 608,
       "numeric_minutes": 428,
       "R1_R6": "NOT TESTED / UNKNOWN",
-      "data_accepted": false
+      "data_accepted": false,
+      "ucl_matches": 8,
+      "ucl_rows": 180,
+      "canonical_scope": "COMPLETE_LEAGUE_AND_UCL_SUBSETS;OTHER_COMPETITIONS_UNFINISHED;ONE_RETAINED_LEAGUE_KICKOFF_OBLIGATION",
+      "remaining_identity_minutes": "23distinct UCL bench identity investigations/59source rows across these two clubs;all UCL starters mapped;UCL minutes unknown,not zero"
     },
     {
       "club_id": 8634,
@@ -223,11 +247,15 @@
       "source_match_observations": 24,
       "fixture_catalogue_completion": "NOT TESTED / UNKNOWN: all-competition closure acceptance unfinished",
       "source_ready": false,
-      "canonical_matches": 18,
-      "canonical_player_rows": 365,
+      "canonical_matches": 24,
+      "canonical_player_rows": 487,
       "numeric_minutes": 365,
       "R1_R6": "NOT TESTED / UNKNOWN",
-      "data_accepted": false
+      "data_accepted": false,
+      "ucl_matches": 6,
+      "ucl_rows": 122,
+      "canonical_scope": "COMPLETE_LEAGUE_AND_UCL_SUBSETS;OTHER_COMPETITIONS_UNFINISHED;ONE_RETAINED_LEAGUE_KICKOFF_OBLIGATION",
+      "remaining_identity_minutes": "23distinct UCL bench identity investigations/59source rows across these two clubs;all UCL starters mapped;UCL minutes unknown,not zero"
     },
     {
       "club_id": 8634,
@@ -235,11 +263,15 @@
       "source_match_observations": 26,
       "fixture_catalogue_completion": "NOT TESTED / UNKNOWN: all-competition closure acceptance unfinished",
       "source_ready": false,
-      "canonical_matches": 19,
-      "canonical_player_rows": 402,
+      "canonical_matches": 25,
+      "canonical_player_rows": 529,
       "numeric_minutes": 402,
       "R1_R6": "NOT TESTED / UNKNOWN",
-      "data_accepted": false
+      "data_accepted": false,
+      "ucl_matches": 6,
+      "ucl_rows": 127,
+      "canonical_scope": "COMPLETE_LEAGUE_AND_UCL_SUBSETS;OTHER_COMPETITIONS_UNFINISHED;ONE_RETAINED_LEAGUE_KICKOFF_OBLIGATION",
+      "remaining_identity_minutes": "23distinct UCL bench identity investigations/59source rows across these two clubs;all UCL starters mapped;UCL minutes unknown,not zero"
     },
     {
       "club_id": 8636,
@@ -250,13 +282,19 @@
       "canonical_matches": 24,
       "canonical_player_rows": 542,
       "numeric_minutes": 542,
-      "R1_R6": "EXECUTED / SCOPE INCOMPLETE: future dossier defect isolated; historical eligibility, national coverage and official windows remain source work",
+      "R1_R6": "EXECUTED_WITH_OFFICIAL_WINDOWS;QUALIFIED_HISTORICAL_ELIGIBILITY_INPUT_INCOMPLETE;NOT_FULL_ACCEPTANCE",
       "data_accepted": false,
       "remaining_uninvestigated_club_minute_rows": 0,
       "observed_squad_union_players": 30,
       "observed_union_frozen": true,
       "remaining_source_identity_rows": 0,
-      "national_match_coverage": "NOT TESTED / UNKNOWN"
+      "national_match_coverage": "NOT TESTED / UNKNOWN",
+      "official_window_input": "PASS / VERIFIED:existing engine executed with official FIFA calendar;no individual selection inferred",
+      "official_unique_windows": 5,
+      "canonical_national_matches": 0,
+      "canonical_national_player_rows": 0,
+      "national_minutes": 0,
+      "national_coverage": "NOT CHECKED:whole-period acquisition unfinished"
     },
     {
       "club_id": 8636,
@@ -267,13 +305,19 @@
       "canonical_matches": 39,
       "canonical_player_rows": 902,
       "numeric_minutes": 901,
-      "R1_R6": "EXECUTED / SCOPE INCOMPLETE: future dossier defect isolated; historical eligibility, national coverage and official windows remain source work",
+      "R1_R6": "EXECUTED_WITH_OFFICIAL_WINDOWS;QUALIFIED_HISTORICAL_ELIGIBILITY_INPUT_INCOMPLETE;NOT_FULL_ACCEPTANCE",
       "data_accepted": false,
       "remaining_uninvestigated_club_minute_rows": 0,
       "observed_squad_union_players": 45,
       "observed_union_frozen": true,
       "remaining_source_identity_rows": 0,
-      "national_match_coverage": "NOT TESTED / UNKNOWN"
+      "national_match_coverage": "NOT TESTED / UNKNOWN",
+      "official_window_input": "PASS / VERIFIED:existing engine executed with official FIFA calendar;no individual selection inferred",
+      "official_unique_windows": 3,
+      "canonical_national_matches": 0,
+      "canonical_national_player_rows": 0,
+      "national_minutes": 0,
+      "national_coverage": "NOT CHECKED:whole-period acquisition unfinished"
     },
     {
       "club_id": 8636,
@@ -284,13 +328,19 @@
       "canonical_matches": 24,
       "canonical_player_rows": 560,
       "numeric_minutes": 560,
-      "R1_R6": "EXECUTED / SCOPE INCOMPLETE: future dossier defect isolated; historical eligibility, national coverage and official windows remain source work",
+      "R1_R6": "EXECUTED_WITH_OFFICIAL_WINDOWS;QUALIFIED_HISTORICAL_ELIGIBILITY_INPUT_INCOMPLETE;NOT_FULL_ACCEPTANCE",
       "data_accepted": false,
       "remaining_uninvestigated_club_minute_rows": 0,
       "observed_squad_union_players": 37,
       "observed_union_frozen": true,
       "remaining_source_identity_rows": 0,
-      "national_match_coverage": "NOT TESTED / UNKNOWN"
+      "national_match_coverage": "NOT TESTED / UNKNOWN",
+      "official_window_input": "PASS / VERIFIED:existing engine executed with official FIFA calendar;no individual selection inferred",
+      "official_unique_windows": 5,
+      "canonical_national_matches": 15,
+      "canonical_national_player_rows": 26,
+      "national_minutes": 1565,
+      "national_coverage": "PARTIAL:September2025senior window accepted for13officially called players;whole period incomplete"
     },
     {
       "club_id": 8636,
@@ -301,13 +351,19 @@
       "canonical_matches": 30,
       "canonical_player_rows": 705,
       "numeric_minutes": 705,
-      "R1_R6": "EXECUTED / SCOPE INCOMPLETE: future dossier defect isolated; historical eligibility, national coverage and official windows remain source work",
+      "R1_R6": "EXECUTED_WITH_OFFICIAL_WINDOWS;QUALIFIED_HISTORICAL_ELIGIBILITY_INPUT_INCOMPLETE;NOT_FULL_ACCEPTANCE",
       "data_accepted": false,
       "remaining_uninvestigated_club_minute_rows": 0,
       "observed_squad_union_players": 38,
       "observed_union_frozen": true,
       "remaining_source_identity_rows": 0,
-      "national_match_coverage": "NOT TESTED / UNKNOWN"
+      "national_match_coverage": "NOT TESTED / UNKNOWN",
+      "official_window_input": "PASS / VERIFIED:existing engine executed with official FIFA calendar;no individual selection inferred",
+      "official_unique_windows": 4,
+      "canonical_national_matches": 0,
+      "canonical_national_player_rows": 0,
+      "national_minutes": 0,
+      "national_coverage": "NOT CHECKED:whole-period acquisition unfinished"
     }
   ]
 }

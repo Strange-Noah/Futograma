@@ -20,6 +20,15 @@
     "skip_scope": "Existing hosted-only tests; hosted execution NOT TESTED",
     "five_focused_regressions": "PASS;3demonstrated failures before fix,0after"
   },
-  "publication": "NOT ATTEMPTED;EXACT_NEW_CANDIDATE_AUTHORIZATION_REQUIRED",
-  "production_changes": 0
+  "publication": "PASS / VERIFIED:single normal Git HTTPS attempt succeeded;independent remote SHA,parent,and both final SHA256 file hashes verified",
+  "production_changes": 0,
+  "hosted_acceptance": {
+    "commit": "8473176dfcff80c6176b58192f974f01712a8849",
+    "run_url": "https://github.com/Strange-Noah/Futograma/actions/runs/42819080088",
+    "passed": 508,
+    "failures": 0,
+    "skips": 0,
+    "previously_local_skipped_executed": 58
+  },
+  "production_deployment": "NOT AUTHORIZED;NOT PERFORMED"
 }

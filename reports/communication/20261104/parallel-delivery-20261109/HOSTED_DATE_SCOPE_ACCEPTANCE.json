@@ -1,0 +1,20 @@
+{
+  "status": "PASS / VERIFIED",
+  "repository": "Strange-Noah/Futograma",
+  "branch": "codex/roster-date-scope-review-20261110",
+  "commit": "8473176dfcff80c6176b58192f974f01712a8849",
+  "parent": "997538603644bb13feec2aa73e7566332a951d0f",
+  "workflow_run_id": 42819080088,
+  "workflow_run_url": "https://github.com/Strange-Noah/Futograma/actions/runs/42819080088",
+  "job_id": 129839632913,
+  "tests": 508,
+  "passed": 508,
+  "failures": 0,
+  "skips": 0,
+  "previously_local_skipped": 58,
+  "previously_local_skipped_individually_verified_ok": 58,
+  "verification": "Actual completed job log: Ran508tests /OK; each of58exact local skipped IDs has explicit hosted ...ok line; no test skip outcomes",
+  "production_deployment_authorized": false,
+  "production_mutations": 0,
+  "scope": "Software regression acceptance only; not historical dataset or production migration acceptance"
+}
