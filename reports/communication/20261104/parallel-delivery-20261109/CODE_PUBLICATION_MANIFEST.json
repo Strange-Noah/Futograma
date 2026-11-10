@@ -1,0 +1,25 @@
+{
+  "repository": "Strange-Noah/Futograma",
+  "remote": "https://github.com/Strange-Noah/Futograma.git",
+  "branch": "codex/roster-date-scope-review-20261110",
+  "base": "997538603644bb13feec2aa73e7566332a951d0f",
+  "target": "8473176dfcff80c6176b58192f974f01712a8849",
+  "outgoing_commits": [
+    "8473176dfcff80c6176b58192f974f01712a8849"
+  ],
+  "outgoing_files": {
+    "squad_pipeline/roster_policy.py": "078dba5554b63314c436400b906427674d5ddae0797a3bdaa611a55ae911f727",
+    "tests/cloud/test_roster_dossier_dates.py": "89ab1c75bad66a85bf3913c78dd39e3795d58c038d4b707bce7948af2af48e55"
+  },
+  "security_review": "PASS: exactly one commit/two code-test files; full diff reviewed; no secrets, personal identities, databases, source captures, environment files, generated exports, sensitive paths or unrelated history.",
+  "tests": {
+    "total": 508,
+    "passed": 450,
+    "failed": 0,
+    "skipped": 58,
+    "skip_scope": "Existing hosted-only tests; hosted execution NOT TESTED",
+    "five_focused_regressions": "PASS;3demonstrated failures before fix,0after"
+  },
+  "publication": "NOT ATTEMPTED;EXACT_NEW_CANDIDATE_AUTHORIZATION_REQUIRED",
+  "production_changes": 0
+}

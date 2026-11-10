@@ -1,10 +1,15 @@
 {
   "repository": "Strange-Noah/Futograma",
   "branch": "codex/communication-20261104",
-  "base": "c52a6f99f2068f65a1bf4ebb0380dfc0c98cca7e",
+  "base": "4ae177254fcb8397a7c96fcb337e40446dc326d2",
   "files": {
-    "HISTORICAL_ACCEPTANCE_AND_HANDOFF.md": "d132142ecec1a0c013ee91fdded7e6eca7d8c85c1e718596457642a86bab8a15",
-    "UNIT_DELIVERY_MATRIX.json": "bb3acc74e0576042ed3d7ea7bcdc197e6c35c85555e3bdea7d03d5625f433cb8"
+    "HISTORICAL_ACCEPTANCE_AND_HANDOFF.md": "b99367490e78d22c610cee3c247a6f1bf334174d77d3e0822ef59eaa68d56d15",
+    "UNIT_DELIVERY_MATRIX.json": "18798b318400248ef50ce5a8b226e1ed5af6040e59fa8e8c8bade3b218349bd4",
+    "R1_R6_EXECUTION_AUDIT.md": "988641370d69cfc60d0c1cb52b99fb2067c18a7242d88a8132dedfd6f7282634",
+    "ARCHITECTURE_CONSOLIDATION_STATUS.md": "f753abf08545de2a5461c60aa1e0dbe1464a695cc1e3be515d5a79eda8f3220c",
+    "PRODUCTION_ACCEPTANCE_AND_HANDOFF.md": "a4b0a5a6e3be882069e611797bed3c35392814a81163b1582793214991ff4f00",
+    "CODE_PUBLICATION_MANIFEST.json": "a6057429a82fb557004a3cf140cb82cb28a27c4fdfee71def3ef4c5cde8536b6"
   },
-  "security_review": "PASS: three sanitized report/matrix/manifest files only; no code, raw captures, databases, personal identities, credentials, sensitive local paths or generated exports; outgoing history must be one report commit"
+  "outgoing_scope": "One report commit;seven sanitized report/matrix/manifest files including this manifest;no code publication in this report push",
+  "security_review": "PASS: all seven final files manually reviewed and scanned;sanitized aggregate reports only. No code,private identities,raw captures,databases,credentials,environment files,exports,sensitive local paths or unrelated history."
 }
