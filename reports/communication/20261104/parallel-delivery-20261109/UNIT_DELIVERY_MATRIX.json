@@ -1,5 +1,5 @@
 {
-  "note": "November 14 isolated candidates. Inter retains 117 club fixtures and 2,709 linked club rows. Inter 2025/26-H1 has 37 national fixtures and 62 player-match rows. Bayern added nine DFB Cup fixtures and 175 player-match rows. Ordinary export and repeat passed. Full DATA-ACCEPTED: 0/24.",
+  "note": "November 14 isolated candidates. Inter retains 117 club fixtures and 2,709 linked club rows. Inter 2025/26-H1 has 54 national fixtures and 84 player-match rows. Bayern added nine DFB Cup fixtures and 175 player-match rows. Full DATA-ACCEPTED: 0/24.",
   "units": [
     {
       "club_id": 8456,
@@ -332,7 +332,7 @@
       "canonical_matches": 24,
       "canonical_player_rows": 560,
       "numeric_minutes": 560,
-      "R1_R6": "PASS / VERIFIED for executed scope: 94 club opportunities, two verified squad exclusions, zero remaining findings in covered scope. Whole-unit audit coverage remains NOT TESTED / UNKNOWN.",
+      "R1_R6": "PASS / VERIFIED for 94 club and 39 national opportunities; no remaining R3/R4 findings in executed scope. Whole-period coverage remains open.",
       "data_accepted": false,
       "remaining_uninvestigated_club_minute_rows": 0,
       "observed_squad_union_players": 37,
@@ -345,9 +345,9 @@
       "canonical_national_player_rows": 26,
       "national_minutes": 1565,
       "national_coverage": "PARTIAL:September2025senior window accepted for13officially called players;whole period incomplete",
-      "national_fixtures": 37,
-      "national_player_rows": 62,
-      "national_numeric_minutes": 60
+      "national_fixtures": 54,
+      "national_player_rows": 84,
+      "national_numeric_minutes": 83
     },
     {
       "club_id": 8636,
