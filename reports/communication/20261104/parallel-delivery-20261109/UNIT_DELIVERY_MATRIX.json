@@ -1,5 +1,5 @@
 {
-  "note": "Separate isolated candidates:Inter117clubfixtures2709clubfacts2708numeric plus15nationalfixtures26facts1565minutes;Barcelona/Bayern197club-fixture observations4039facts1600numeric afterimmediate conversion of54UCLown-team sheets(53physical fixtures).Repeat/exportPASS,oldfacts preserved.No database merge or production promotion.FullDATAaccepted0/24;othercompetitions,national windows andeligibility/audits unfinished.",
+  "note": "November 13 isolated candidates. Inter: 117 club fixtures, 2,709 linked club rows and 2,708 numeric club minute rows, plus 15 national fixtures and 26 national rows. Barcelona and Bayern: 197 club fixture observations, 4,039 linked rows and 2,027 numeric minute rows across their eight historical units. Ordinary export and repeat passed. Full DATA-ACCEPTED: 0/24.",
   "units": [
     {
       "club_id": 8456,
@@ -105,13 +105,13 @@
       "source_ready": false,
       "canonical_matches": 21,
       "canonical_player_rows": 417,
-      "numeric_minutes": 0,
+      "numeric_minutes": 20,
       "R1_R6": "NOT TESTED / UNKNOWN",
       "data_accepted": false,
       "ucl_matches": 6,
       "ucl_rows": 121,
       "canonical_scope": "COMPLETE_LEAGUE_AND_UCL_SUBSETS;OTHER_COMPETITIONS_UNFINISHED;ONE_RETAINED_LEAGUE_KICKOFF_OBLIGATION",
-      "remaining_identity_minutes": "23distinct UCL bench identity investigations/59source rows across these two clubs;all UCL starters mapped;UCL minutes unknown,not zero"
+      "remaining_identity_minutes": "Open bench identity and minute obligations remain. Numeric counts include verified unused zeroes. Unknown minutes are retained separately."
     },
     {
       "club_id": 9823,
@@ -127,7 +127,7 @@
       "ucl_matches": 8,
       "ucl_rows": 174,
       "canonical_scope": "COMPLETE_LEAGUE_AND_UCL_SUBSETS;OTHER_COMPETITIONS_UNFINISHED;ONE_RETAINED_LEAGUE_KICKOFF_OBLIGATION",
-      "remaining_identity_minutes": "23distinct UCL bench identity investigations/59source rows across these two clubs;all UCL starters mapped;UCL minutes unknown,not zero"
+      "remaining_identity_minutes": "Open bench identity and minute obligations remain. Numeric counts include verified unused zeroes. Unknown minutes are retained separately."
     },
     {
       "club_id": 9823,
@@ -137,13 +137,13 @@
       "source_ready": false,
       "canonical_matches": 21,
       "canonical_player_rows": 404,
-      "numeric_minutes": 0,
+      "numeric_minutes": 56,
       "R1_R6": "NOT TESTED / UNKNOWN",
       "data_accepted": false,
       "ucl_matches": 6,
       "ucl_rows": 118,
       "canonical_scope": "COMPLETE_LEAGUE_AND_UCL_SUBSETS;OTHER_COMPETITIONS_UNFINISHED;ONE_RETAINED_LEAGUE_KICKOFF_OBLIGATION",
-      "remaining_identity_minutes": "23distinct UCL bench identity investigations/59source rows across these two clubs;all UCL starters mapped;UCL minutes unknown,not zero"
+      "remaining_identity_minutes": "Open bench identity and minute obligations remain. Numeric counts include verified unused zeroes. Unknown minutes are retained separately."
     },
     {
       "club_id": 9823,
@@ -153,13 +153,13 @@
       "source_ready": false,
       "canonical_matches": 27,
       "canonical_player_rows": 512,
-      "numeric_minutes": 0,
+      "numeric_minutes": 351,
       "R1_R6": "NOT TESTED / UNKNOWN",
       "data_accepted": false,
       "ucl_matches": 8,
       "ucl_rows": 155,
       "canonical_scope": "COMPLETE_LEAGUE_AND_UCL_SUBSETS;OTHER_COMPETITIONS_UNFINISHED;ONE_RETAINED_LEAGUE_KICKOFF_OBLIGATION",
-      "remaining_identity_minutes": "23distinct UCL bench identity investigations/59source rows across these two clubs;all UCL starters mapped;UCL minutes unknown,not zero"
+      "remaining_identity_minutes": "Open bench identity and minute obligations remain. Numeric counts include verified unused zeroes. Unknown minutes are retained separately."
     },
     {
       "club_id": 9847,
@@ -223,7 +223,7 @@
       "ucl_matches": 6,
       "ucl_rows": 127,
       "canonical_scope": "COMPLETE_LEAGUE_AND_UCL_SUBSETS;OTHER_COMPETITIONS_UNFINISHED;ONE_RETAINED_LEAGUE_KICKOFF_OBLIGATION",
-      "remaining_identity_minutes": "23distinct UCL bench identity investigations/59source rows across these two clubs;all UCL starters mapped;UCL minutes unknown,not zero"
+      "remaining_identity_minutes": "Open bench identity and minute obligations remain. Numeric counts include verified unused zeroes. Unknown minutes are retained separately."
     },
     {
       "club_id": 8634,
@@ -239,7 +239,7 @@
       "ucl_matches": 8,
       "ucl_rows": 180,
       "canonical_scope": "COMPLETE_LEAGUE_AND_UCL_SUBSETS;OTHER_COMPETITIONS_UNFINISHED;ONE_RETAINED_LEAGUE_KICKOFF_OBLIGATION",
-      "remaining_identity_minutes": "23distinct UCL bench identity investigations/59source rows across these two clubs;all UCL starters mapped;UCL minutes unknown,not zero"
+      "remaining_identity_minutes": "Open bench identity and minute obligations remain. Numeric counts include verified unused zeroes. Unknown minutes are retained separately."
     },
     {
       "club_id": 8634,
@@ -255,7 +255,7 @@
       "ucl_matches": 6,
       "ucl_rows": 122,
       "canonical_scope": "COMPLETE_LEAGUE_AND_UCL_SUBSETS;OTHER_COMPETITIONS_UNFINISHED;ONE_RETAINED_LEAGUE_KICKOFF_OBLIGATION",
-      "remaining_identity_minutes": "23distinct UCL bench identity investigations/59source rows across these two clubs;all UCL starters mapped;UCL minutes unknown,not zero"
+      "remaining_identity_minutes": "Open bench identity and minute obligations remain. Numeric counts include verified unused zeroes. Unknown minutes are retained separately."
     },
     {
       "club_id": 8634,
@@ -271,7 +271,7 @@
       "ucl_matches": 6,
       "ucl_rows": 127,
       "canonical_scope": "COMPLETE_LEAGUE_AND_UCL_SUBSETS;OTHER_COMPETITIONS_UNFINISHED;ONE_RETAINED_LEAGUE_KICKOFF_OBLIGATION",
-      "remaining_identity_minutes": "23distinct UCL bench identity investigations/59source rows across these two clubs;all UCL starters mapped;UCL minutes unknown,not zero"
+      "remaining_identity_minutes": "Open bench identity and minute obligations remain. Numeric counts include verified unused zeroes. Unknown minutes are retained separately."
     },
     {
       "club_id": 8636,
