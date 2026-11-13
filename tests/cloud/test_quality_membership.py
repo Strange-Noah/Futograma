@@ -56,3 +56,19 @@ class MembershipTests(unittest.TestCase):
 
  def test_existing_verified_youth_does_not_require_full_reaudit(self):
   self.run_reconcile([obs('YOUTH')]);r=self.run_reconcile();self.assertEqual(r['cohort'],'YOUTH');self.assertEqual(r['obligation']['status'],'SATISFIED')
+
+ def test_persisted_youth_dossier_can_enter_provider_identity_discovery(self):
+  from squad_pipeline.identity_pipeline import Record, resolve
+  from squad_pipeline.provider_identity_discovery import provider_candidates
+  from squad_pipeline.roster_policy import latest
+
+  self.run_reconcile([obs('YOUTH')])
+  dossier = dict(latest(self.db)[(10, 1)], name='Example Player')
+  candidate, = provider_candidates([dossier])
+  self.assertEqual(candidate.player_id, 1)
+  self.assertEqual(candidate.records, [])
+  self.assertEqual(latest(self.db)[(10, 1)], {k: v for k, v in dossier.items() if k != 'name'})
+
+  profile = Record('https://www.fotmob.com/players/123', 'b' * 64, 'profile',
+                   'FotMob', ['Example Player'], provider_ids={'FotMob': '123'})
+  self.assertEqual(resolve(profile, [candidate])['identity_status'], 'UNRESOLVED')

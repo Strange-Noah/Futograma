@@ -52,6 +52,7 @@ def acquire(db,fetch,client,window_start,window_end,run_id,asset_ref,not_before_
   result=json.loads(row[0]);roster['source_results'].append(result)
  for d in roster['players']:
   d.setdefault('name',names[int(d['player_id'])]);d.setdefault('remaining_requirements',[])
+  d.setdefault('verified_source_records', [])
  db.commit()
  HOSTS.add('www.fotmob.com');fixtures={};claims=defaultdict(list);affiliations={};initial_teams={};coverage={};captures=[];errors=[];parsed=[];conflicts=[];canonical_rows=0;held=[];now=datetime.now(timezone.utc).isoformat()
  def add_fixture(f,outside_window=False):

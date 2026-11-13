@@ -27,7 +27,8 @@ def provider_candidates(dossiers,source_results=()):
     candidates=[];keys={f.name for f in fields(Record)}
     from .identity_pipeline import ranked_candidates
     for d in dossiers:
-        records=[Record(**{k:v for k,v in r.items() if k in keys}) for r in d['verified_source_records']]
+        # Academy affiliation dossiers can omit identity source records.
+        records=[Record(**{k:v for k,v in r.items() if k in keys}) for r in d.get('verified_source_records', [])]
         for r in records:r.raw_fields['_verified_identity']=True
         candidates.append(Candidate(int(d['player_id']),list(dict.fromkeys([d['name']]+[n for r in records for n in r.names])),records))
     byid={str(c.player_id):c for c in candidates}
