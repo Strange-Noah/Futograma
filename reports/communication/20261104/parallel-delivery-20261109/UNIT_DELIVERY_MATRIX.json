@@ -1,5 +1,5 @@
 {
-  "note": "November 13 isolated candidates. Inter: 117 club fixtures, 2,709 linked club rows and 2,708 numeric club minute rows, plus 15 national fixtures and 26 national rows. Barcelona and Bayern: 197 club fixture observations, 4,039 linked rows and 2,027 numeric minute rows across their eight historical units. Ordinary export and repeat passed. Full DATA-ACCEPTED: 0/24.",
+  "note": "November 14 isolated candidates. Inter retains 117 club fixtures and 2,709 linked club rows. Inter 2025/26-H1 has 37 national fixtures and 62 player-match rows. Bayern added nine DFB Cup fixtures and 175 player-match rows. Ordinary export and repeat passed. Full DATA-ACCEPTED: 0/24.",
   "units": [
     {
       "club_id": 8456,
@@ -103,15 +103,16 @@
       "source_match_observations": 24,
       "fixture_catalogue_completion": "NOT TESTED / UNKNOWN: all-competition closure acceptance unfinished",
       "source_ready": false,
-      "canonical_matches": 21,
-      "canonical_player_rows": 417,
+      "canonical_matches": 24,
+      "canonical_player_rows": 475,
       "numeric_minutes": 20,
       "R1_R6": "NOT TESTED / UNKNOWN",
       "data_accepted": false,
       "ucl_matches": 6,
       "ucl_rows": 121,
       "canonical_scope": "COMPLETE_LEAGUE_AND_UCL_SUBSETS;OTHER_COMPETITIONS_UNFINISHED;ONE_RETAINED_LEAGUE_KICKOFF_OBLIGATION",
-      "remaining_identity_minutes": "Open bench identity and minute obligations remain. Numeric counts include verified unused zeroes. Unknown minutes are retained separately."
+      "remaining_identity_minutes": "DFB Cup minutes and remaining cross-competition source and audit obligations are open.",
+      "dfb_cup_matches": 3
     },
     {
       "club_id": 9823,
@@ -127,7 +128,8 @@
       "ucl_matches": 8,
       "ucl_rows": 174,
       "canonical_scope": "COMPLETE_LEAGUE_AND_UCL_SUBSETS;OTHER_COMPETITIONS_UNFINISHED;ONE_RETAINED_LEAGUE_KICKOFF_OBLIGATION",
-      "remaining_identity_minutes": "Open bench identity and minute obligations remain. Numeric counts include verified unused zeroes. Unknown minutes are retained separately."
+      "remaining_identity_minutes": "DFB Cup minutes and remaining cross-competition source and audit obligations are open.",
+      "dfb_cup_matches": 0
     },
     {
       "club_id": 9823,
@@ -135,15 +137,16 @@
       "source_match_observations": 24,
       "fixture_catalogue_completion": "NOT TESTED / UNKNOWN: all-competition closure acceptance unfinished",
       "source_ready": false,
-      "canonical_matches": 21,
-      "canonical_player_rows": 404,
+      "canonical_matches": 24,
+      "canonical_player_rows": 462,
       "numeric_minutes": 56,
       "R1_R6": "NOT TESTED / UNKNOWN",
       "data_accepted": false,
       "ucl_matches": 6,
       "ucl_rows": 118,
       "canonical_scope": "COMPLETE_LEAGUE_AND_UCL_SUBSETS;OTHER_COMPETITIONS_UNFINISHED;ONE_RETAINED_LEAGUE_KICKOFF_OBLIGATION",
-      "remaining_identity_minutes": "Open bench identity and minute obligations remain. Numeric counts include verified unused zeroes. Unknown minutes are retained separately."
+      "remaining_identity_minutes": "DFB Cup minutes and remaining cross-competition source and audit obligations are open.",
+      "dfb_cup_matches": 3
     },
     {
       "club_id": 9823,
@@ -151,15 +154,16 @@
       "source_match_observations": 30,
       "fixture_catalogue_completion": "NOT TESTED / UNKNOWN: all-competition closure acceptance unfinished",
       "source_ready": false,
-      "canonical_matches": 27,
-      "canonical_player_rows": 512,
+      "canonical_matches": 30,
+      "canonical_player_rows": 571,
       "numeric_minutes": 351,
       "R1_R6": "NOT TESTED / UNKNOWN",
       "data_accepted": false,
       "ucl_matches": 8,
       "ucl_rows": 155,
       "canonical_scope": "COMPLETE_LEAGUE_AND_UCL_SUBSETS;OTHER_COMPETITIONS_UNFINISHED;ONE_RETAINED_LEAGUE_KICKOFF_OBLIGATION",
-      "remaining_identity_minutes": "Open bench identity and minute obligations remain. Numeric counts include verified unused zeroes. Unknown minutes are retained separately."
+      "remaining_identity_minutes": "DFB Cup minutes and remaining cross-competition source and audit obligations are open.",
+      "dfb_cup_matches": 3
     },
     {
       "club_id": 9847,
@@ -328,7 +332,7 @@
       "canonical_matches": 24,
       "canonical_player_rows": 560,
       "numeric_minutes": 560,
-      "R1_R6": "EXECUTED_WITH_OFFICIAL_WINDOWS;QUALIFIED_HISTORICAL_ELIGIBILITY_INPUT_INCOMPLETE;NOT_FULL_ACCEPTANCE",
+      "R1_R6": "PASS / VERIFIED for executed scope: 94 club opportunities, two verified squad exclusions, zero remaining findings in covered scope. Whole-unit audit coverage remains NOT TESTED / UNKNOWN.",
       "data_accepted": false,
       "remaining_uninvestigated_club_minute_rows": 0,
       "observed_squad_union_players": 37,
@@ -340,7 +344,10 @@
       "canonical_national_matches": 15,
       "canonical_national_player_rows": 26,
       "national_minutes": 1565,
-      "national_coverage": "PARTIAL:September2025senior window accepted for13officially called players;whole period incomplete"
+      "national_coverage": "PARTIAL:September2025senior window accepted for13officially called players;whole period incomplete",
+      "national_fixtures": 37,
+      "national_player_rows": 62,
+      "national_numeric_minutes": 60
     },
     {
       "club_id": 8636,
