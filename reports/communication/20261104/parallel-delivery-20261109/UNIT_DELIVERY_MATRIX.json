@@ -1,5 +1,5 @@
 {
-  "note": "Historical DATA-ACCEPTED: 1/24. Inter 2025/26-H1 passed using the existing club-management cohort policy, scoped national reconciliation and the ordinary release checks. Other units retain their previous status.",
+  "note": "Historical DATA-ACCEPTED: 2/24. Inter 2025/26-H1 and 2024/25-H2 passed the historical evidence and release checks. Other units retain their previous acceptance status.",
   "units": [
     {
       "club_id": 8456,
@@ -309,8 +309,8 @@
       "canonical_matches": 39,
       "canonical_player_rows": 902,
       "numeric_minutes": 901,
-      "R1_R6": "EXECUTED_WITH_OFFICIAL_WINDOWS;QUALIFIED_HISTORICAL_ELIGIBILITY_INPUT_INCOMPLETE;NOT_FULL_ACCEPTANCE",
-      "data_accepted": false,
+      "R1_R6": "PASS / VERIFIED: 768 club and 21 national opportunities, zero open material findings in applicable scope",
+      "data_accepted": true,
       "remaining_uninvestigated_club_minute_rows": 0,
       "observed_squad_union_players": 45,
       "observed_union_frozen": true,
@@ -321,7 +321,16 @@
       "canonical_national_matches": 0,
       "canonical_national_player_rows": 0,
       "national_minutes": 0,
-      "national_coverage": "NOT CHECKED:whole-period acquisition unfinished"
+      "national_coverage": "NOT CHECKED:whole-period acquisition unfinished",
+      "roster_cohorts": {
+        "FIRST_TEAM": 31,
+        "YOUTH": 14,
+        "UNKNOWN": 0
+      },
+      "national_fixtures": 44,
+      "national_rows": 68,
+      "mandatory_national_rows": 68,
+      "optional_youth_rows": 0
     },
     {
       "club_id": 8636,
