@@ -1,5 +1,5 @@
 {
-  "note": "Historical DATA-ACCEPTED: 2/24. Inter 2025/26-H1 and 2024/25-H2 passed the historical evidence and release checks. Other units retain their previous acceptance status.",
+  "note": "Historical DATA-ACCEPTED: 2/24 unchanged. Candidate counts updated 2026-11-17. New counts and export are locally verified only; no hosted regression or independent remote acceptance is claimed. Accepted Inter snapshots are unchanged.",
   "units": [
     {
       "club_id": 8456,
@@ -7,11 +7,15 @@
       "source_match_observations": 6,
       "fixture_catalogue_completion": "NOT TESTED / UNKNOWN: all-competition closure acceptance unfinished",
       "source_ready": false,
-      "canonical_matches": 0,
-      "canonical_player_rows": 0,
+      "canonical_matches": 6,
+      "canonical_player_rows": 120,
       "numeric_minutes": 0,
       "R1_R6": "NOT TESTED / UNKNOWN",
-      "data_accepted": false
+      "data_accepted": false,
+      "unknown_minutes": 120,
+      "verification_scope": "LOCAL_CANDIDATE;not_independently_remote_verified",
+      "next_action": "Acquire missing full-competition fixture and XI/bench subsets; ingest immediately, then resolve material identity/minute gaps and existing audits",
+      "next_action_priority": "HIGH: incomplete early historical competition scope"
     },
     {
       "club_id": 8456,
@@ -19,11 +23,15 @@
       "source_match_observations": 4,
       "fixture_catalogue_completion": "NOT TESTED / UNKNOWN: all-competition closure acceptance unfinished",
       "source_ready": false,
-      "canonical_matches": 0,
-      "canonical_player_rows": 0,
-      "numeric_minutes": 0,
+      "canonical_matches": 6,
+      "canonical_player_rows": 137,
+      "numeric_minutes": 51,
       "R1_R6": "NOT TESTED / UNKNOWN",
-      "data_accepted": false
+      "data_accepted": false,
+      "unknown_minutes": 86,
+      "verification_scope": "LOCAL_CANDIDATE;not_independently_remote_verified",
+      "next_action": "Acquire missing full-competition fixture and XI/bench subsets; ingest immediately, then resolve material identity/minute gaps and existing audits",
+      "next_action_priority": "HIGH: incomplete early historical competition scope"
     },
     {
       "club_id": 8456,
@@ -31,11 +39,15 @@
       "source_match_observations": 6,
       "fixture_catalogue_completion": "NOT TESTED / UNKNOWN: all-competition closure acceptance unfinished",
       "source_ready": false,
-      "canonical_matches": 0,
-      "canonical_player_rows": 0,
-      "numeric_minutes": 0,
+      "canonical_matches": 9,
+      "canonical_player_rows": 186,
+      "numeric_minutes": 58,
       "R1_R6": "NOT TESTED / UNKNOWN",
-      "data_accepted": false
+      "data_accepted": false,
+      "unknown_minutes": 128,
+      "verification_scope": "LOCAL_CANDIDATE;not_independently_remote_verified",
+      "next_action": "Acquire missing full-competition fixture and XI/bench subsets; ingest immediately, then resolve material identity/minute gaps and existing audits",
+      "next_action_priority": "Continue independent source-ready subset processing"
     },
     {
       "club_id": 8456,
@@ -43,11 +55,15 @@
       "source_match_observations": 4,
       "fixture_catalogue_completion": "NOT TESTED / UNKNOWN: all-competition closure acceptance unfinished",
       "source_ready": false,
-      "canonical_matches": 0,
-      "canonical_player_rows": 0,
-      "numeric_minutes": 0,
+      "canonical_matches": 30,
+      "canonical_player_rows": 595,
+      "numeric_minutes": 549,
       "R1_R6": "NOT TESTED / UNKNOWN",
-      "data_accepted": false
+      "data_accepted": false,
+      "unknown_minutes": 46,
+      "verification_scope": "LOCAL_CANDIDATE;not_independently_remote_verified",
+      "next_action": "Acquire missing full-competition fixture and XI/bench subsets; ingest immediately, then resolve material identity/minute gaps and existing audits",
+      "next_action_priority": "Continue independent source-ready subset processing"
     },
     {
       "club_id": 9825,
@@ -55,11 +71,15 @@
       "source_match_observations": 6,
       "fixture_catalogue_completion": "NOT TESTED / UNKNOWN: all-competition closure acceptance unfinished",
       "source_ready": false,
-      "canonical_matches": 0,
-      "canonical_player_rows": 0,
+      "canonical_matches": 6,
+      "canonical_player_rows": 129,
       "numeric_minutes": 0,
       "R1_R6": "NOT TESTED / UNKNOWN",
-      "data_accepted": false
+      "data_accepted": false,
+      "unknown_minutes": 129,
+      "verification_scope": "LOCAL_CANDIDATE;not_independently_remote_verified",
+      "next_action": "Acquire missing full-competition fixture and XI/bench subsets; ingest immediately, then resolve material identity/minute gaps and existing audits",
+      "next_action_priority": "HIGH: incomplete early historical competition scope"
     },
     {
       "club_id": 9825,
@@ -67,11 +87,15 @@
       "source_match_observations": 8,
       "fixture_catalogue_completion": "NOT TESTED / UNKNOWN: all-competition closure acceptance unfinished",
       "source_ready": false,
-      "canonical_matches": 0,
-      "canonical_player_rows": 0,
+      "canonical_matches": 8,
+      "canonical_player_rows": 168,
       "numeric_minutes": 0,
       "R1_R6": "NOT TESTED / UNKNOWN",
-      "data_accepted": false
+      "data_accepted": false,
+      "unknown_minutes": 168,
+      "verification_scope": "LOCAL_CANDIDATE;not_independently_remote_verified",
+      "next_action": "Acquire missing full-competition fixture and XI/bench subsets; ingest immediately, then resolve material identity/minute gaps and existing audits",
+      "next_action_priority": "HIGH: incomplete early historical competition scope"
     },
     {
       "club_id": 9825,
@@ -79,11 +103,15 @@
       "source_match_observations": 6,
       "fixture_catalogue_completion": "NOT TESTED / UNKNOWN: all-competition closure acceptance unfinished",
       "source_ready": false,
-      "canonical_matches": 0,
-      "canonical_player_rows": 0,
-      "numeric_minutes": 0,
+      "canonical_matches": 12,
+      "canonical_player_rows": 240,
+      "numeric_minutes": 136,
       "R1_R6": "NOT TESTED / UNKNOWN",
-      "data_accepted": false
+      "data_accepted": false,
+      "unknown_minutes": 104,
+      "verification_scope": "LOCAL_CANDIDATE;not_independently_remote_verified",
+      "next_action": "Acquire missing full-competition fixture and XI/bench subsets; ingest immediately, then resolve material identity/minute gaps and existing audits",
+      "next_action_priority": "Continue independent source-ready subset processing"
     },
     {
       "club_id": 9825,
@@ -91,11 +119,15 @@
       "source_match_observations": 9,
       "fixture_catalogue_completion": "NOT TESTED / UNKNOWN: all-competition closure acceptance unfinished",
       "source_ready": false,
-      "canonical_matches": 0,
-      "canonical_player_rows": 0,
-      "numeric_minutes": 0,
+      "canonical_matches": 35,
+      "canonical_player_rows": 719,
+      "numeric_minutes": 545,
       "R1_R6": "NOT TESTED / UNKNOWN",
-      "data_accepted": false
+      "data_accepted": false,
+      "unknown_minutes": 174,
+      "verification_scope": "LOCAL_CANDIDATE;not_independently_remote_verified",
+      "next_action": "Acquire missing full-competition fixture and XI/bench subsets; ingest immediately, then resolve material identity/minute gaps and existing audits",
+      "next_action_priority": "Continue independent source-ready subset processing"
     },
     {
       "club_id": 9823,
@@ -104,15 +136,19 @@
       "fixture_catalogue_completion": "NOT TESTED / UNKNOWN: all-competition closure acceptance unfinished",
       "source_ready": false,
       "canonical_matches": 24,
-      "canonical_player_rows": 475,
-      "numeric_minutes": 20,
+      "canonical_player_rows": 477,
+      "numeric_minutes": 80,
       "R1_R6": "NOT TESTED / UNKNOWN",
       "data_accepted": false,
       "ucl_matches": 6,
       "ucl_rows": 121,
       "canonical_scope": "COMPLETE_LEAGUE_AND_UCL_SUBSETS;OTHER_COMPETITIONS_UNFINISHED;ONE_RETAINED_LEAGUE_KICKOFF_OBLIGATION",
       "remaining_identity_minutes": "DFB Cup minutes and remaining cross-competition source and audit obligations are open.",
-      "dfb_cup_matches": 3
+      "dfb_cup_matches": 3,
+      "unknown_minutes": 397,
+      "verification_scope": "LOCAL_CANDIDATE;not_independently_remote_verified",
+      "next_action": "Acquire missing full-competition fixture and XI/bench subsets; ingest immediately, then resolve material identity/minute gaps and existing audits",
+      "next_action_priority": "Continue independent source-ready subset processing"
     },
     {
       "club_id": 9823,
@@ -120,16 +156,20 @@
       "source_match_observations": 27,
       "fixture_catalogue_completion": "NOT TESTED / UNKNOWN: all-competition closure acceptance unfinished",
       "source_ready": false,
-      "canonical_matches": 27,
-      "canonical_player_rows": 550,
-      "numeric_minutes": 0,
+      "canonical_matches": 28,
+      "canonical_player_rows": 576,
+      "numeric_minutes": 26,
       "R1_R6": "NOT TESTED / UNKNOWN",
       "data_accepted": false,
       "ucl_matches": 8,
       "ucl_rows": 174,
       "canonical_scope": "COMPLETE_LEAGUE_AND_UCL_SUBSETS;OTHER_COMPETITIONS_UNFINISHED;ONE_RETAINED_LEAGUE_KICKOFF_OBLIGATION",
       "remaining_identity_minutes": "DFB Cup minutes and remaining cross-competition source and audit obligations are open.",
-      "dfb_cup_matches": 0
+      "dfb_cup_matches": 0,
+      "unknown_minutes": 550,
+      "verification_scope": "LOCAL_CANDIDATE;not_independently_remote_verified",
+      "next_action": "Acquire missing full-competition fixture and XI/bench subsets; ingest immediately, then resolve material identity/minute gaps and existing audits",
+      "next_action_priority": "Continue independent source-ready subset processing"
     },
     {
       "club_id": 9823,
@@ -137,16 +177,20 @@
       "source_match_observations": 24,
       "fixture_catalogue_completion": "NOT TESTED / UNKNOWN: all-competition closure acceptance unfinished",
       "source_ready": false,
-      "canonical_matches": 24,
-      "canonical_player_rows": 462,
-      "numeric_minutes": 56,
+      "canonical_matches": 25,
+      "canonical_player_rows": 484,
+      "numeric_minutes": 136,
       "R1_R6": "NOT TESTED / UNKNOWN",
       "data_accepted": false,
       "ucl_matches": 6,
       "ucl_rows": 118,
       "canonical_scope": "COMPLETE_LEAGUE_AND_UCL_SUBSETS;OTHER_COMPETITIONS_UNFINISHED;ONE_RETAINED_LEAGUE_KICKOFF_OBLIGATION",
       "remaining_identity_minutes": "DFB Cup minutes and remaining cross-competition source and audit obligations are open.",
-      "dfb_cup_matches": 3
+      "dfb_cup_matches": 3,
+      "unknown_minutes": 348,
+      "verification_scope": "LOCAL_CANDIDATE;not_independently_remote_verified",
+      "next_action": "Acquire missing full-competition fixture and XI/bench subsets; ingest immediately, then resolve material identity/minute gaps and existing audits",
+      "next_action_priority": "Continue independent source-ready subset processing"
     },
     {
       "club_id": 9823,
@@ -154,16 +198,20 @@
       "source_match_observations": 30,
       "fixture_catalogue_completion": "NOT TESTED / UNKNOWN: all-competition closure acceptance unfinished",
       "source_ready": false,
-      "canonical_matches": 30,
-      "canonical_player_rows": 571,
-      "numeric_minutes": 351,
+      "canonical_matches": 31,
+      "canonical_player_rows": 591,
+      "numeric_minutes": 525,
       "R1_R6": "NOT TESTED / UNKNOWN",
       "data_accepted": false,
       "ucl_matches": 8,
       "ucl_rows": 155,
       "canonical_scope": "COMPLETE_LEAGUE_AND_UCL_SUBSETS;OTHER_COMPETITIONS_UNFINISHED;ONE_RETAINED_LEAGUE_KICKOFF_OBLIGATION",
       "remaining_identity_minutes": "DFB Cup minutes and remaining cross-competition source and audit obligations are open.",
-      "dfb_cup_matches": 3
+      "dfb_cup_matches": 3,
+      "unknown_minutes": 66,
+      "verification_scope": "LOCAL_CANDIDATE;not_independently_remote_verified",
+      "next_action": "Acquire missing full-competition fixture and XI/bench subsets; ingest immediately, then resolve material identity/minute gaps and existing audits",
+      "next_action_priority": "Continue independent source-ready subset processing"
     },
     {
       "club_id": 9847,
@@ -171,11 +219,15 @@
       "source_match_observations": 6,
       "fixture_catalogue_completion": "NOT TESTED / UNKNOWN: all-competition closure acceptance unfinished",
       "source_ready": false,
-      "canonical_matches": 0,
-      "canonical_player_rows": 0,
-      "numeric_minutes": 0,
+      "canonical_matches": 6,
+      "canonical_player_rows": 124,
+      "numeric_minutes": 15,
       "R1_R6": "NOT TESTED / UNKNOWN",
-      "data_accepted": false
+      "data_accepted": false,
+      "unknown_minutes": 109,
+      "verification_scope": "LOCAL_CANDIDATE;not_independently_remote_verified",
+      "next_action": "Acquire missing full-competition fixture and XI/bench subsets; ingest immediately, then resolve material identity/minute gaps and existing audits",
+      "next_action_priority": "HIGH: incomplete early historical competition scope"
     },
     {
       "club_id": 9847,
@@ -183,11 +235,15 @@
       "source_match_observations": 11,
       "fixture_catalogue_completion": "NOT TESTED / UNKNOWN: all-competition closure acceptance unfinished",
       "source_ready": false,
-      "canonical_matches": 0,
-      "canonical_player_rows": 0,
-      "numeric_minutes": 0,
+      "canonical_matches": 19,
+      "canonical_player_rows": 392,
+      "numeric_minutes": 238,
       "R1_R6": "NOT TESTED / UNKNOWN",
-      "data_accepted": false
+      "data_accepted": false,
+      "unknown_minutes": 154,
+      "verification_scope": "LOCAL_CANDIDATE;not_independently_remote_verified",
+      "next_action": "Acquire missing full-competition fixture and XI/bench subsets; ingest immediately, then resolve material identity/minute gaps and existing audits",
+      "next_action_priority": "HIGH: incomplete early historical competition scope"
     },
     {
       "club_id": 9847,
@@ -195,11 +251,15 @@
       "source_match_observations": 6,
       "fixture_catalogue_completion": "NOT TESTED / UNKNOWN: all-competition closure acceptance unfinished",
       "source_ready": false,
-      "canonical_matches": 0,
-      "canonical_player_rows": 0,
-      "numeric_minutes": 0,
+      "canonical_matches": 26,
+      "canonical_player_rows": 516,
+      "numeric_minutes": 369,
       "R1_R6": "NOT TESTED / UNKNOWN",
-      "data_accepted": false
+      "data_accepted": false,
+      "unknown_minutes": 147,
+      "verification_scope": "LOCAL_CANDIDATE;not_independently_remote_verified",
+      "next_action": "Acquire missing full-competition fixture and XI/bench subsets; ingest immediately, then resolve material identity/minute gaps and existing audits",
+      "next_action_priority": "Continue independent source-ready subset processing"
     },
     {
       "club_id": 9847,
@@ -207,11 +267,15 @@
       "source_match_observations": 11,
       "fixture_catalogue_completion": "NOT TESTED / UNKNOWN: all-competition closure acceptance unfinished",
       "source_ready": false,
-      "canonical_matches": 0,
-      "canonical_player_rows": 0,
-      "numeric_minutes": 0,
+      "canonical_matches": 32,
+      "canonical_player_rows": 644,
+      "numeric_minutes": 462,
       "R1_R6": "NOT TESTED / UNKNOWN",
-      "data_accepted": false
+      "data_accepted": false,
+      "unknown_minutes": 182,
+      "verification_scope": "LOCAL_CANDIDATE;not_independently_remote_verified",
+      "next_action": "Acquire missing full-competition fixture and XI/bench subsets; ingest immediately, then resolve material identity/minute gaps and existing audits",
+      "next_action_priority": "Continue independent source-ready subset processing"
     },
     {
       "club_id": 8634,
@@ -227,7 +291,11 @@
       "ucl_matches": 6,
       "ucl_rows": 127,
       "canonical_scope": "COMPLETE_LEAGUE_AND_UCL_SUBSETS;OTHER_COMPETITIONS_UNFINISHED;ONE_RETAINED_LEAGUE_KICKOFF_OBLIGATION",
-      "remaining_identity_minutes": "Open bench identity and minute obligations remain. Numeric counts include verified unused zeroes. Unknown minutes are retained separately."
+      "remaining_identity_minutes": "Open bench identity and minute obligations remain. Numeric counts include verified unused zeroes. Unknown minutes are retained separately.",
+      "unknown_minutes": 127,
+      "verification_scope": "LOCAL_CANDIDATE;not_independently_remote_verified",
+      "next_action": "Acquire missing full-competition fixture and XI/bench subsets; ingest immediately, then resolve material identity/minute gaps and existing audits",
+      "next_action_priority": "Continue independent source-ready subset processing"
     },
     {
       "club_id": 8634,
@@ -235,15 +303,19 @@
       "source_match_observations": 27,
       "fixture_catalogue_completion": "NOT TESTED / UNKNOWN: all-competition closure acceptance unfinished",
       "source_ready": false,
-      "canonical_matches": 27,
-      "canonical_player_rows": 608,
-      "numeric_minutes": 428,
+      "canonical_matches": 32,
+      "canonical_player_rows": 716,
+      "numeric_minutes": 536,
       "R1_R6": "NOT TESTED / UNKNOWN",
       "data_accepted": false,
       "ucl_matches": 8,
       "ucl_rows": 180,
       "canonical_scope": "COMPLETE_LEAGUE_AND_UCL_SUBSETS;OTHER_COMPETITIONS_UNFINISHED;ONE_RETAINED_LEAGUE_KICKOFF_OBLIGATION",
-      "remaining_identity_minutes": "Open bench identity and minute obligations remain. Numeric counts include verified unused zeroes. Unknown minutes are retained separately."
+      "remaining_identity_minutes": "Open bench identity and minute obligations remain. Numeric counts include verified unused zeroes. Unknown minutes are retained separately.",
+      "unknown_minutes": 180,
+      "verification_scope": "LOCAL_CANDIDATE;not_independently_remote_verified",
+      "next_action": "Acquire missing full-competition fixture and XI/bench subsets; ingest immediately, then resolve material identity/minute gaps and existing audits",
+      "next_action_priority": "Continue independent source-ready subset processing"
     },
     {
       "club_id": 8634,
@@ -251,15 +323,19 @@
       "source_match_observations": 24,
       "fixture_catalogue_completion": "NOT TESTED / UNKNOWN: all-competition closure acceptance unfinished",
       "source_ready": false,
-      "canonical_matches": 24,
-      "canonical_player_rows": 487,
-      "numeric_minutes": 365,
+      "canonical_matches": 28,
+      "canonical_player_rows": 573,
+      "numeric_minutes": 451,
       "R1_R6": "NOT TESTED / UNKNOWN",
       "data_accepted": false,
       "ucl_matches": 6,
       "ucl_rows": 122,
       "canonical_scope": "COMPLETE_LEAGUE_AND_UCL_SUBSETS;OTHER_COMPETITIONS_UNFINISHED;ONE_RETAINED_LEAGUE_KICKOFF_OBLIGATION",
-      "remaining_identity_minutes": "Open bench identity and minute obligations remain. Numeric counts include verified unused zeroes. Unknown minutes are retained separately."
+      "remaining_identity_minutes": "Open bench identity and minute obligations remain. Numeric counts include verified unused zeroes. Unknown minutes are retained separately.",
+      "unknown_minutes": 122,
+      "verification_scope": "LOCAL_CANDIDATE;not_independently_remote_verified",
+      "next_action": "Acquire missing full-competition fixture and XI/bench subsets; ingest immediately, then resolve material identity/minute gaps and existing audits",
+      "next_action_priority": "Continue independent source-ready subset processing"
     },
     {
       "club_id": 8634,
@@ -267,15 +343,19 @@
       "source_match_observations": 26,
       "fixture_catalogue_completion": "NOT TESTED / UNKNOWN: all-competition closure acceptance unfinished",
       "source_ready": false,
-      "canonical_matches": 25,
-      "canonical_player_rows": 529,
-      "numeric_minutes": 402,
+      "canonical_matches": 37,
+      "canonical_player_rows": 790,
+      "numeric_minutes": 663,
       "R1_R6": "NOT TESTED / UNKNOWN",
       "data_accepted": false,
       "ucl_matches": 6,
       "ucl_rows": 127,
       "canonical_scope": "COMPLETE_LEAGUE_AND_UCL_SUBSETS;OTHER_COMPETITIONS_UNFINISHED;ONE_RETAINED_LEAGUE_KICKOFF_OBLIGATION",
-      "remaining_identity_minutes": "Open bench identity and minute obligations remain. Numeric counts include verified unused zeroes. Unknown minutes are retained separately."
+      "remaining_identity_minutes": "Open bench identity and minute obligations remain. Numeric counts include verified unused zeroes. Unknown minutes are retained separately.",
+      "unknown_minutes": 127,
+      "verification_scope": "LOCAL_CANDIDATE;not_independently_remote_verified",
+      "next_action": "Acquire missing full-competition fixture and XI/bench subsets; ingest immediately, then resolve material identity/minute gaps and existing audits",
+      "next_action_priority": "Continue independent source-ready subset processing"
     },
     {
       "club_id": 8636,
@@ -298,7 +378,9 @@
       "canonical_national_matches": 0,
       "canonical_national_player_rows": 0,
       "national_minutes": 0,
-      "national_coverage": "NOT CHECKED:whole-period acquisition unfinished"
+      "national_coverage": "NOT CHECKED:whole-period acquisition unfinished",
+      "next_action": "Close applicable national-team window coverage using existing selection and appearance ledgers; apply existing whole-unit acceptance",
+      "next_action_priority": "Continue independent source-ready subset processing"
     },
     {
       "club_id": 8636,
@@ -387,7 +469,9 @@
       "canonical_national_matches": 0,
       "canonical_national_player_rows": 0,
       "national_minutes": 0,
-      "national_coverage": "NOT CHECKED:whole-period acquisition unfinished"
+      "national_coverage": "NOT CHECKED:whole-period acquisition unfinished",
+      "next_action": "Close applicable national-team window coverage using existing selection and appearance ledgers; apply existing whole-unit acceptance",
+      "next_action_priority": "Continue independent source-ready subset processing"
     }
   ]
 }
