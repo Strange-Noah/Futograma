@@ -42,7 +42,7 @@ def replay(candidate, reference, acquisition, worker, output):
     store = EvidenceStore(output / 'selection-sources')
     service = SourceService(store, 'historical-bayern-senegal-selection',
                             {'www.fifatrainingcentre.com'}, max_calls=4, max_bytes=32_000_000)
-    claims, captures, selected = {}, [], []
+    claims, captures, selected, identity_blockers = {}, [], [], []
     with closing(readonly(candidate)) as db, closing(readonly(reference)) as ref:
         ids = {}
         for player in PLAYERS:
@@ -53,8 +53,11 @@ def replay(candidate, reference, acquisition, worker, output):
                   AND m.local_date>='2026-01-01' AND m.local_date<'2026-07-01'
                 """, (player,)).fetchall()
             if len(rows) != 1:
-                raise ValueError('BAYERN_OBSERVED_PLAYER_ID_NOT_UNIQUE: ' + player)
+                identity_blockers.append(dict(player=player, exact_observed_id_count=len(rows)))
+                continue
             ids[player] = rows[0][0]
+        if not ids:
+            raise ValueError('NO_UNIQUE_BAYERN_OBSERVED_PLAYER_ID')
         for native, (day, document) in FIXTURES.items():
             if native not in sheets:
                 raise ValueError('RETAINED_SKY_SHEET_MISSING')
@@ -82,9 +85,10 @@ def replay(candidate, reference, acquisition, worker, output):
             page = subprocess.check_output(['pdftotext', '-f', '1', '-l', '3', '-', '-'],
                                            input=pdf).decode().casefold()
             flattened = ' '.join(page.split())
-            if 'senegal' not in flattened or not all(player.casefold() in flattened for player in PLAYERS):
+            if not all(team.casefold() in flattened for team in rows[0][1:]) or not all(
+                    player.casefold() in flattened for player in ids):
                 raise ValueError('OFFICIAL_MATCHDAY_SELECTION_NEEDS_REVIEW')
-            for player in PLAYERS:
+            for player in ids:
                 claims[(rows[0][0], ids[player], namekey('Senegal'))] = dict(
                     source_url=FIFA + document, source_sha256=result.artifact.content_sha256,
                     national_team='Senegal', matchday=day, source_scope='FIFA_MATCHDAY_SELECTION',
@@ -97,6 +101,9 @@ def replay(candidate, reference, acquisition, worker, output):
                    root=output / 'ingestion', source_receipts=[source_receipt], selection_claims=claims))
     result = read(output / 'ingestion' / 'SUMMARY.json')
     result['selection_source_count'] = len(selected)
+    result['selection_identity_blockers'] = identity_blockers
+    result['new_numeric_minutes'] = sum(row.get('minutes') is not None for row in
+                                        read(output / 'ingestion' / 'appearances-private.json'))
     result['candidate_sha256'] = sha(output / 'ingestion' / 'candidate.sqlite')
     (output / 'result-private.json').write_text(json.dumps(result, indent=2) + '\n')
     print(json.dumps(result))
