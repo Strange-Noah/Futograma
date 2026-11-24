@@ -247,13 +247,13 @@ def refresh_matrix(matrix, candidate):
     return matrix
 
 
-def continue_batches(config_path, work):
+def continue_batches(config_path, work, national_unit=None):
     config = json.loads(local_path(config_path).read_text())
     work = local_path(work)
     work.mkdir(exist_ok=True)
     with (work / 'batch.lock').open('a') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        return consume_sources(config, work)
+        return consume_sources(config, work, national_unit)
 
 
 def discover_gaps(candidate, matrix, catalogues):
@@ -382,13 +382,20 @@ def discover_gaps(candidate, matrix, catalogues):
                    for key, gap in gaps.items()}
 
 
-def consume_sources(config, work):
+def consume_sources(config, work, national_unit=None):
     matrix_path = work / 'matrix-private.json'
     matrix = json.loads((matrix_path if matrix_path.exists() else local_path(config['matrix'])).read_text())
     state_path = work / 'continuation-private.json'
     state = json.loads(state_path.read_text()) if state_path.exists() else {
         'candidate': config['candidate'], 'reference': config['reference'], 'batches': []}
     unit_checks = state.setdefault('unit_checks', {})
+    active_rows = [row for row in matrix['units']
+                   if national_unit is None or f'{row["club_id"]}:{row["unit"]}' == national_unit]
+    if not active_rows:
+        raise ValueError('UNKNOWN_HISTORICAL_UNIT')
+    if national_unit and not active_rows[0]['source_ready']:
+        raise ValueError('NATIONAL_ONLY_BATCH_REQUIRES_SOURCE_READY_UNIT')
+    active_matrix = dict(matrix, units=active_rows)
     attempted, archived = set(), {}
     paths = [*(ROOT / '.cloud').glob('*/results-private.json'),
              *work.glob('batch-*/acquisition/results-private.json')]
@@ -412,7 +419,7 @@ def consume_sources(config, work):
                           if any(name in urlsplit(url).path.lower() for name in ('real-madrid', 'realmadrid'))}
     queued = {}
     retained_gap_keys = set()
-    for path in config['source_ledgers']:
+    for path in config['source_ledgers'] if not national_unit else ():
         for group in json.loads(local_path(path).read_text()):
             date = datetime.datetime.strptime(group['month'], '%B %Y').date().isoformat()
             for url in group['urls']:
@@ -429,7 +436,7 @@ def consume_sources(config, work):
             attempted.discard(source_id(url))
 
     def pending():
-        windows = [(unit_window(row), row['source_ready']) for row in matrix['units']
+        windows = [(unit_window(row), row['source_ready']) for row in active_rows
                    if not row['data_accepted']]
         ranked = []
         for key, (url, dates, kind) in queued.items():
@@ -445,7 +452,7 @@ def consume_sources(config, work):
         fields = ('canonical_matches', 'canonical_player_rows', 'unknown_minutes',
                   'canonical_national_matches', 'canonical_national_player_rows',
                   'national_numeric_minutes')
-        for row in matrix['units']:
+        for row in active_rows:
             key = f'{row["club_id"]}:{row["unit"]}'
             plan_path = config.get('unit_plans', {}).get(key)
             if row['data_accepted']:
@@ -501,16 +508,18 @@ def consume_sources(config, work):
     state['state'] = 'RUNNING'
     write(state_path, state)
     source_stop = None
-    while any(not row['data_accepted'] for row in matrix['units']):
+    while any(not row['data_accepted'] for row in active_rows):
         remaining = pending()
         if not remaining:
-            discovered, obligations = discover_gaps(candidate, matrix, config.get('catalogues', []))
+            discovered, obligations = discover_gaps(candidate, active_matrix, () if national_unit else config.get('catalogues', []))
+            if national_unit:
+                discovered = {key: value for key, value in discovered.items() if value[2] == 'national'}
             write(work / 'obligations-private.json', obligations)
             remaining = [(url, kind) for key, (url, _, kind) in discovered.items()
                          if key not in attempted or (url in archived and key not in processed)]
+            queued.update(discovered)
             if not remaining:
                 break
-            queued.update(discovered)
         kind = remaining[0][1]
         urls = [url for url, source_kind in remaining if source_kind == kind][:config.get('chunk_size', 8)]
         # Only this independent subset must be available before it can be ingested.
@@ -519,6 +528,9 @@ def consume_sources(config, work):
         queue = batch / 'queue-private.json'
         if queue.exists():
             urls = json.loads(queue.read_text())
+            if national_unit and any(source_id(url) not in queued or queued[source_id(url)][2] != 'national'
+                                     for url in urls):
+                raise ValueError('EXISTING_QUEUE_OUTSIDE_NATIONAL_UNIT')
             kind = queued[source_id(urls[0])][2]
         else:
             write(queue, urls)
@@ -586,9 +598,13 @@ def main():
     parser.add_argument('plan', type=Path)
     parser.add_argument('work', type=Path)
     parser.add_argument('--continuous', action='store_true')
+    parser.add_argument('--national-unit', help='Limit continuous replay to national evidence for a source-ready unit')
     args = parser.parse_args()
+    if args.national_unit and not args.continuous:
+        parser.error('--national-unit requires --continuous')
     try:
-        result = (continue_batches if args.continuous else run)(args.plan, args.work)
+        result = (continue_batches(args.plan, args.work, args.national_unit) if args.continuous
+                  else run(args.plan, args.work))
     except (ValueError, OSError, sqlite3.Error, subprocess.CalledProcessError) as error:
         result = dict(batch=args.work.name, state='FAIL', exceptions=[
             dict(kind='TECHNICAL_FAILURE', evidence=str(args.plan),
