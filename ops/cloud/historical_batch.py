@@ -441,7 +441,7 @@ def consume_sources(config, work, national_unit=None, national_sources=()):
                     or kind not in ('national', 'afcon') or kind not in config['workers']):
                 raise ValueError('INVALID_SCOPED_NATIONAL_SOURCE')
             key = source_id(url)
-            queued[key] = (url, {datetime.date.fromisoformat(day)}, kind)
+            queued[key] = (url, {day}, kind)
             if url in archived:
                 retained_gap_keys.add(key)
     for url in sorted(excluded_opponents):
