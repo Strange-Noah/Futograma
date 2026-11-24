@@ -19,6 +19,8 @@ FIXTURES = {
 }
 FIFA = 'https://www.fifatrainingcentre.com/media/native/tournaments/fifa-world-cup/2026/'
 PLAYERS = ('Nicolas Jackson', 'Bara Sapoko Ndiaye')
+BARA_PROFILE = 'https://fcbayern.com/en/teams/first-team/bara-sapoko-ndiaye'
+BARA_PROVIDER = 'https://www.fotmob.com/players/1798782/bara-ndiaye'
 
 
 def read(path):
@@ -52,6 +54,16 @@ def replay(candidate, reference, acquisition, worker, output):
                 WHERE lower(p.display_name)=lower(?) AND a.club_id=9823
                   AND m.local_date>='2026-01-01' AND m.local_date<'2026-07-01'
                 """, (player,)).fetchall()
+            if len(rows) != 1 and player == 'Bara Sapoko Ndiaye':
+                # Both profiles give the same DOB and Bayern affiliation.
+                # The historical DB must already certify the stable provider ID.
+                rows = db.execute("""
+                    SELECT DISTINCT i.player_id FROM verified_identity_links i
+                    JOIN player_match_minutes a USING(player_id) JOIN matches m USING(match_id)
+                    WHERE i.provider='FotMob' AND i.provider_player_id='1798782'
+                      AND json_extract(i.evidence_json, '$.identity_status')='VERIFIED'
+                      AND a.club_id=9823 AND m.local_date>='2026-01-01' AND m.local_date<'2026-07-01'
+                    """).fetchall()
             if len(rows) != 1:
                 identity_blockers.append(dict(player=player, exact_observed_id_count=len(rows)))
                 continue
@@ -93,6 +105,8 @@ def replay(candidate, reference, acquisition, worker, output):
                     source_url=FIFA + document, source_sha256=result.artifact.content_sha256,
                     national_team='Senegal', matchday=day, source_scope='FIFA_MATCHDAY_SELECTION',
                     player_display_name=player)
+                if player == 'Bara Sapoko Ndiaye':
+                    claims[(rows[0][0], ids[player], namekey('Senegal'))]['identity_sources'] = [BARA_PROFILE, BARA_PROVIDER]
             selected.append(native)
     if not selected:
         raise ValueError('NO_OFFICIAL_MATCHDAY_SELECTION_SOURCE_AVAILABLE')
