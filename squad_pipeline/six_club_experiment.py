@@ -36,7 +36,20 @@ def addplayer(db,p):
 def ev(db,e):
  key='e_'+digest(encoded(e).encode());db.execute('INSERT OR IGNORE INTO raw_artifacts VALUES(?,?,?,?,?,?,?,?,?)',(key,None,e.get('path'),e.get('sha256') or digest(encoded(e).encode()),None,'SOURCE_REFERENCE' if e.get('path') else 'DERIVED_FACT_EVIDENCE',e.get('acquired_at'),None,None));db.execute('INSERT OR IGNORE INTO validation_source_evidence VALUES(?,?)',(key,encoded(e)));return key
 
-def match(db,f):
+def match(db,f,repair_team_projection=False):
+ if repair_team_projection:
+  from . import canonical_fixture as canonical
+  old=db.execute('SELECT * FROM matches WHERE match_id=?',(f['match_id'],)).fetchone()
+  meta=canonical.metadata(db,f['match_id'])
+  if old is None or meta is None:raise ValueError('EXISTING_CANONICAL_FIXTURE_REQUIRED')
+  projected=[]
+  for side in ('home','away'):
+   key=meta[side+'_team_id'];value=int(key.split(':',1)[1]) if key.startswith('club:') and key.split(':',1)[1].isdigit() else None
+   retained=old[side+'_id']
+   if retained is not None and retained not in (key,value):raise ValueError('LEGACY_TEAM_PROJECTION_CONFLICT')
+   projected.append(value)
+  db.execute('UPDATE matches SET home_id=?,away_id=? WHERE match_id=?',tuple(projected)+(f['match_id'],))
+  return False
  from .canonical_adapters import observe_fixture
  outcome=observe_fixture(db,f,(f.get('source_evidence') or [{}])[0],create=True,registered_id=f['match_id'])
  f['match_id']=outcome['match_id']

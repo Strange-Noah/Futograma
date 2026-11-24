@@ -165,6 +165,8 @@ def certified_badge_sides(cols,fixture,source):
   full=re.findall(r'[a-z0-9]+',b.get('alt','').lower());short=re.findall(r'[a-z0-9]+',own.lower())
   # Permit ordered whole words or >=3-letter prefixes; initials require another word.
   if canon(own)!=fixture[side+'_team']:
+   if (canon(own),canon(b.get('alt',''))) in {('spurs','tottenhamhotspur'),('wolves','wolverhamptonwanderers'),('manutd','manchesterunited'),('bmouth','bournemouth'),('mgladbach','monchengladbach'),('leytonor','leytonorient')}:
+    ids.append(m[1]);continue
    pos=0
    for word in short:
     while pos<len(full) and not (word==full[pos] or len(word)>=3 and full[pos].startswith(word) or len(word)==1 and len(short)>1 and any(len(w)>=3 for w in short) and full[pos].startswith(word)):pos+=1
@@ -322,16 +324,20 @@ def mancity_report_squad(raw, source_url, club_id):
   raise ParseError('OFFICIAL_REPORT_REQUEST_IDENTITY_MISMATCH')
  articles=[a for a in jsonld(raw) if a.get('@type')=='NewsArticle' and isinstance(a.get('mainEntityOfPage'),dict) and a['mainEntityOfPage'].get('@id')==source_url]
  if len(articles)!=1:raise ParseError('OFFICIAL_REPORT_RETURNED_IDENTITY_MISMATCH')
- paragraphs=[' '.join(p.txt().split()) for p in Tree(raw).root.all(tag='p')]
+ paragraphs=[text for p in Tree(raw).root.all(tag='p') if (text:=' '.join(p.txt().split()))]
  xi_prefix=r'^CITY(?: XI)?\s*[:|]\s*'
  bench_prefix=r'^(Subs(?: not used)?|Unused subs)\s*:\s*'
- indices=[i for i,p in enumerate(paragraphs) if re.match(xi_prefix,p)]
+ indices=[i for i,p in enumerate(paragraphs) if re.match(xi_prefix,p,re.I)]
  if len(indices)!=1:raise Pending('OFFICIAL_REPORT_UNIQUE_CITY_XI_REQUIRED')
  i=indices[0]
  if i+1>=len(paragraphs) or not re.match(bench_prefix,paragraphs[i+1],re.I):raise Pending('OFFICIAL_REPORT_ADJACENT_BENCH_REQUIRED')
  bench_label=re.match(bench_prefix,paragraphs[i+1],re.I)[1]
- xi=re.sub(xi_prefix,'',paragraphs[i]);bench=re.sub(bench_prefix,'',paragraphs[i+1],flags=re.I)
- entries=[v.strip() for v in xi.split(',')]
+ xi=re.sub(xi_prefix,'',paragraphs[i],flags=re.I);bench=re.sub(bench_prefix,'',paragraphs[i+1],flags=re.I)
+ entries=[]
+ for value in xi.split(','):
+  value=value.strip()
+  if entries and re.fullmatch(r'\([^()]+\)',value):entries[-1]+=' '+value
+  else:entries.append(value)
  if len(entries)!=11 or any(not v for v in entries):raise Pending('OFFICIAL_REPORT_ELEVEN_STARTERS_REQUIRED')
  starters=[];replacement_mentions=[]
  for entry in entries:
@@ -341,9 +347,9 @@ def mancity_report_squad(raw, source_url, club_id):
   starters.append(name)
   replacement_mentions.extend(v.strip() for v in re.findall(r'\(([^)]*)\)',entry) if v.strip().upper()!='C')
  if len({base_canon(n) for n in starters})!=11:raise Pending('OFFICIAL_REPORT_DUPLICATE_STARTER_LABEL')
- listed=[v.strip() for v in bench.split(',')]
- if not listed or any(not v or re.search(r'[()\d]',v) for v in listed):raise Pending('OFFICIAL_REPORT_BENCH_LABEL_REQUIRED')
- return dict(club_id=club_id,starters=starters,listed_bench=listed,replacement_mentions=replacement_mentions,raw_xi=xi,raw_bench=bench,bench_wording=bench_label,article_date=articles[0].get('datePublished'),article_headline=articles[0].get('headline'),complete_squad=False,canonical_adjudication=False,unused_substitutes_confirmed=False)
+ bench_fields=[v.strip() for v in bench.split(',')];listed=[v for v in bench_fields if v]
+ if not listed or any(re.search(r'[()\d]',v) for v in listed):raise Pending('OFFICIAL_REPORT_BENCH_LABEL_REQUIRED')
+ return dict(club_id=club_id,starters=starters,listed_bench=listed,replacement_mentions=replacement_mentions,raw_xi=xi,raw_bench=bench,bench_wording=bench_label,empty_bench_fields=sum(not v for v in bench_fields),article_date=articles[0].get('datePublished'),article_headline=articles[0].get('headline'),complete_squad=False,canonical_adjudication=False,unused_substitutes_confirmed=False)
 
 def mancity_catalogue(raw, source_url, club_id):
  """Retained seasonal results format; discovery observations, not fixture admission."""

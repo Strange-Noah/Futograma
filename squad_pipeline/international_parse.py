@@ -72,7 +72,14 @@ def parse_sky(raw,source,fixture):
     required=('home','away','home_team_key','away_team_key','kickoff','competition_label','competition_key','level','evidence')
     if any(not fixture.get(k) for k in required):raise ValueError('VERIFIED_NATIONAL_FIXTURE_CONTEXT_REQUIRED')
     root=Tree(raw).root;header=root.one('sdc-site-match-header')
-    if header.attrs.get('data-status')!='4':raise Pending('SKY_NOT_FULL_TIME')
+    status=header.attrs.get('data-status')
+    duration_proof=fixture.get('duration_evidence') or {}
+    duration=fixture.get('verified_duration_minutes')
+    accepted_knockout=(status=='8' and duration_proof.get('scope')=='EXACT_MATCH_DURATION'
+                       and duration_proof.get('sha256')==source.get('sha256')
+                       and bool(duration_proof.get('accepted_match_id'))
+                       and (duration==120 or (duration==90 and duration_proof.get('no_extra_time_rule'))))
+    if status!='4' and not accepted_knockout:raise Pending('SKY_NOT_FULL_TIME')
     names=header.all('sdc-site-match-header__team-name-block-target')
     if len(names)!=2 or [canon(n.txt()) for n in names]!=[canon(fixture['home']),canon(fixture['away'])]:raise ParseError('NATIONAL_FIXTURE_TEAM_MISMATCH')
     kickoff=uk_datetime(header.one('sdc-site-match-header__detail-time').txt())

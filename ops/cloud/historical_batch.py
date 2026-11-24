@@ -1,5 +1,6 @@
 """Run trusted, project-local historical replay and audit scripts in sequence."""
 import argparse
+import datetime
 import fcntl
 import json
 import sqlite3
@@ -8,6 +9,7 @@ import sys
 from collections import Counter
 from contextlib import closing
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from ops.cloud.historical_unit import within
 from squad_pipeline.cloud.quality import inspect, sha
@@ -213,14 +215,381 @@ def execute(plan_path, work):
     return compact
 
 
+def unit_window(row):
+    season, half = row['unit'].split('-')
+    year = int(season[:4])
+    start = f'{year}-07-01' if half == 'H1' else f'{year + 1}-01-01'
+    end = f'{year + 1}-01-01' if half == 'H1' else f'{year + 1}-07-01'
+    return dict(club_id=row['club_id'], start=start, end_exclusive=end)
+
+
+def refresh_matrix(matrix, candidate):
+    with closing(sqlite3.connect(candidate.as_uri() + '?mode=ro', uri=True)) as db:
+        for row in matrix['units']:
+            if row['data_accepted']:
+                continue
+            unit = unit_window(row)
+            args = tuple(unit.values())
+            ids = [r[0] for r in db.execute(
+                'SELECT DISTINCT p.player_id FROM player_match_minutes p JOIN matches m USING(match_id) '
+                'WHERE club_id=? AND local_date>=? AND local_date<?', args)]
+            if not ids:
+                continue  # A separate isolated candidate may own this unit.
+            result = counts(candidate, unit, ids)
+            row.update(canonical_matches=result['club_fixtures'],
+                       canonical_player_rows=result['club_rows'],
+                       unknown_minutes=result['club_unknown_minutes'],
+                       numeric_minutes=result['club_rows'] - result['club_unknown_minutes'],
+                       canonical_national_matches=result['national_fixtures'],
+                       canonical_national_player_rows=result['national_rows'],
+                       national_numeric_minutes=result['national_rows'] - result['national_unknown_minutes'])
+    matrix['candidate'] = str(candidate.relative_to(ROOT))
+    return matrix
+
+
+def continue_batches(config_path, work):
+    config = json.loads(local_path(config_path).read_text())
+    work = local_path(work)
+    work.mkdir(exist_ok=True)
+    with (work / 'batch.lock').open('a') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        return consume_sources(config, work)
+
+
+def discover_gaps(candidate, matrix, catalogues):
+    """Join retained fixture mappings to the current candidate before scheduling."""
+    windows = [(row, unit_window(row)) for row in matrix['units'] if not row['data_accepted']]
+    tasks = {}
+    with closing(sqlite3.connect(candidate.as_uri() + '?mode=ro', uri=True)) as db:
+        fixtures = db.execute("""
+            SELECT f.home_key, f.away_key, substr(coalesce(m.local_date, json_extract(k.value_json,'$')),1,10),
+                   s.url, f.match_id, coalesce(s.complete,0)
+            FROM canonical_fixtures f
+            LEFT JOIN matches m USING(match_id)
+            LEFT JOIN canonical_field_values k ON k.match_id=f.match_id AND k.field='kickoff'
+            LEFT JOIN (
+                SELECT match_id, json_extract(evidence_json,'$.url') url,
+                       json_extract(evidence_json,'$.complete_squad') complete
+                FROM canonical_fixture_sources WHERE provider='Sky' AND domain='CLUB'
+            ) s USING(match_id)
+            WHERE f.domain='CLUB'
+        """).fetchall()
+        coverage = {(club, mid): (starts, unknown) for club, mid, starts, unknown in db.execute("""
+            SELECT club_id,match_id,sum(participation_status='STARTER'),
+                   sum(minutes IS NULL AND participation_status IN ('STARTER','SUBSTITUTE_USED'))
+            FROM player_match_minutes GROUP BY club_id,match_id
+        """)}
+        complete = {(club, mid) for club, mid in db.execute("""
+            SELECT DISTINCT o.club_id,o.match_id FROM squad_observations o
+            JOIN canonical_fixture_sources s ON s.match_id=o.match_id AND s.domain='CLUB'
+            WHERE json_extract(s.evidence_json,'$.complete_squad')=1
+        """)}
+        national_work = db.execute("""
+            SELECT q.url,m.madrid_date,q.player_id FROM international_acquisition_queue q
+            JOIN international_matches m ON q.match_id=m.match_id
+            WHERE q.provider='Sky' AND q.state IN ('PENDING','RETRY')
+              AND q.entity_type IN ('MATCH','ALTERNATIVE_MATCH','PLAYER_MATCH','PLAYER_MINUTES')
+        """).fetchall()
+        days, urls_by_match = {}, {}
+        for home, away, day, url, mid, _ in fixtures:
+            for side in (home, away):
+                if isinstance(side, str) and side.startswith('club:') and day:
+                    days.setdefault((int(side.split(':')[1]), day), set()).add(mid)
+            if url:
+                urls_by_match.setdefault(mid, set()).add(url)
+
+        def offer(day, url, kind):
+            if url and urlsplit(url).hostname == 'www.skysports.com':
+                tasks.setdefault(source_id(url), (url, set(), kind))[1].add(day)
+
+        gaps = {f'{u["club_id"]}:{row["unit"]}': Counter() for row, u in windows}
+        for row, unit in windows:
+            cid = unit['club_id']
+            gap = gaps[f'{cid}:{row["unit"]}']
+            for (club, day), mids in days.items():
+                if club != cid or not unit['start'] <= day < unit['end_exclusive']:
+                    continue
+                for mid in mids:
+                    starts, unknown = coverage.get((cid, mid), (0, 0))
+                    needs_squad = starts != 11 or (cid, mid) not in complete
+                    if not (needs_squad or unknown):
+                        continue
+                    gap['squads_without_complete_canonical_coverage'] += needs_squad
+                    gap['observed_played_rows_without_numeric_minutes'] += unknown or 0
+                    for url in sorted(urls_by_match.get(mid, ())):
+                        offer(day, url, 'club')
+            if not row['source_ready']:
+                gap['whole_unit_source_scope_requires_evidence'] = 1
+            if row.get('national_coverage', '').startswith(('PARTIAL', 'NOT CHECKED')):
+                gap['applicable_national_scope_requires_evidence'] = 1
+            for url, day, pid in national_work:
+                if unit['start'] <= day < unit['end_exclusive'] and pid and db.execute("""
+                    SELECT 1 FROM player_match_minutes p JOIN matches m USING(match_id)
+                    WHERE p.club_id=? AND p.player_id=? AND m.local_date>=? AND m.local_date<? LIMIT 1
+                """, (cid, pid, unit['start'], unit['end_exclusive'])).fetchone():
+                    offer(day, url, 'national')
+
+        unmapped = {}
+        official_gaps = set()
+        for path in catalogues:
+            for entry in json.loads(local_path(path).read_text()):
+                if not isinstance(entry, dict):
+                    continue
+                for fixture in (entry.get('native') or {}).get('fixtures', [entry]):
+                    if fixture.get('provider') in {'Mancity', 'DFB'}:
+                        cid = fixture['club_id']
+                        day = fixture.get('source_start', '')[:10]
+                        if not day:
+                            date = fixture.get('visible_datetime', '').split()
+                            day = datetime.datetime.strptime(date[1], '%d.%m.%Y').date().isoformat() if len(date) > 1 else ''
+                        for row, unit in windows:
+                            if cid != unit['club_id'] or not unit['start'] <= day < unit['end_exclusive']:
+                                continue
+                            if days.get((cid, day)) or not fixture.get('score'):
+                                continue
+                            key = f'{cid}:{row["unit"]}'
+                            teams = (fixture.get('home_name', fixture.get('home_label')),
+                                     fixture.get('away_name', fixture.get('away_label')))
+                            signature = (key, day, teams)
+                            if signature in official_gaps:
+                                continue
+                            official_gaps.add(signature)
+                            gaps[key]['unmatched_official_catalogue_entries'] += 1
+                            examples = unmapped.setdefault(key, [])
+                            if len(examples) < 8:
+                                catalogue = fixture.get('source_url') or entry.get('url') or str(path)
+                                examples.append(dict(date=day, teams=teams, catalogue=catalogue,
+                                    next_action='Verify competition scope and supply an exact supported squad source'))
+                        continue
+                    if not fixture.get('catalog_completed'):
+                        continue
+                    cid, day, url = fixture.get('club_id', entry.get('club_id')), fixture.get('date', ''), fixture.get('url')
+                    if not url or not day:
+                        continue
+                    for row, unit in windows:
+                        if cid != unit['club_id'] or not unit['start'] <= day < unit['end_exclusive']:
+                            continue
+                        mids = days.get((cid, day), set())
+                        if not mids or any(coverage.get((cid, mid), (0, 0))[0] != 11
+                                           or (cid, mid) not in complete
+                                           or coverage.get((cid, mid), (0, 0))[1] for mid in mids):
+                            offer(day, url, 'club')
+        for row, unit in windows:
+            key = f'{unit["club_id"]}:{row["unit"]}'
+            row['acceptance_assessment'] = ('COMPLETE_FIXTURE_AND_SQUAD_SCOPE_REQUIRED'
+                if not row['source_ready'] else 'APPLICABLE_NATIONAL_SCOPE_AND_UNIT_VERDICT_REQUIRED')
+    return tasks, {key: dict(gap, source_mapping_examples=unmapped.get(key, []))
+                   for key, gap in gaps.items()}
+
+
+def consume_sources(config, work):
+    matrix_path = work / 'matrix-private.json'
+    matrix = json.loads((matrix_path if matrix_path.exists() else local_path(config['matrix'])).read_text())
+    state_path = work / 'continuation-private.json'
+    state = json.loads(state_path.read_text()) if state_path.exists() else {
+        'candidate': config['candidate'], 'reference': config['reference'], 'batches': []}
+    unit_checks = state.setdefault('unit_checks', {})
+    attempted, archived = set(), {}
+    paths = [*(ROOT / '.cloud').glob('*/results-private.json'),
+             *work.glob('batch-*/acquisition/results-private.json')]
+    for path in paths:
+        try:
+            rows = json.loads(path.read_text())
+        except json.JSONDecodeError:
+            continue  # An independent acquisition may be updating its receipt.
+        if isinstance(rows, list):
+            attempted.update(source_id(row['url']) for row in rows
+                             if isinstance(row, dict) and row.get('url') and 'outcome' in row)
+            for row in rows:
+                if (isinstance(row, dict) and row.get('outcome') == 'FOUND'
+                        and row.get('url') and row.get('artifact')):
+                    archived[row['url']] = (path.parent, row)
+    processed = {source_id(url) for batch in state['batches'] for url in batch['attempted_urls']}
+    attempted.update(processed)
+    replayed = {url for batch in state['batches'] for url in batch.get('replayed_urls', [])}
+    # These were collected but excluded by the old opponent rule before processing.
+    excluded_opponents = {url for url in archived
+                          if any(name in urlsplit(url).path.lower() for name in ('real-madrid', 'realmadrid'))}
+    queued = {}
+    retained_gap_keys = set()
+    for path in config['source_ledgers']:
+        for group in json.loads(local_path(path).read_text()):
+            date = datetime.datetime.strptime(group['month'], '%B %Y').date().isoformat()
+            for url in group['urls']:
+                parsed = urlsplit(url)
+                if parsed.hostname != 'www.skysports.com':
+                    continue
+                kind = group.get('kind', 'national')
+                key = source_id(url)
+                queued.setdefault(key, (url, set(), kind))[1].add(date)
+                if group.get('replay_unapplied_archives') and url in archived:
+                    retained_gap_keys.add(key)
+    for url in sorted(excluded_opponents):
+        if source_id(url) in queued and url not in replayed:
+            attempted.discard(source_id(url))
+
+    def pending():
+        windows = [(unit_window(row), row['source_ready']) for row in matrix['units']
+                   if not row['data_accepted']]
+        ranked = []
+        for key, (url, dates, kind) in queued.items():
+            if key in attempted and not (key in retained_gap_keys and key not in processed):
+                continue
+            affected = [ready for unit, ready in windows
+                        if any(unit['start'] <= date < unit['end_exclusive'] for date in dates)]
+            if affected:
+                ranked.append((-sum(affected), -len(affected), url, kind))
+        return [(url, kind) for _, _, url, kind in sorted(ranked)]
+
+    def check_ready_units(before=None):
+        fields = ('canonical_matches', 'canonical_player_rows', 'unknown_minutes',
+                  'canonical_national_matches', 'canonical_national_player_rows',
+                  'national_numeric_minutes')
+        for row in matrix['units']:
+            key = f'{row["club_id"]}:{row["unit"]}'
+            plan_path = config.get('unit_plans', {}).get(key)
+            if row['data_accepted']:
+                continue
+            metrics = tuple(row.get(field) for field in fields)
+            if before is not None and before.get(key) == metrics:
+                continue
+            if not row['source_ready'] or not plan_path:
+                row['acceptance_assessment'] = ('COMPLETE_FIXTURE_AND_SQUAD_SCOPE_REQUIRED'
+                    if not row['source_ready'] else 'APPLICABLE_NATIONAL_SCOPE_AND_UNIT_VERDICT_REQUIRED')
+                continue
+            plan_path = local_path(plan_path)
+            plan_hash = sha(plan_path)
+            previous = unit_checks.get(key, {})
+            if previous.get('plan_sha256') == plan_hash:
+                continue
+            plan = json.loads(plan_path.read_text())
+            unit = json.loads(local_path(plan['freeze']).read_text())['unit']
+            if any(unit[field] != value for field, value in unit_window(row).items()):
+                raise ValueError('CONTINUATION_UNIT_PLAN_MISMATCH')
+            unit_work = config.get('unit_work', {}).get(key)
+            result = run(plan_path, Path(unit_work) if unit_work else work / f'unit-{row["club_id"]}-{plan_hash[:16]}')
+            detail = json.loads(local_path(result['detailed_receipt']).read_text())
+            last = detail['steps'][-1] if detail['steps'] else None
+            verdict = json.loads(local_path(last['details']).read_text()) if last else {}
+            accepted = (result['acceptance'] == 'SEE_EXISTING_UNIT_ACCEPTANCE'
+                        and result['stages_completed'] == len(plan['steps'])
+                        and (verdict.get('data_accepted') is True or verdict.get('DATA_ACCEPTED') is True)
+                        and verdict.get('sqlite_sha256') == sha(local_path(detail['candidate'])))
+            unit_checks[key] = dict(plan_sha256=plan_hash, receipt=result['detailed_receipt'],
+                                    accepted=accepted, exceptions=result['exceptions'])
+            if accepted:
+                row.update(data_accepted=True, acceptance_receipt=last['details'],
+                           accepted_candidate=detail['candidate'],
+                           canonical_matches=result['counts']['club_fixtures'],
+                           canonical_player_rows=result['counts']['club_rows'],
+                           numeric_minutes=result['counts']['club_rows'] - result['counts']['club_unknown_minutes'],
+                           unknown_minutes=result['counts']['club_unknown_minutes'],
+                           canonical_national_matches=result['counts']['national_fixtures'],
+                           canonical_national_player_rows=result['counts']['national_rows'],
+                           national_numeric_minutes=result['counts']['national_rows'] - result['counts']['national_unknown_minutes'],
+                           national_coverage='PASS / VERIFIED: applicable scope in acceptance receipt',
+                           national_match_coverage='PASS / VERIFIED: applicable scope in acceptance receipt',
+                           R1_R6='PASS / VERIFIED: scoped disposition in acceptance receipt')
+                for field in ('acceptance_assessment', 'next_action', 'next_action_priority'):
+                    row.pop(field, None)
+                state['accepted'] = sum(item['data_accepted'] for item in matrix['units'])
+            write(matrix_path, matrix)
+            write(state_path, state)
+
+    candidate = local_path(state['candidate'])
+    check_ready_units()
+    state['state'] = 'RUNNING'
+    write(state_path, state)
+    source_stop = None
+    while any(not row['data_accepted'] for row in matrix['units']):
+        remaining = pending()
+        if not remaining:
+            discovered, obligations = discover_gaps(candidate, matrix, config.get('catalogues', []))
+            write(work / 'obligations-private.json', obligations)
+            remaining = [(url, kind) for key, (url, _, kind) in discovered.items()
+                         if key not in attempted or (url in archived and key not in processed)]
+            if not remaining:
+                break
+            queued.update(discovered)
+        kind = remaining[0][1]
+        urls = [url for url, source_kind in remaining if source_kind == kind][:config.get('chunk_size', 8)]
+        # Only this independent subset must be available before it can be ingested.
+        batch = work / f'batch-{len(state["batches"]) + 1:04d}'
+        batch.mkdir(exist_ok=True)
+        queue = batch / 'queue-private.json'
+        if queue.exists():
+            urls = json.loads(queue.read_text())
+            kind = queued[source_id(urls[0])][2]
+        else:
+            write(queue, urls)
+        acquisition = batch / 'acquisition'
+        if not (acquisition / 'results-private.json').exists():
+            retained = []
+            for url in urls:
+                if url not in archived:
+                    continue
+                parent, row = archived[url]
+                artifact = dict(row['artifact'])
+                loc = parent / artifact['locator']
+                if loc.is_file():
+                    artifact['locator'] = str(loc.resolve())
+                    retained.append(dict(row, artifact=artifact, continuation_replay=True))
+            if retained:
+                acquisition.mkdir(exist_ok=True)
+                write(acquisition / 'results-private.json', retained)
+        receipt = batch / 'result-private.json'
+        if not receipt.exists():
+            with (batch / 'run.log').open('a') as log:
+                worker = config.get('workers', {}).get(kind, config['worker'])
+                subprocess.run([sys.executable, '-B', str(local_path(worker)),
+                                str(queue), str(candidate), str(local_path(state['reference'])),
+                                str(batch)], cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, check=True)
+        result = json.loads(receipt.read_text())
+        state.update(candidate=result['candidate'], reference=result['reference'])
+        candidate = local_path(state['candidate'])
+        progress = result['ordinary_export'] == 'PASS' and any(result.get(field, 0) > 0 for field in (
+            'new_national_matches', 'new_national_player_rows', 'new_matches',
+            'new_player_match_rows', 'minutes_recovered'))
+        state['batches'].append(dict(result, productive=progress, queue=str(queue), kind=kind))
+        attempted.update(map(source_id, result['attempted_urls']))
+        processed.update(map(source_id, result['attempted_urls']))
+        replayed.update(result.get('replayed_urls', []))
+        write(state_path, state)
+        before = {f'{row["club_id"]}:{row["unit"]}': tuple(row.get(field) for field in (
+            'canonical_matches', 'canonical_player_rows', 'unknown_minutes', 'canonical_national_matches',
+            'canonical_national_player_rows', 'national_numeric_minutes')) for row in matrix['units']}
+        refresh_matrix(matrix, candidate)
+        if progress:
+            check_ready_units(before)
+        write(matrix_path, matrix)
+        if result['source_stop'] in {'ACCESS_RESTRICTED', 'RATE_LIMITED', 'ROBOTS_DISALLOWED'}:
+            source_stop = result['source_stop']
+            break
+
+    write(matrix_path, refresh_matrix(matrix, candidate))
+    state.update(accepted=sum(row['data_accepted'] for row in matrix['units']),
+                 remaining_units=[dict(club_id=row['club_id'], unit=row['unit'],
+                                       next_action=row.get('next_action'))
+                                  for row in matrix['units'] if not row['data_accepted']])
+    state['state'] = (source_stop or 'SOURCE_MAPPING_OR_SCOPE_EVIDENCE_REQUIRED') if state['remaining_units'] else 'DATA_ACCEPTED'
+    write(state_path, state)
+    return state
+
+
+def source_id(url):
+    parsed = urlsplit(url)
+    return parsed.hostname, parsed.path.rstrip('/').rsplit('/', 1)[-1]
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('plan', type=Path)
     parser.add_argument('work', type=Path)
+    parser.add_argument('--continuous', action='store_true')
     args = parser.parse_args()
     try:
-        result = run(args.plan, args.work)
-    except (ValueError, OSError, sqlite3.Error) as error:
+        result = (continue_batches if args.continuous else run)(args.plan, args.work)
+    except (ValueError, OSError, sqlite3.Error, subprocess.CalledProcessError) as error:
         result = dict(batch=args.work.name, state='FAIL', exceptions=[
             dict(kind='TECHNICAL_FAILURE', evidence=str(args.plan),
                  next_action=f'Inspect batch inputs and checkpoint ({error})')])

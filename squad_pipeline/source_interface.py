@@ -249,6 +249,74 @@ class SourceService:
         self.client.catalogue_allowlist.add(url)
         return dict(url=url,parent_artifact_key=parent.key,parent_sha256=parent.content_sha256)
 
+    def admit_player_history_link(self, parent, url, observed_players):
+        """Exact disclosed cursors for already observed six-club people, opt-in only.
+
+        observed_players maps club IDs to verified provider IDs from retained squads.
+        This grants acquisition, never identity, membership or completeness acceptance.
+        """
+        from .identity_sources import next_data
+        clubs={8456,9825,9823,9847,8634,8636}
+        origin=urlsplit(parent.request.target_url);target=urlsplit(url)
+        match=re.fullmatch(r'/prod/db/api/player/([1-9][0-9]*)/matches',target.path)
+        query=parse_qsl(target.query,keep_blank_values=True)
+        if (parent.request.provider!='FotMob' or target.scheme!='https'
+            or target.netloc!='pub.fotmob.com' or target.fragment or not match
+            or len(query)!=3 or set(k for k,v in query)!={'before','leagueId','teamId'}
+            or dict(query).get('leagueId')!='' or dict(query).get('teamId')!=''
+            or not re.fullmatch(r'[1-9][0-9]*',dict(query).get('before',''))):
+            raise ValueError('EXACT_PUBLIC_PLAYER_HISTORY_REQUIRED')
+        pid=match[1];before=int(dict(query)['before'])
+        club=parent.request.context.get('club_id')
+        if club not in clubs or pid not in {str(x) for x in observed_players.get(club,())}:
+            raise ValueError('OBSERVED_SIX_CLUB_PERSON_REQUIRED')
+        if before<1719792000:raise ValueError('HISTORICAL_START_REACHED')
+        acquired=self.acquire(parent.request,parent)
+        if acquired.outcome!='FOUND' or parent.metadata.get('http_status') not in {200,304}:
+            raise ValueError('VERIFIED_PARENT_CAPTURE_REQUIRED')
+        body=self.store.read(parent)
+        if (origin.netloc=='www.fotmob.com' and re.fullmatch(r'/players/'+pid,origin.path)
+            and not origin.query and not origin.fragment and parent.request.category=='profile'):
+            data=next_data(body.decode('utf8'))['data']
+            if str(data.get('id'))!=pid:raise ValueError('PARENT_PLAYER_ID_MISMATCH')
+            page=data.get('initialMatchesPage')
+        elif (parent.request.target_url in self.client.player_history_allowlist
+              and parent.request.category=='player_history'
+              and origin.path==target.path and origin.netloc==target.netloc):
+            if before>=int(dict(parse_qsl(origin.query,keep_blank_values=True))['before']):
+                raise ValueError('NON_DECREASING_HISTORY_CURSOR')
+            page=json.loads(body)
+        else:raise ValueError('VERIFIED_PLAYER_HISTORY_PARENT_REQUIRED')
+        if not isinstance(page,dict) or page.get('previous')!=url or not isinstance(page.get('matches'),list):
+            raise ValueError('DISCLOSED_HISTORY_CURSOR_REQUIRED')
+        self.client.player_history_allowlist.add(url)
+        return dict(url=url,player_id=pid,club_id=club,parent_artifact_key=parent.key,
+                    parent_sha256=parent.content_sha256,before=before)
+
+    def admit_disclosed_fixture_archive(self, parent, url):
+        """Opt-in initial public fixture cursor disclosed by a verified team SSR page.
+
+        All other API paths stay blocked. This grants retrieval only, not facts.
+        """
+        from .international_discovery import team_payload
+        from .live_parse import CLUBS
+        target=urlsplit(url);origin=urlsplit(parent.request.target_url)
+        team=str(parent.request.expected_ids.get('team',''))
+        if not team.isdigit() or int(team) not in CLUBS or parent.request.provider!='FotMob':raise ValueError('CONFIGURED_TEAM_ARCHIVE_PARENT_REQUIRED')
+        path='/prod/db/api/team/'+team+'/fixture-by-date'
+        if target.scheme!='https' or target.netloc!='pub.fotmob.com' or target.path!=path or target.fragment or not re.fullmatch(r'beforeTimestamp=[1-9][0-9]{9}',target.query):raise ValueError('EXACT_PUBLIC_FIXTURE_CURSOR_REQUIRED')
+        cursor=int(target.query.split('=')[1]);start=parent.request.context.get('start')
+        if not start or cursor<=datetime.fromisoformat(start).replace(tzinfo=timezone.utc).timestamp():raise ValueError('ARCHIVE_SCOPE_START_REACHED')
+        acquired=self.acquire(parent.request,parent)
+        if acquired.outcome!='FOUND' or parent.metadata.get('http_status') not in {200,304}:raise ValueError('VERIFIED_ARCHIVE_PARENT_REQUIRED')
+        raw=self.store.read(parent).decode('utf8')
+        if origin.scheme=='https' and origin.netloc=='www.fotmob.com' and origin.path=='/teams/'+team+'/fixtures' and not origin.query and parent.request.category=='team_history':
+            data,_=team_payload(raw,team);disclosed=(data.get('fixtures') or {}).get('previousFixturesUrl')
+        else:raise ValueError('SUPPORTED_SAME_TEAM_ARCHIVE_PARENT_REQUIRED')
+        if disclosed!=url:raise ValueError('EXACT_DISCLOSED_ARCHIVE_URL_REQUIRED')
+        self.client.public_fixture_archives.add(url)
+        return dict(url=url,team=team,parent_artifact_key=parent.key,parent_sha256=parent.content_sha256,scope_start=start)
+
     def acquire(self, request, prior=None):
         if request.version!=VERSION:return SourceAcquisitionResult('CONTRACT_VERSION_UNSUPPORTED')
         request.target_url  # validate even on a replay

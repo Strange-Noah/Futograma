@@ -44,7 +44,12 @@ def record_source(db,source):
  aid='quality_raw_'+source['sha256'];db.execute('INSERT OR IGNORE INTO raw_artifacts VALUES(?,?,?,?,?,?,?,?,?)',(aid,None,source.get('reused_body_path') or source.get('path'),source['sha256'],source.get('size'), 'RETAINED_PUBLIC_RESPONSE',source.get('response_timestamp'),source.get('response_timestamp'),None));return aid
 
 def persist_fixture_row(db,packet,mid):
- f=packet['fixture'];row=packet['discovery_row'];home,away=row['home'],row['away'];kick=f.get('kickoff_utc');day=kick[:10] if kick else None;period=canonical.club_period(day)[0] if day else None;season=f['season'];half='H1' if day and int(day[5:7])>=7 else 'H2'
+ f=packet['fixture'];row=packet['discovery_row'];home,away=dict(row['home']),dict(row['away'])
+ for team in (home,away):
+  value=team.get('id')
+  if isinstance(value,str) and value.startswith('club:') and value[5:].isdigit():team['id']=int(value[5:])
+  elif isinstance(value,str) and value.startswith(('legacy-team:','team_')):team['id']=None
+ kick=f.get('kickoff_utc');day=kick[:10] if kick else None;period=canonical.club_period(day)[0] if day else None;season=f['season'];half='H1' if day and int(day[5:7])>=7 else 'H2'
  if day:db.execute('INSERT OR IGNORE INTO periods VALUES(?,?,?,?,?,?)',(period,season,half,day[:4]+'-07-01' if half=='H1' else day[:4]+'-01-01',str(int(day[:4])+1)+'-01-01' if half=='H1' else day[:4]+'-07-01','Europe/Madrid'))
  db.execute('INSERT OR IGNORE INTO competitions VALUES(?,?,?,?)',(f['competition_key'],row['tournament']['name'],'COMPETITIVE',None));meta=dict(home_team=home['name'],away_team=away['name'],source_evidence=[packet['source']],competition=row['tournament']['name'])
  # Existing accepted legacy facts and historical observations are preserved.

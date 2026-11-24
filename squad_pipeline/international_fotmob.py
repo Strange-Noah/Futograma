@@ -18,7 +18,19 @@ def parse_public_match(raw,source,fixture,history_claims=None,domain="NATIONAL")
         from .match_diagnostics import inspect_match,MatchIdentityMismatch
         raise MatchIdentityMismatch('RETURNED_MATCH_ID_MISMATCH',inspect_match(raw,expected,source))
     if not g.get('finished') or not (header.get('status') or {}).get('finished'):raise ValueError('MATCH_NOT_FINISHED')
-    if g.get('gender')!='male':raise ValueError('MATCH_GENDER_UNVERIFIED')
+    if g.get('gender') != 'male':
+        certificate = fixture.get('official_mens_fixture') or {}
+        # Some older men's qualifier payloads omit the field. The certificate
+        # must bind an independently verified competition fixture to this capture.
+        verified_omission = (
+            g.get('gender') is None and domain == 'NATIONAL' and fixture.get('level') == 'SENIOR'
+            and certificate.get('scope') == 'EXACT_OFFICIAL_MENS_QUALIFIER'
+            and certificate.get('provider_match_id') == expected
+            and certificate.get('match_source_sha256') == source.get('sha256')
+            and bool(source.get('sha256')) and bool(certificate.get('official_source_sha256'))
+        )
+        if not verified_omission:
+            raise ValueError('MATCH_GENDER_UNVERIFIED')
     actual=[str((g.get(s+'Team') or {}).get('id')) for s in ('home','away')];wanted=[str(fixture[s]['id']) for s in ('home','away')]
     if actual!=wanted or len(set(actual))!=2:raise ValueError('ORDERED_TEAM_ID_MISMATCH')
     if [str(x.get('id')) for x in header.get('teams',[])]!=wanted:raise ValueError('HEADER_TEAM_ID_MISMATCH')
