@@ -118,10 +118,15 @@ def replay(candidate, reference, acquisition, worker, output, cached_selection=N
                     player.casefold() in flattened for player in ids):
                 raise ValueError('OFFICIAL_MATCHDAY_SELECTION_NEEDS_REVIEW')
             for player in ids:
-                source_name, shirt = ('N Jackson', '11') if player == 'Nicolas Jackson' else ('N Ndiaye', '22')
-                aliases[(rows[0][0], namekey('Senegal'), namekey(source_name))] = dict(
-                    player_id=ids[player], shirt=shirt, source_url=FIFA + document,
-                    source_sha256=result.artifact.content_sha256, scope='EXACT_TEAM_MATCH_AND_SHIRT')
+                source_names, shirt = (
+                    (('Nicolas Jackson', 'N Jackson'), '11') if player == 'Nicolas Jackson'
+                    else (('Bara Sapoko Ndiaye', 'Bara Ndiaye', 'N Ndiaye'), '22')
+                )
+                certificate = dict(player_id=ids[player], shirt=shirt, source_url=FIFA + document,
+                                   source_sha256=result.artifact.content_sha256,
+                                   scope='EXACT_TEAM_MATCH_AND_SHIRT')
+                for source_name in source_names:
+                    aliases[(rows[0][0], namekey('Senegal'), namekey(source_name))] = certificate
                 claims[(rows[0][0], ids[player], namekey('Senegal'))] = dict(
                     source_url=FIFA + document, source_sha256=result.artifact.content_sha256,
                     national_team='Senegal', matchday=day, source_scope='FIFA_MATCHDAY_SELECTION',
