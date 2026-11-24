@@ -33,6 +33,10 @@ Before dependent operations, verify the actual execution environment, workspace 
 - Technical access does not constitute user authorization.
 - No additional paid services or newly allocated compute without approval.
 - Never expose private data, credentials, raw private evidence, or sensitive configuration in the public repository.
+- Before repository mutations, verify the intended repository, personal branch, remotes, and applicable worktree status.
+- Read current authoritative production pointers before proposing any production mutation.
+- Unavoidable tool-managed temporary directories do not extend local workspace authorization. Document their purpose and lifetime.
+- Preserve recovery assets and unresolved conflicts. Copy and verify before cleanup; never delete recovery sources or change Google Drive settings without separate authorization.
 
 Do not modify production databases, production pins, active schedules, deployment configuration, or protected branches without explicit authorization. Preserve rollback capability.
 
