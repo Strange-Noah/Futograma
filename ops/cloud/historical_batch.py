@@ -3,6 +3,7 @@ import argparse
 import datetime
 import fcntl
 import json
+import re
 import sqlite3
 import subprocess
 import sys
@@ -247,13 +248,13 @@ def refresh_matrix(matrix, candidate):
     return matrix
 
 
-def continue_batches(config_path, work, national_unit=None):
+def continue_batches(config_path, work, national_unit=None, national_sources=()):
     config = json.loads(local_path(config_path).read_text())
     work = local_path(work)
     work.mkdir(exist_ok=True)
     with (work / 'batch.lock').open('a') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        return consume_sources(config, work, national_unit)
+        return consume_sources(config, work, national_unit, national_sources)
 
 
 def discover_gaps(candidate, matrix, catalogues):
@@ -382,7 +383,7 @@ def discover_gaps(candidate, matrix, catalogues):
                    for key, gap in gaps.items()}
 
 
-def consume_sources(config, work, national_unit=None):
+def consume_sources(config, work, national_unit=None, national_sources=()):
     matrix_path = work / 'matrix-private.json'
     matrix = json.loads((matrix_path if matrix_path.exists() else local_path(config['matrix'])).read_text())
     state_path = work / 'continuation-private.json'
@@ -431,6 +432,18 @@ def consume_sources(config, work, national_unit=None):
                 queued.setdefault(key, (url, set(), kind))[1].add(date)
                 if group.get('replay_unapplied_archives') and url in archived:
                     retained_gap_keys.add(key)
+    if national_sources:
+        window = unit_window(active_rows[0])
+        for item in national_sources:
+            url, day, kind = item['url'], item['date'], item['worker']
+            if (not re.fullmatch(r'https://www\.skysports\.com/football/[a-z0-9-]+/teams/[0-9]+', url)
+                    or not window['start'] <= datetime.date.fromisoformat(day).isoformat() < window['end_exclusive']
+                    or kind not in ('national', 'afcon') or kind not in config['workers']):
+                raise ValueError('INVALID_SCOPED_NATIONAL_SOURCE')
+            key = source_id(url)
+            queued[key] = (url, {datetime.date.fromisoformat(day)}, kind)
+            if url in archived:
+                retained_gap_keys.add(key)
     for url in sorted(excluded_opponents):
         if source_id(url) in queued and url not in replayed:
             attempted.discard(source_id(url))
@@ -528,7 +541,7 @@ def consume_sources(config, work, national_unit=None):
         queue = batch / 'queue-private.json'
         if queue.exists():
             urls = json.loads(queue.read_text())
-            if national_unit and any(source_id(url) not in queued or queued[source_id(url)][2] != 'national'
+            if national_unit and any(source_id(url) not in queued or queued[source_id(url)][2] not in ('national', 'afcon')
                                      for url in urls):
                 raise ValueError('EXISTING_QUEUE_OUTSIDE_NATIONAL_UNIT')
             kind = queued[source_id(urls[0])][2]
@@ -599,11 +612,15 @@ def main():
     parser.add_argument('work', type=Path)
     parser.add_argument('--continuous', action='store_true')
     parser.add_argument('--national-unit', help='Limit continuous replay to national evidence for a source-ready unit')
+    parser.add_argument('--national-sources', type=Path, help='Evidence-backed Sky match sheets for the selected unit')
     args = parser.parse_args()
+    if args.national_sources and not args.national_unit:
+        parser.error('--national-sources requires --national-unit')
     if args.national_unit and not args.continuous:
         parser.error('--national-unit requires --continuous')
     try:
-        result = (continue_batches(args.plan, args.work, args.national_unit) if args.continuous
+        sources = json.loads(local_path(args.national_sources).read_text()) if args.national_sources else ()
+        result = (continue_batches(args.plan, args.work, args.national_unit, sources) if args.continuous
                   else run(args.plan, args.work))
     except (ValueError, OSError, sqlite3.Error, subprocess.CalledProcessError) as error:
         result = dict(batch=args.work.name, state='FAIL', exceptions=[
