@@ -78,7 +78,8 @@ for frame in frames:
     for cid,population in members[period].items():
      pid=known_person(cid,person['name'],person['provider_key'])
      if pid is not None and pid in population:possible.add(pid);club_scope.append(cid)
-     if alias and alias['player_id'] in population:
+     if (alias and alias['player_id'] in population and
+         (alias.get('shirt') is None or str(person.get('shirt')) == str(alias['shirt']))):
       possible.add(alias['player_id']);club_scope.append(cid)
     if not possible:continue
     supported=[]
@@ -89,7 +90,7 @@ for frame in frames:
       ident=record.provider_ids['FotMob'];entries=record.raw_fields.get('career',{}).get('national team',{}).get('teamEntries',[])
       affiliation=[t for t in entries if str(t.get('participantId'))==ident and (str(t.get('teamId'))in provider_ids or ({'korearepublic':'southkorea'}.get(namekey(t.get('team','')),namekey(t.get('team','')))=={'korearepublic':'southkorea'}.get(namekey(country),namekey(country))))and (not t.get('startDate')or t['startDate'][:10]<=day)and(not t.get('endDate')or day<=t['endDate'][:10])]
      selection=selection_claims.get((frame['match_id'],pid,namekey(country)))
-     if selection:affiliation.append(dict(selection,identity_alias=alias if alias and alias['player_id']==pid else None))
+     if selection:affiliation.append(dict(selection,identity_alias=alias if alias and alias['player_id']==pid and (alias.get('shirt') is None or str(person.get('shirt'))==str(alias['shirt'])) else None))
      if affiliation:supported.append((pid,record,affiliation))
     if len(supported)!=1:
      identity_issues.append(dict(name=person['name'],date=day,country=country,source=src['url'],candidate_player_ids=sorted(possible),reason='NO_UNIQUE_IDENTITY_PLUS_DOCUMENTED_NATIONAL_CAREER_AT_MATCH_DATE',club_scope=club_scope));continue

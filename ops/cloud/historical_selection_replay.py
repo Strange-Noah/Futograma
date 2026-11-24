@@ -9,6 +9,7 @@ from dataclasses import asdict
 from pathlib import Path
 
 from ops.cloud.historical_batch import local_path
+from squad_pipeline.source_interface import RawSourceArtifact
 from squad_pipeline.cloud.quality import sha
 from squad_pipeline.international_parse import namekey
 from squad_pipeline.source_interface import EvidenceStore, SourceRequest, SourceService
@@ -31,7 +32,7 @@ def readonly(path):
     return sqlite3.connect(path.as_uri() + '?mode=ro', uri=True)
 
 
-def replay(candidate, reference, acquisition, worker, output):
+def replay(candidate, reference, acquisition, worker, output, cached_selection=None):
     output.mkdir(exist_ok=False)
     staged = output / 'reference'
     staged.mkdir()
@@ -44,7 +45,12 @@ def replay(candidate, reference, acquisition, worker, output):
     store = EvidenceStore(output / 'selection-sources')
     service = SourceService(store, 'historical-bayern-senegal-selection',
                             {'www.fifatrainingcentre.com'}, max_calls=4, max_bytes=32_000_000)
-    claims, captures, selected, identity_blockers = {}, [], [], []
+    claims, aliases, captures, selected, identity_blockers = {}, {}, [], [], []
+    prior = {}
+    if cached_selection:
+        prior = {item['url']: item for item in read(cached_selection / 'selection-results-private.json')
+                 if item['outcome'] == 'FOUND' and item.get('artifact')}
+    prior_store = EvidenceStore(cached_selection / 'selection-sources') if cached_selection else None
     with closing(readonly(candidate)) as db, closing(readonly(reference)) as ref:
         ids = {}
         for player in PLAYERS:
@@ -83,8 +89,19 @@ def replay(candidate, reference, acquisition, worker, output):
                 """, (native, day)).fetchall()
             if len(rows) != 1 or 'Senegal' not in rows[0][1:]:
                 raise ValueError('SENEGAL_FIXTURE_ID_NOT_UNIQUE')
-            result = service.acquire(SourceRequest('FIFA', 'match', FIFA + document,
-                                     'Official FIFA World Cup match sheet', policy='LIVE_ALLOWED'))
+            request = SourceRequest('FIFA', 'match', FIFA + document,
+                                    'Official FIFA World Cup match sheet', policy='LIVE_ALLOWED')
+            if request.url in prior:
+                raw = dict(prior[request.url]['artifact'])
+                old_request = raw.pop('request')
+                if old_request['url'] != request.url or old_request['provider'] != 'FIFA':
+                    raise ValueError('CACHED_FIFA_SOURCE_MISMATCH')
+                retained = RawSourceArtifact(request=request, **raw)
+                verified = prior_store.read(retained)
+                local = store.import_body(request, verified, retained.metadata, retained.authority)
+                result = service.acquire(request, local)
+            else:
+                result = service.acquire(request)
             captures.append(dict(url=FIFA + document, outcome=result.outcome, reason=result.reason,
                                  artifact=asdict(result.artifact) if result.artifact else None))
             (output / 'selection-results-private.json').write_text(json.dumps(captures, indent=2) + '\n')
@@ -101,6 +118,10 @@ def replay(candidate, reference, acquisition, worker, output):
                     player.casefold() in flattened for player in ids):
                 raise ValueError('OFFICIAL_MATCHDAY_SELECTION_NEEDS_REVIEW')
             for player in ids:
+                source_name, shirt = ('N Jackson', '11') if player == 'Nicolas Jackson' else ('N Ndiaye', '22')
+                aliases[(rows[0][0], namekey('Senegal'), namekey(source_name))] = dict(
+                    player_id=ids[player], shirt=shirt, source_url=FIFA + document,
+                    source_sha256=result.artifact.content_sha256, scope='EXACT_TEAM_MATCH_AND_SHIRT')
                 claims[(rows[0][0], ids[player], namekey('Senegal'))] = dict(
                     source_url=FIFA + document, source_sha256=result.artifact.content_sha256,
                     national_team='Senegal', matchday=day, source_scope='FIFA_MATCHDAY_SELECTION',
@@ -112,7 +133,8 @@ def replay(candidate, reference, acquisition, worker, output):
         raise ValueError('NO_OFFICIAL_MATCHDAY_SELECTION_SOURCE_AVAILABLE')
     (staged / 'NEW_PROVIDER_IDS_PRIVATE.json').write_text(json.dumps(selected) + '\n')
     runpy.run_path(str(worker), init_globals=dict(source=candidate, reference=ref_copy,
-                   root=output / 'ingestion', source_receipts=[source_receipt], selection_claims=claims))
+                   root=output / 'ingestion', source_receipts=[source_receipt], selection_claims=claims,
+                   selection_aliases=aliases))
     result = read(output / 'ingestion' / 'SUMMARY.json')
     result['selection_source_count'] = len(selected)
     result['selection_identity_blockers'] = identity_blockers
