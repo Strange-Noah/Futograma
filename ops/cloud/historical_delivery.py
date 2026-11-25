@@ -470,10 +470,46 @@ def sync_delivery_matrix(matrix, report):
         )
     return matrix
 
+class EvidenceArchiveWriter:
+    """Split a single compressed tar stream before the GitHub asset size limit."""
+
+    def __init__(self, output, limit=512 * 1024**2):
+        self.output = output
+        self.limit = limit
+        self.parts = []
+        self.stream = None
+        self.part_size = 0
+        self.size = 0
+        self.digest = hashlib.sha256()
+
+    def write(self, data):
+        self.digest.update(data)
+        self.size += len(data)
+        data = memoryview(data)
+        total = len(data)
+        while data:
+            if self.stream is None or self.part_size == self.limit:
+                self.close()
+                path = self.output / f'historical-evidence-part-{len(self.parts)+1:04d}.gz'
+                self.parts.append(path)
+                self.stream = path.open('xb')
+                self.part_size = 0
+            take = min(len(data), self.limit - self.part_size)
+            self.stream.write(data[:take])
+            self.part_size += take
+            data = data[take:]
+        return total
+
+    def close(self):
+        if self.stream is not None:
+            self.stream.close()
+            self.stream = None
+
+
 def build_bundle(candidate, progress, matrix, output):
     files = []
-    archive = output / 'historical-evidence.tar.gz'
-    with tarfile.open(archive, 'w:gz', compresslevel=4) as package:
+    archive = EvidenceArchiveWriter(output)
+    with closing(archive), tarfile.open(fileobj=archive, mode='w|gz', compresslevel=4) as package:
         for path in sorted((ROOT / '.cloud').rglob('*')):
             if path.is_symlink():
                 raise ValueError('HISTORICAL_SYMLINK_FORBIDDEN')
@@ -485,9 +521,11 @@ def build_bundle(candidate, progress, matrix, output):
     manifest = output / 'historical-manifest.json'
     write(manifest, dict(files=files, original_workspace=str(ROOT),
              candidate=str(candidate.relative_to(ROOT)), candidate_sha256=sha(candidate),
-             evidence_archive=dict(size=archive.stat().st_size,sha256=sha(archive)),
+             evidence_archive=dict(size=archive.size, sha256=archive.digest.hexdigest(),
+                                   parts=[dict(name=p.name, size=p.stat().st_size, sha256=sha(p))
+                                          for p in archive.parts]),
              units=len(matrix['units']), accepted=progress['accepted'], source_ready=progress['source_ready']))
-    return manifest, archive
+    return manifest, archive.parts
 
 
 def national_numeric(path):
@@ -638,8 +676,9 @@ def run_delivery(request_path, entry_path, base_checkout):
     export_pointer = dict(pointer, current=dict(pointer['current'], database=quality))
     export(candidate, temp / 'verified-output-export', parent, export_pointer, ROOT / 'web')
     receipt('bundle-start', batches=len(batches), rounds=rounds)
-    manifest, archive = build_bundle(candidate, report, matrix, temp)
-    receipt('bundle-done', archive_bytes=archive.stat().st_size)
+    manifest, archives = build_bundle(candidate, report, matrix, temp)
+    archive_record = read(manifest)['evidence_archive']
+    receipt('bundle-done', archive_bytes=archive_record['size'], parts=len(archives))
     compressed = temp / 'candidate.sqlite.gz'
     pack(candidate, compressed)
 
@@ -648,7 +687,9 @@ def run_delivery(request_path, entry_path, base_checkout):
         entry = dict(handoff, code_commit=code, database_version=info['version'],
                      database_sha256=info['database']['sha256'], release=info['tag'],
                      database_asset=assets[compressed.name], manifest_asset=assets[manifest.name],
-                     evidence_asset=assets[archive.name], accepted=report['accepted'],
+                     evidence_asset=dict(name='historical-evidence.tar.gz', size=archive_record['size'],
+                                         sha256=archive_record['sha256']),
+                     evidence_assets=[assets[path.name] for path in archives], accepted=report['accepted'],
                      source_ready=report['source_ready'], accepted_snapshots=snapshots,
                      latest_delivery=report,
                      cloud_acceptance=dict(status='ASSETS_AND_DATABASE_READBACK_PASS',
@@ -669,7 +710,7 @@ def run_delivery(request_path, entry_path, base_checkout):
 
     receipt('publish-start')
     head, published = store.publish(candidate, compressed, parent, code,
-                                    evidence=(manifest, archive), companion=companion)
+                                    evidence=(manifest, *archives), companion=companion)
     print('HISTORICAL_DELIVERY=' + json.dumps(dict(report, data_commit=head,
           version=published['current']['version']), ensure_ascii=False))
 

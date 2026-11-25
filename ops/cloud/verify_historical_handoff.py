@@ -1,5 +1,7 @@
 """Read-only verification of a historical handoff from private Release assets."""
 import argparse
+import hashlib
+from contextlib import closing
 import json
 import os
 import re
@@ -24,7 +26,8 @@ def relative_path(value):
 
 def verify_archive(archive_path, root, manifest):
     expected = {entry['path']: entry for entry in manifest['files']}
-    with tarfile.open(archive_path, 'r|gz') as archive:
+    options = dict(fileobj=archive_path) if hasattr(archive_path, 'read') else dict(name=archive_path)
+    with tarfile.open(mode='r|gz', **options) as archive:
         for entry in archive:
             item = expected.pop(entry.name)
             target = root / relative_path(entry.name)
@@ -56,6 +59,50 @@ def relocate_json(path, old, root):
     return after
 
 
+class EvidenceArchiveReader:
+    """Verify and consume one immutable Release asset at a time."""
+
+    def __init__(self, store, records, root):
+        self.store = store
+        self.records = iter(records)
+        self.root = root
+        self.digest = hashlib.sha256()
+        self.size = 0
+        self.stream = None
+        self.path = None
+
+    def read(self, size):
+        output = bytearray()
+        while len(output) < size:
+            if self.stream is None:
+                record = next(self.records, None)
+                if record is None:
+                    break
+                if not re.fullmatch(r'historical-evidence-part-[0-9]{4}\.gz', record['name']):
+                    raise ValueError('INVALID_EVIDENCE_PART_NAME')
+                self.path = self.root / record['name']
+                self.store.download(record['id'], self.path)
+                if self.path.stat().st_size != record['size'] or sha(self.path) != record['sha256']:
+                    raise ValueError('EVIDENCE_PART_HASH_OR_SIZE_MISMATCH')
+                self.stream = self.path.open('rb')
+            data = self.stream.read(size - len(output))
+            if data:
+                output += data
+                self.digest.update(data)
+                self.size += len(data)
+            else:
+                self.close()
+        return bytes(output)
+
+    def close(self):
+        if self.stream is not None:
+            self.stream.close()
+            self.stream = None
+        if self.path is not None:
+            self.path.unlink(missing_ok=True)
+            self.path = None
+
+
 def verify(store, handoff, root, code):
     root.mkdir(exist_ok=False)
     executed = subprocess.check_output(['git', '-C', str(code), 'rev-parse', 'HEAD'], text=True).strip()
@@ -66,11 +113,26 @@ def verify(store, handoff, root, code):
     if sha(manifest_file) != handoff['manifest_asset']['sha256']:
         raise ValueError('HANDOFF_MANIFEST_HASH_MISMATCH')
     manifest = json.loads(manifest_file.read_text())
-    evidence = root / 'evidence.tar.gz'
-    store.download(handoff['evidence_asset']['id'], evidence)
-    if sha(evidence) != manifest['evidence_archive']['sha256'] or evidence.stat().st_size != manifest['evidence_archive']['size']:
+    archive = manifest['evidence_archive']
+    if 'evidence_assets' in handoff:
+        parts = handoff['evidence_assets']
+        description = [{key: r[key] for key in ('name', 'size', 'sha256')} for r in parts]
+        if not description or description != archive.get('parts') or sum(p['size'] for p in parts) != archive['size']:
+            raise ValueError('EVIDENCE_PART_MANIFEST_MISMATCH')
+        with closing(EvidenceArchiveReader(store, parts, root)) as stream:
+            verify_archive(stream, root, manifest)
+            while stream.read(1024**2):
+                pass
+            evidence_sha, evidence_size = stream.digest.hexdigest(), stream.size
+    else:
+        evidence = root / 'evidence.tar.gz'
+        store.download(handoff['evidence_asset']['id'], evidence)
+        evidence_sha, evidence_size = sha(evidence), evidence.stat().st_size
+        if evidence_sha != archive['sha256'] or evidence_size != archive['size']:
+            raise ValueError('EVIDENCE_ARCHIVE_HASH_OR_SIZE_MISMATCH')
+        verify_archive(evidence, root, manifest)
+    if evidence_sha != archive['sha256'] or evidence_size != archive['size']:
         raise ValueError('EVIDENCE_ARCHIVE_HASH_OR_SIZE_MISMATCH')
-    verify_archive(evidence, root, manifest)
 
     candidate = root / relative_path(manifest['candidate'])
     head, pointer = store.restore(candidate)
@@ -122,7 +184,7 @@ def verify(store, handoff, root, code):
     stored.read(artifact(proof))
     export(candidate, root / 'isolated-export', head, pointer, code / 'web')
     return dict(status='PASS', code_commit=executed, data_commit=head, database_sha256=sha(candidate),
-                evidence_sha256=sha(evidence), evidence_files=len(manifest['files']), accepted=accepted,
+                evidence_sha256=evidence_sha, evidence_files=len(manifest['files']), accepted=accepted,
                 source_ready=source_ready, total=manifest['units'], accepted_snapshots_reused=reused,
                 ordinary_export='PASS', evidence_replay='PASS', next_scope=handoff['next_action']['unit'],
                 mac_files_required=False)
