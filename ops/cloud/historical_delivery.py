@@ -24,7 +24,7 @@ from squad_pipeline.core import ROOT
 from squad_pipeline.reconstruction.calendar import fifa_windows
 from squad_pipeline.reconstruction.engine import run
 from squad_pipeline.reconstruction.retained_adapter import RetainedAdapter
-from squad_pipeline.source_interface import EvidenceStore, SourceService
+from squad_pipeline.source_interface import EvidenceStore, SourceRequest, SourceService
 
 
 def read(path):
@@ -114,7 +114,50 @@ def retained_store(work):
     return EvidenceStore(work / 'audit-sources', archives=[root], index=index, records=records)
 
 
-def runtime_report(candidate, matrix, key, handoff, config, destination):
+def coverage_projection(db, unit, queries):
+    results = []
+    for query in queries:
+        on, (home, away) = query['date'], query['teams']
+        if not unit['start'] <= datetime.date.fromisoformat(on).isoformat() < unit['end_exclusive']:
+            raise ValueError('COVERAGE_QUERY_OUTSIDE_SELECTED_UNIT')
+        fixtures = db.execute("""
+            SELECT m.match_id,m.duration_minutes,m.kickoff_utc FROM international_matches m
+            JOIN football_teams h ON h.team_key=m.home_team_key
+            JOIN football_teams a ON a.team_key=m.away_team_key
+            WHERE lower(h.display_name)=lower(?) AND lower(a.display_name)=lower(?) AND m.madrid_date=?
+            """, (home, away, on)).fetchall()
+        coverage = dict(date=on,teams=[home,away], fixture_count=len(fixtures),players={})
+        for player in query['players']:
+            params = [unit['club_id'], unit['start'], unit['end_exclusive']]
+            if isinstance(player, str):
+                match = 'lower(p.display_name)=lower(?)'
+                params.append(player)
+                label = player
+            else:
+                label = player['label']
+                match = """EXISTS (SELECT 1 FROM verified_identity_links i WHERE i.player_id=p.player_id
+                                   AND i.provider=? AND i.provider_player_id=?
+                                   AND json_extract(i.evidence_json,'$.identity_status')='VERIFIED')"""
+                params.extend([player['provider'], player['provider_id']])
+            ids = db.execute('''SELECT DISTINCT p.player_id FROM players p JOIN player_match_minutes a USING(player_id)
+                                JOIN matches m USING(match_id) WHERE a.club_id=? AND m.local_date>=?
+                                AND m.local_date<? AND ''' + match, params).fetchall()
+            appearance = None
+            status = ('FIXTURE_MISSING' if not fixtures else 'FIXTURE_CONFLICT' if len(fixtures)>1 else
+                      'ROSTER_IDENTITY_NOT_UNIQUE' if len(ids)!=1 else 'NO_APPEARANCE_ROW')
+            if len(ids)==1 and len(fixtures)==1:
+                appearance = db.execute('SELECT participation_status,minutes FROM international_appearances '
+                    'WHERE match_id=? AND player_id=?',(fixtures[0][0],ids[0][0])).fetchone()
+                if appearance:
+                    status = 'EXISTING_NUMERIC_FACT' if appearance[1] is not None else 'MINUTES_UNKNOWN'
+            coverage['players'][label] = dict(status=status, fact=list(appearance) if appearance else None)
+        if len(fixtures)==1:
+            coverage.update(duration=fixtures[0][1],kickoff=fixtures[0][2])
+        results.append(coverage)
+    return results
+
+
+def runtime_report(candidate, matrix, key, handoff, config, destination, request):
     row = next(row for row in matrix['units'] if f'{row["club_id"]}:{row["unit"]}' == key)
     unit = unit_window(row)
     work = destination.parent
@@ -128,6 +171,18 @@ def runtime_report(candidate, matrix, key, handoff, config, destination):
     if config.get('calendar'):
         calendar = ROOT / relative_path(config['calendar'])
     calendars = []
+    calendar_evidence = 'NONE'
+    if calendar is None and request.get('use_fifa_calendar'):
+        url = 'https://inside.fifa.com/tournament-organisation/international-match-calendars'
+        local = retained_store(work)
+        svc = SourceService(local, 'historical-calendar', {'inside.fifa.com'}, max_calls=2)
+        entry = SourceRequest('FIFA','calendar',url,'international-match-calendar',policy='CACHE_FIRST')
+        acquired, parsed = svc.observe(entry)
+        calendar_evidence = acquired.outcome
+        if acquired.artifact and acquired.outcome=='FOUND':
+            stamp = acquired.artifact.metadata.get('response_timestamp') or acquired.artifact.metadata.get('observed_on')
+            if stamp:
+                calendars = fifa_windows(local.read(acquired.artifact),url,stamp,begin,cutoff,observation=parsed)
     if calendar is not None:
         observed = datetime.datetime.fromtimestamp(calendar.stat().st_mtime, datetime.timezone.utc).isoformat()
         calendars = fifa_windows(calendar.read_bytes(),
@@ -168,6 +223,7 @@ def runtime_report(candidate, matrix, key, handoff, config, destination):
             if audit_adopted:
                 raise
             audit_summary = dict(status='AUDIT_INPUT_BLOCKER', detail=str(exc))
+        projection = coverage_projection(db, unit, request.get('coverage_queries', ()))
         club = db.execute("""
             SELECT m.competition_id,count(DISTINCT m.match_id),count(*),
                    count(p.minutes),sum(nullif(m.kickoff, '') IS NULL)
@@ -186,6 +242,8 @@ def runtime_report(candidate, matrix, key, handoff, config, destination):
                   club_coverage=[list(item) for item in club],
                   club_coverage_columns=['competition_id','matches','appearances','numeric_minutes','missing_kickoff_rows'],
                   pending=obligations[key])
+    result['coverage_queries'] = projection
+    result['calendar_evidence'] = calendar_evidence
     closed = handoff.get('latest_evidence_checkpoint', {}).get('official_selection', {})
     if handoff.get('latest_evidence_checkpoint', {}).get('unit') == key:
         result['reused_verified_appearances'] = sum(
@@ -263,7 +321,7 @@ def run_delivery(request_path, entry_path, base_checkout):
     export(candidate, temp / 'export', parent, export_pointer, ROOT / 'web')
     work = checkpoint.parent / ('delivery-' + os.environ['GITHUB_RUN_ID'])
     work.mkdir()
-    report, candidate = runtime_report(candidate, matrix, key, handoff, read(config_path), work / 'scope.json')
+    report, candidate = runtime_report(candidate, matrix, key, handoff, read(config_path), work / 'scope.json', request)
     if str(candidate) != state['candidate']:
         state['candidate'] = str(candidate)
         write(checkpoint, state)
@@ -277,7 +335,7 @@ def run_delivery(request_path, entry_path, base_checkout):
         report['duration_exceptions'] = read(duration_result)
     batches = state['batches'][before:]
     proofs = []
-    for batch in batches:
+    for batch in state['batches']:
         folder = Path(batch['queue']).parent
         binding = folder / 'verified-durations.json'
         if not binding.exists():
