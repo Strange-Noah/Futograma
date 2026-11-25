@@ -1,5 +1,6 @@
 """GitHub Release assets hold SQLite; only a small CAS manifest enters the data repository's Git history."""
-import os,re,json,base64,urllib.request,urllib.error,urllib.parse
+import os,re,json,base64,hashlib,urllib.request,urllib.error,urllib.parse
+from contextlib import nullcontext
 from pathlib import Path
 from datetime import datetime,timezone,timedelta
 from .quality import inspect,sha,unpack
@@ -26,18 +27,20 @@ class GitHubStore:
   ref=self.api('GET',self.base+'/git/ref/heads/'+urllib.parse.quote(self.ref,safe='/'));head=ref['object']['sha'];item=self.api('GET',self.base+'/contents/current.json?ref='+head,allow404=True)
   return head,json.loads(base64.b64decode(item['content'])) if item else None
  def download(self,asset_id,dest):
-  p=Path(dest)
-  if p.exists():raise ValueError('DOWNLOAD_TARGET_EXISTS')
+  """Download to a new file, or stream a (size, SHA-256) readback when dest is None."""
+  p=Path(dest) if dest is not None else None
+  if p is not None and p.exists():raise ValueError('DOWNLOAD_TARGET_EXISTS')
   url='https://api.github.com'+self.base+'/releases/assets/'+str(int(asset_id));headers={'Authorization':'Bearer '+self.token,'Accept':'application/octet-stream','User-Agent':'FutbolSnapshot/1.0'};opener=urllib.request.build_opener(NoRedirect())
   for _ in range(4):
    try:
-    with opener.open(urllib.request.Request(url,headers=headers),timeout=60) as r,p.open('xb') as out:
-     size=0
+    with opener.open(urllib.request.Request(url,headers=headers),timeout=60) as r,(p.open('xb') if p is not None else nullcontext()) as out:
+     size=0;digest=hashlib.sha256() if out is None else None
      for chunk in iter(lambda:r.read(1048576),b''):
       size+=len(chunk)
       if size>=1900000000:raise ValueError('ASSET_SIZE_LIMIT')
-      out.write(chunk)
-    return p
+      if out is None:digest.update(chunk)
+      else:out.write(chunk)
+    return p if p is not None else (size,digest.hexdigest())
    except urllib.error.HTTPError as e:
     if e.code not in [301,302,303,307,308]:raise UploadFailed('ASSET_DOWNLOAD_HTTP_'+str(e.code)) from None
     target=urllib.parse.urlsplit(e.headers.get('Location',''))
@@ -86,10 +89,9 @@ class GitHubStore:
   for path in map(Path,evidence):
    if path.name in assets:raise ValueError('DUPLICATE_PUBLICATION_ASSET')
    remote=self.upload(release['id'],path)
-   copy=verify.with_name(verify.name+'.'+path.name)
-   self.download(remote['id'],copy)
    digest=sha(path)
-   if sha(copy)!=digest or copy.stat().st_size!=path.stat().st_size:raise UploadFailed('UPLOADED_EVIDENCE_READBACK_FAILED')
+   size,remote_digest=self.download(remote['id'],None)
+   if remote_digest!=digest or size!=path.stat().st_size:raise UploadFailed('UPLOADED_EVIDENCE_READBACK_FAILED')
    assets[path.name]=dict(id=remote['id'],name=path.name,sha256=digest,size=path.stat().st_size)
   files={'current.json':pointer}
   if companion is not None:
