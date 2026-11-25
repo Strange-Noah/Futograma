@@ -360,10 +360,11 @@ def runtime_report(candidate, matrix, key, handoff, config, destination, request
         acquired, parsed = svc.observe(replace(entry, policy='ARCHIVE_ONLY'))
         if acquired.outcome in {'NOT_REQUESTED', 'ARCHIVE_LOCATOR_UNRESOLVED'}:
             acquired, parsed = svc.observe(entry)
+            if acquired.artifact and acquired.outcome == 'FOUND':
+                local.root.mkdir(parents=True, exist_ok=True)
+                write(local.root / 'results-private.json', [dict(
+                    url=url, outcome='FOUND', artifact=asdict(acquired.artifact))])
         calendar_evidence = acquired.outcome
-        if acquired.artifact and acquired.outcome == 'FOUND':
-            write(local.root / 'results-private.json', [dict(
-                url=url, outcome='FOUND', artifact=asdict(acquired.artifact))])
         calendar_parse = parsed.outcome if parsed else None
         if acquired.artifact and acquired.outcome == 'FOUND':
             stamp = acquired.artifact.metadata.get('response_timestamp') or acquired.artifact.metadata.get('observed_on')
