@@ -1,6 +1,8 @@
 """One-time retained senior fixture context preparation using existing canonical writers."""
 import sys,json,sqlite3,re
 from pathlib import Path
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from collections import Counter
 sys.path.insert(0,str(Path.cwd()))
 from squad_pipeline.source_interface import SourceService,EvidenceStore,SourceRequest,RawSourceArtifact
@@ -32,7 +34,7 @@ for row in json.load(open(parent/'results-private.json')):
   aet=globals().get('verified_extra_time',{}).get(native)
   assert header.attrs.get('data-status')=='4' or (header.attrs.get('data-status')=='8' and any(check and names==check['teams'] and a['content_sha256']==check['match_sha256'] for check in (rule,aet))),'VERIFIED_COMPLETED_MATCH_DURATION_REQUIRED'
   assert not any(re.search(r'\b(?:Women|U\d{2}|Legends|XI)\b',n,re.I)for n in names),'OUTSIDE_SENIOR_MENS_SCOPE'
-  kickoff=uk_datetime(header.one('sdc-site-match-header__detail-time').txt());day=kickoff[:10];assert '2024-07-01'<=day<'2026-07-01','OUTSIDE_HISTORICAL_PERIOD';scores=[x.txt().strip()for x in header.all('sdc-site-match-header__team-score-block')];assert len(scores)==2 and all(x.isdigit()for x in scores),'EXPLICIT_FINAL_SCORE_REQUIRED';score='-'.join(scores)
+  kickoff=uk_datetime(header.one('sdc-site-match-header__detail-time').txt());day=datetime.fromisoformat(kickoff.replace('Z','+00:00')).astimezone(ZoneInfo('Europe/Madrid')).date().isoformat();assert '2024-07-01'<=day<'2026-07-01','OUTSIDE_HISTORICAL_PERIOD';scores=[x.txt().strip()for x in header.all('sdc-site-match-header__team-score-block')];assert len(scores)==2 and all(x.isdigit()for x in scores),'EXPLICIT_FINAL_SCORE_REQUIRED';score='-'.join(scores)
   detail=header.one('sdc-site-match-header__detail-fixture').txt();hits=[(label,key)for label,key in labels.items()if re.search(r'\.\s*'+re.escape(label)+r'\b',detail,re.I)];assert hits,'ACCEPTED_MENS_SENIOR_COMPETITION_LABEL_REQUIRED';comp,key=max(hits,key=lambda x:len(x[0]));proof=dict(provider='Sky',url=row['url'],sha256=a['content_sha256'],path=str(p.resolve()),response_timestamp=a['metadata'].get('response_timestamp'),source_locator='Exact canonical resource and native full-time header: ordered countries, explicit competition, kickoff and final score',verified_fixture_context=dict(home=names[0],away=names[1],kickoff=kickoff,score=score,competition=comp,competition_key=key,level='SENIOR'),source_scope='HEADER_CONTEXT_ONLY;FULL_SQUAD_AND_PLAYER_FACTS_REQUIRE_EXISTING_PARSER_AND_IDENTITY_POLICY')
   if aet:
    assert score==aet['score'] and kickoff==aet['kickoff']
@@ -43,6 +45,11 @@ for row in json.load(open(parent/'results-private.json')):
   eid=evidence(db,proof,'EXACT_HISTORICAL_NATIONAL_HEADER','RAW_HEADER_VERIFIED_SQUAD_PENDING',0);keys=[]
   for country in names:
    prior=[r['team_key']for r in db.execute("select team_key,display_name from football_teams where team_type='NATIONAL'and level='SENIOR'")if namekey(r['display_name'])==namekey(country)];assert len(prior)<=1,'AMBIGUOUS_ACCEPTED_COUNTRY_KEY';keys.append(team(db,country,'SENIOR',eid,verified_key=prior[0]if prior else None))
+  # Correct a legacy UTC-day label only in this disposable source reference.
+  db.execute("""UPDATE international_matches SET madrid_date=? WHERE match_id IN (
+     SELECT match_id FROM international_match_provider_ids WHERE provider='Sky' AND provider_match_id=?
+  ) AND home_team_key=? AND away_team_key=? AND kickoff_utc=? AND replace(score,' ','')=?
+    AND madrid_date=? AND madrid_date<>?""",(day,native,keys[0],keys[1],kickoff,score,kickoff[:10],day))
   possible=[r for r in db.execute('select*from international_matches where home_team_key=?and away_team_key=?and madrid_date=?',(keys[0],keys[1],day))];same=[r for r in possible if r['kickoff_utc']==kickoff and r['score'].replace(' ','')==score];assert len(same)<=1,'EXISTING_PHYSICAL_MATCH_AMBIGUITY';assert not possible or len(same)==1,'EXISTING_COUNTRY_DAY_NEEDS_FIXTURE_ADJUDICATION'
   if same:key=same[0]['competition_key'];mid=same[0]['match_id']
   else:mid='nt_sky_header:'+native

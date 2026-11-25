@@ -614,8 +614,10 @@ def consume_sources(config, work, national_unit=None, national_sources=(), *, na
         applied.extend(proof['certificate_key'] for proof in duration_proofs.values()
                        if proof['certificate_key'] not in applied)
         selection_done = state.setdefault('selection_certificates', [])
+        held = batch / 'selection-reconciliation.json'
+        unresolved = {(item['source'],item['player']) for item in json.loads(held.read_text())} if held.exists() else set()
         for cert in (cert for packet in selection.values() for cert in packet):
-            if cert['certificate_key'] not in selection_done:
+            if (cert['source_url'],cert['player']['label']) not in unresolved and cert['certificate_key'] not in selection_done:
                 selection_done.append(cert['certificate_key'])
         attempted.update(map(source_id, result['attempted_urls']))
         processed.update(map(source_id, result['attempted_urls']))

@@ -11,10 +11,10 @@ from urllib.parse import urlsplit
 from ops.cloud.historical_duration import canonical_text
 from squad_pipeline.international_parse import namekey
 from squad_pipeline.live_parse import Tree
-from squad_pipeline.source_interface import EvidenceStore, SourceRequest, SourceService
+from squad_pipeline.source_interface import EvidenceStore, RawSourceArtifact, SourceRequest, SourceService
 
 SELECTION_HOSTS = {'fcbayern.com','www.fcbayern.com','www.psg.fr','www.ussoccer.com','www.ussoccerhistory.org',
-                   'www.cafonline.com','www.fifa.com','www.uefa.com'}
+                   'www.cafonline.com','www.fifa.com','www.uefa.com','english.ahram.org.eg'}
 
 
 def prepare(certificates, archived, work, completed):
@@ -23,6 +23,8 @@ def prepare(certificates, archived, work, completed):
                             max_calls=len(certificates)*2, max_bytes=30_000_000)
     bindings, errors, blocked = {}, [], set()
     captures = {}
+    receipt_path = work / 'selection-certificate-receipts.json'
+    retained = {item['url']:item for item in json.loads(receipt_path.read_text())} if receipt_path.exists() else {}
     for cert in certificates:
         token = sha256(json.dumps(cert,sort_keys=True).encode()).hexdigest()
         if token in completed:
@@ -34,8 +36,18 @@ def prepare(certificates, archived, work, completed):
             errors.append(dict(issue,reason='ARCHIVED_MATCH_OR_EVIDENCE_SOURCE_UNAVAILABLE'))
             continue
         if official not in captures:
-            result = service.acquire(SourceRequest(cert['authority'],'match',official,
-                                    'Independent exact matchday statement',policy='CACHE_FIRST'))
+            request = SourceRequest(cert['authority'],'match',official,
+                                    'Independent exact matchday statement',policy='CACHE_FIRST')
+            old = retained.get(official, {})
+            if old.get('outcome') in {'ACCESS_RESTRICTED','RATE_LIMITED','ROBOTS_DISALLOWED'}:
+                errors.append(dict(issue,reason='PREVIOUS_SOURCE_ACCESS_RESTRICTION',outcome=old['outcome']))
+                continue
+            if old.get('outcome')=='FOUND' and old.get('artifact'):
+                data = dict(old['artifact'])
+                old_request = SourceRequest(**data.pop('request'))
+                result = service.acquire(request, RawSourceArtifact(request=old_request, **data))
+            else:
+                result = service.acquire(request)
             captures[official] = (result,None)
             if result.outcome in {'ACCESS_RESTRICTED','RATE_LIMITED','ROBOTS_DISALLOWED'}:
                 blocked.add(host)
@@ -56,7 +68,8 @@ def prepare(certificates, archived, work, completed):
         receipts = [dict(url=url,outcome=result.outcome,reason=result.reason,
                          artifact=asdict(result.artifact) if result.artifact else None)
                     for url,(result,_) in captures.items()]
-        (work / 'selection-certificate-receipts.json').write_text(json.dumps(receipts,ensure_ascii=False,indent=2)+'\n')
+        retained.update((item['url'],item) for item in receipts)
+        receipt_path.write_text(json.dumps(list(retained.values()),ensure_ascii=False,indent=2)+'\n')
     return bindings, errors
 
 
@@ -84,8 +97,11 @@ def match_claims(candidate, prepared, acquisition, bindings):
                   JOIN football_teams a ON a.team_key=m.away_team_key
                   WHERE v.provider='Sky' AND v.provider_match_id=? AND m.madrid_date=?
                   """,(native,item['date'])).fetchall()
-                if len(matches)!=1 or list(map(namekey,matches[0][1:]))!=list(map(namekey,item['teams'])):
-                    hold('EXACT_FIXTURE_OR_ORDERED_TEAMS_NOT_CERTIFIED')
+                expected = [{namekey(team),*(namekey(alias) for alias in item.get('team_aliases', {}).get(team,()))}
+                            for team in item['teams']]
+                if len(matches)!=1 or any(namekey(actual) not in allowed for actual,allowed in zip(matches[0][1:],expected)):
+                    issues.append(dict(source=url,player=label,reason='EXACT_FIXTURE_OR_ORDERED_TEAMS_NOT_CERTIFIED',
+                                       matched_rows=[list(row) for row in matches],expected_date=item['date']))
                     continue
                 player = item['player']
                 params = [scope['club_id'],scope['start'],scope['end_exclusive']]
@@ -104,7 +120,7 @@ def match_claims(candidate, prepared, acquisition, bindings):
                     hold('UNIQUE_VERIFIED_CLUB_ID_REQUIRED')
                     continue
                 match,pid,country = matches[0][0],ids[0][0],namekey(item['represented_team'])
-                if country not in set(map(namekey,matches[0][1:])):
+                if not any(country in allowed and namekey(actual) in allowed for actual,allowed in zip(matches[0][1:],expected)):
                     hold('REPRESENTED_TEAM_OUTSIDE_EXACT_FIXTURE')
                     continue
                 claims[(match,pid,country)] = dict(source_url=item['evidence_url'],source_sha256=item['source_sha256'],
