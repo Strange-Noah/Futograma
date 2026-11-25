@@ -89,6 +89,22 @@ def adjudicate(db,packet,service,on):
     return dict(state='SUPPLEMENTED_UNKNOWN' if old else 'RECORDED_NEW',before=before,after=after)
 
 
+def adjudicate_packets(db, packets, service, cutoff):
+    """Group exact audit packets and use the normal minute and conflict policy."""
+    grouped=defaultdict(list)
+    for packet in packets:grouped[packet['domain'],packet['match_id'],packet['player_id']].append(packet)
+    decisions=[]
+    for key,items in sorted(grouped.items()):
+        if len({p['player']['participation_status'] for p in items})!=1:
+            decisions.append(dict(key=key,state='HELD_SOURCE_CONFLICT'));continue
+        choice=select([dict(status=p['player']['participation_status'],minutes=p['player']['minutes'],provider=p['source']['provider'],source_url=p['source']['url']) for p in items])
+        if not choice['accepted']:decisions.append(dict(key=key,state='HELD_SOURCE_CONFLICT'));continue
+        items.sort(key=lambda p:(p['player']['minutes']!=choice['minutes'],p['source']['provider'],p['source']['url']))
+        packet=items[0];result=adjudicate(db,packet,service,cutoff);db.commit();repeat=adjudicate(db,packet,service,cutoff);db.commit()
+        decisions.append(dict(key=key,source_sha256=packet['source']['sha256'],result=result,repeat=repeat))
+    return decisions
+
+
 def execute(reference,seed,archive,source_store,capture_index,calendar,work,start,cutoff):
     reference,seed,archive,source_store,work=map(lambda p:Path(p).resolve(),(reference,seed,archive,source_store,work))
     for p in [reference,seed,source_store,work,Path(capture_index).resolve(),Path(calendar).resolve()]:
@@ -113,17 +129,7 @@ def execute(reference,seed,archive,source_store,capture_index,calendar,work,star
         (work/('staged-'+str(club[0])+'-private.json')).write_text(json.dumps(list(adapter.candidate_packets.values()),sort_keys=True))
         for packet in adapter.candidate_packets.values():
             if (packet['domain'],packet['match_id'],str(packet['player_id'])) in required:packets[digest(packet)]=packet
-    grouped=defaultdict(list)
-    for packet in packets.values():grouped[packet['domain'],packet['match_id'],packet['player_id']].append(packet)
-    decisions=[]
-    for key,items in sorted(grouped.items()):
-        if len({p['player']['participation_status'] for p in items})!=1:
-            decisions.append(dict(key=key,state='HELD_SOURCE_CONFLICT'));continue
-        choice=select([dict(status=p['player']['participation_status'],minutes=p['player']['minutes'],provider=p['source']['provider'],source_url=p['source']['url']) for p in items])
-        if not choice['accepted']:decisions.append(dict(key=key,state='HELD_SOURCE_CONFLICT'));continue
-        items.sort(key=lambda p:(p['player']['minutes']!=choice['minutes'],p['source']['provider'],p['source']['url']))
-        packet=items[0];result=adjudicate(db,packet,service,cutoff);db.commit();repeat=adjudicate(db,packet,service,cutoff);db.commit()
-        decisions.append(dict(key=key,source_sha256=packet['source']['sha256'],result=result,repeat=repeat))
+    decisions=adjudicate_packets(db,packets.values(),service,cutoff)
     final={}
     for cid,adapter in adapters.items():final[cid]=run(db,adapter,start,cutoff,max_attempts=1500);db.commit()
     transitions=[]

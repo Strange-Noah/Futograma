@@ -13,7 +13,8 @@ from collections import Counter
 from contextlib import closing
 from pathlib import Path
 
-from ops.cloud.historical_batch import continue_batches, discover_gaps, unit_window, write
+from ops.cloud.historical_batch import continue_batches, discover_gaps, refresh_matrix, unit_window, write
+from ops.cloud.obligation_execution import adjudicate_packets
 from ops.cloud.verify_historical_handoff import relative_path, relocate_json, verify
 from squad_pipeline.cloud.export import export
 from squad_pipeline.cloud.github_store import GitHubStore
@@ -117,6 +118,8 @@ def runtime_report(candidate, matrix, key, handoff, config, destination):
     row = next(row for row in matrix['units'] if f'{row["club_id"]}:{row["unit"]}' == key)
     unit = unit_window(row)
     work = destination.parent
+    adjudicated = Counter()
+    audit_adopted = False
     candidate = candidate.resolve()
     begin, end = unit['start'], unit['end_exclusive']
     cutoff = (datetime.date.fromisoformat(end) - datetime.timedelta(days=1)).isoformat()
@@ -143,11 +146,27 @@ def runtime_report(candidate, matrix, key, handoff, config, destination):
         adapter = RetainedAdapter(db, ROOT / '.cloud', unit['club_id'], calendars, source_service=service)
         try:
             audit = run(db, adapter, begin, cutoff, max_attempts=200)
+            required = {(finding['domain'],mid,finding['player']) for finding in audit['gaps']
+                        for mid in finding.get('opportunities', ())}
+            required.update((finding['domain'],finding['canonical'],finding['player'])
+                            for finding in audit['opportunities']
+                            if finding.get('challenge') or finding['state'] in ('CONFLICT','INSUFFICIENT_COVERAGE'))
+            packets = [item for item in adapter.candidate_packets.values()
+                       if (item['domain'],item['match_id'],str(item['player_id'])) in required]
+            decisions = adjudicate_packets(db, packets, service, cutoff)
+            adjudicated.update(item.get('result',item)['state'] for item in decisions)
+            write(work / 'adjudication-private.json', decisions)
+            audit_adopted = bool(adjudicated['RECORDED_NEW'] or adjudicated['SUPPLEMENTED_UNKNOWN'])
+            if audit_adopted:
+                audit = run(db, adapter, begin, cutoff, max_attempts=200)
+                db.commit()
             write(work / 'audit-private.json', audit)
             audit_summary = dict(stages=audit['stages'], metrics=audit['metrics'],
                                  retained_calendar_supplied=bool(calendar), retained_source_calls=service.parse_calls,
                                  resolution_states=dict(Counter(item.get('state') for item in audit['resolutions'])))
         except (ValueError, OSError, sqlite3.Error) as exc:
+            if audit_adopted:
+                raise
             audit_summary = dict(status='AUDIT_INPUT_BLOCKER', detail=str(exc))
         club = db.execute("""
             SELECT m.competition_id,count(DISTINCT m.match_id),count(*),
@@ -156,10 +175,14 @@ def runtime_report(candidate, matrix, key, handoff, config, destination):
             WHERE p.club_id=? AND m.local_date>=? AND m.local_date<?
             GROUP BY m.competition_id ORDER BY m.competition_id
         """, (unit['club_id'], begin, end)).fetchall()
-    audit_copy.unlink()
+    if audit_adopted:
+        inspect(audit_copy)
+        candidate = audit_copy
+    else:
+        audit_copy.unlink()
     checks = config.get('unit_plans', {})
     result = dict(unit=key, whole_unit_plan_present=key in checks, data_accepted=row['data_accepted'],
-                  source_ready=row['source_ready'], audit=audit_summary,
+                  source_ready=row['source_ready'], audit=audit_summary, adjudication=dict(adjudicated),
                   club_coverage=[list(item) for item in club],
                   club_coverage_columns=['competition_id','matches','appearances','numeric_minutes','missing_kickoff_rows'],
                   pending=obligations[key])
@@ -169,7 +192,7 @@ def runtime_report(candidate, matrix, key, handoff, config, destination):
             len(records) for fixture in closed.get('verified_existing_appearances', ())
             for records in fixture['players'].values())
     write(destination, result)
-    return result
+    return result, candidate
 
 
 def build_bundle(candidate, progress, matrix, output):
@@ -240,11 +263,33 @@ def run_delivery(request_path, entry_path, base_checkout):
     export(candidate, temp / 'export', parent, export_pointer, ROOT / 'web')
     work = checkpoint.parent / ('delivery-' + os.environ['GITHUB_RUN_ID'])
     work.mkdir()
-    report = runtime_report(candidate, matrix, key, handoff, read(config_path), work / 'scope.json')
+    report, candidate = runtime_report(candidate, matrix, key, handoff, read(config_path), work / 'scope.json')
+    if str(candidate) != state['candidate']:
+        state['candidate'] = str(candidate)
+        write(checkpoint, state)
+        matrix = refresh_matrix(matrix, candidate)
+        write(matrix_path, matrix)
+        repeat_quality = inspect(candidate)
+        repeat_pointer = dict(pointer, current=dict(pointer['current'],database=repeat_quality))
+        export(candidate, temp / 'reaudit-export', parent, repeat_pointer, ROOT / 'web')
     duration_result = checkpoint.parent / 'duration-obligations.json'
     if request.get('duration_certificates') and duration_result.exists():
         report['duration_exceptions'] = read(duration_result)
     batches = state['batches'][before:]
+    proofs = []
+    for batch in batches:
+        folder = Path(batch['queue']).parent
+        binding = folder / 'verified-durations.json'
+        if not binding.exists():
+            continue
+        results = {item['url']:item for item in read(Path(batch['fixture_exceptions']))}
+        for native, proof in read(binding).items():
+            actual = next((result for url,result in results.items() if url.rsplit('/',1)[-1] == native), {})
+            proofs.append(dict(native_id=native, teams=proof['teams'], status=actual.get('state'),
+                               detail=actual.get('reason'), authorized_minutes=120,
+                               raw_sha256=proof['match_sha256'], official_sha256=proof['official_sha256']))
+    if proofs:
+        report['duration_receipts'] = proofs
     fields = ('new_matches','new_player_match_rows','new_national_matches','new_national_player_rows','minutes_recovered')
     report.update(status='CHECKPOINT_VERIFIED', batches=len(batches),
                   counts={field:sum(batch.get(field, 0) or 0 for batch in batches) for field in fields},
