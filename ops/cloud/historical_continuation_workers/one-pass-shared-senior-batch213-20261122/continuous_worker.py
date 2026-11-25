@@ -90,9 +90,13 @@ if club:
     sys.exit(0)
 
 prepared = stage_directory('reference')
+prepare_options = dict(globals().get('prepare_inputs', {}))
+duration_proofs = batch / 'verified-durations.json'
+if duration_proofs.exists():
+    prepare_options['verified_extra_time'] = json.loads(duration_proofs.read_text())
 if not (prepared / 'SUMMARY.json').exists():
     runpy.run_path(str(stages / 'prepare.py'), init_globals=dict(
-        source=reference, parent=archive, root=prepared, **globals().get("prepare_inputs", {})))
+        source=reference, parent=archive, root=prepared, **prepare_options))
 output = stage_directory('ingestion')
 if not (output / 'SUMMARY.json').exists():
     runpy.run_path(str(stages / 'ingest.py'), init_globals=dict(

@@ -13,6 +13,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from ops.cloud.historical_unit import within
+from ops.cloud.historical_duration import bind
 from squad_pipeline.cloud.quality import inspect, sha
 from squad_pipeline.core import ROOT
 
@@ -248,13 +249,14 @@ def refresh_matrix(matrix, candidate):
     return matrix
 
 
-def continue_batches(config_path, work, national_unit=None, national_sources=(), *, national_only=True):
+def continue_batches(config_path, work, national_unit=None, national_sources=(), *, national_only=True, duration_certificates=()):
     config = json.loads(local_path(config_path).read_text())
     work = local_path(work)
     work.mkdir(exist_ok=True)
     with (work / 'batch.lock').open('a') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        return consume_sources(config, work, national_unit, national_sources, national_only=national_only)
+        return consume_sources(config, work, national_unit, national_sources, national_only=national_only,
+                               duration_certificates=duration_certificates)
 
 
 def discover_gaps(candidate, matrix, catalogues):
@@ -383,7 +385,7 @@ def discover_gaps(candidate, matrix, catalogues):
                    for key, gap in gaps.items()}
 
 
-def consume_sources(config, work, national_unit=None, national_sources=(), *, national_only=True):
+def consume_sources(config, work, national_unit=None, national_sources=(), *, national_only=True, duration_certificates=()):
     matrix_path = work / 'matrix-private.json'
     matrix = json.loads((matrix_path if matrix_path.exists() else local_path(config['matrix'])).read_text())
     state_path = work / 'continuation-private.json'
@@ -444,6 +446,16 @@ def consume_sources(config, work, national_unit=None, national_sources=(), *, na
             queued[key] = (url, {day}, kind)
             if url in archived:
                 retained_gap_keys.add(key)
+    durations, duration_errors = bind(duration_certificates, archived, work, unit_window(active_rows[0]),
+                                      set(state.get('duration_certificates', ()))) if duration_certificates else ({}, [])
+    if duration_certificates:
+        write(work / 'duration-obligations.json', duration_errors)
+    for url in durations:
+        key = source_id(url)
+        if key not in queued:
+            raise ValueError('DURATION_CERTIFICATE_REQUIRES_SCOPED_SOURCE_TASK')
+        retained_gap_keys.add(key)
+        processed.discard(key)
     for url in sorted(excluded_opponents):
         if source_id(url) in queued and url not in replayed:
             attempted.discard(source_id(url))
@@ -562,6 +574,9 @@ def consume_sources(config, work, national_unit=None, national_sources=(), *, na
             if retained:
                 acquisition.mkdir(exist_ok=True)
                 write(acquisition / 'results-private.json', retained)
+        duration_proofs = {url.rsplit('/', 1)[-1]:durations[url] for url in urls if url in durations}
+        if duration_proofs:
+            write(batch / 'verified-durations.json', duration_proofs)
         receipt = batch / 'result-private.json'
         if not receipt.exists():
             with (batch / 'run.log').open('a') as log:
@@ -576,6 +591,9 @@ def consume_sources(config, work, national_unit=None, national_sources=(), *, na
             'new_national_matches', 'new_national_player_rows', 'new_matches',
             'new_player_match_rows', 'minutes_recovered'))
         state['batches'].append(dict(result, productive=progress, queue=str(queue), kind=kind))
+        applied = state.setdefault('duration_certificates', [])
+        applied.extend(proof['certificate_key'] for proof in duration_proofs.values()
+                       if proof['certificate_key'] not in applied)
         attempted.update(map(source_id, result['attempted_urls']))
         processed.update(map(source_id, result['attempted_urls']))
         replayed.update(result.get('replayed_urls', []))

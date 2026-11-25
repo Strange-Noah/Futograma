@@ -95,6 +95,7 @@ def runtime_report(candidate, matrix, key, handoff, config, destination):
     work = destination.parent
     candidate = candidate.resolve()
     begin, end = unit['start'], unit['end_exclusive']
+    cutoff = (datetime.date.fromisoformat(end) - datetime.timedelta(days=1)).isoformat()
     _, obligations = discover_gaps(candidate, dict(matrix, units=[row]), config.get('catalogues', ()))
     calendar = None
     if config.get('calendar'):
@@ -104,7 +105,7 @@ def runtime_report(candidate, matrix, key, handoff, config, destination):
         observed = datetime.datetime.fromtimestamp(calendar.stat().st_mtime, datetime.timezone.utc).isoformat()
         calendars = fifa_windows(calendar.read_bytes(),
                     'https://inside.fifa.com/tournament-organisation/international-match-calendars',
-                    observed, begin, end)
+                    observed, begin, cutoff)
     # Audit operates on a disposable SQLite copy. Its disposition and evidence
     # remain separate from the existing whole-unit acceptance gate.
     audit_copy = work / 'audit-input.sqlite'
@@ -117,7 +118,7 @@ def runtime_report(candidate, matrix, key, handoff, config, destination):
                                 'historical-delivery-audit', set(), max_calls=0)
         adapter = RetainedAdapter(db, ROOT / '.cloud', unit['club_id'], calendars, source_service=service)
         try:
-            audit = run(db, adapter, begin, end, max_attempts=200)
+            audit = run(db, adapter, begin, cutoff, max_attempts=200)
             write(work / 'audit-private.json', audit)
             audit_summary = dict(stages=audit['stages'], metrics=audit['metrics'],
                                  retained_calendar_supplied=bool(calendar),
@@ -167,6 +168,11 @@ def build_bundle(candidate, progress, matrix, output):
     return manifest, archive
 
 
+def national_numeric(path):
+    with closing(sqlite3.connect(path.resolve().as_uri() + '?mode=ro', uri=True)) as db:
+        return db.execute('SELECT count(minutes) FROM international_appearances').fetchone()[0]
+
+
 def run_delivery(request_path, entry_path, base_checkout):
     handoff, request = read(entry_path), read(request_path)
     ref = handoff['data_ref']
@@ -196,9 +202,11 @@ def run_delivery(request_path, entry_path, base_checkout):
         raise ValueError('INVALID_HISTORICAL_UNIT')
     state_before = read(checkpoint)
     before = len(state_before['batches'])
+    numeric_before = national_numeric(Path(state_before['candidate']))
     sources = request.get('sources', ())
     state = continue_batches(config_path, checkpoint.parent, key, sources,
-                             national_only=request.get('scope') == 'national')
+                             national_only=request.get('scope') == 'national',
+                             duration_certificates=request.get('duration_certificates', ()))
     candidate = Path(state['candidate']).resolve()
     matrix = read(matrix_path)
     # The exporter reads the historical snapshot; the pointer is attached only
@@ -209,10 +217,14 @@ def run_delivery(request_path, entry_path, base_checkout):
     work = checkpoint.parent / ('delivery-' + os.environ['GITHUB_RUN_ID'])
     work.mkdir()
     report = runtime_report(candidate, matrix, key, handoff, read(config_path), work / 'scope.json')
+    duration_result = checkpoint.parent / 'duration-obligations.json'
+    if request.get('duration_certificates') and duration_result.exists():
+        report['duration_exceptions'] = read(duration_result)
     batches = state['batches'][before:]
     fields = ('new_matches','new_player_match_rows','new_national_matches','new_national_player_rows','minutes_recovered')
     report.update(status='CHECKPOINT_VERIFIED', batches=len(batches),
                   counts={field:sum(batch.get(field, 0) or 0 for batch in batches) for field in fields},
+                  new_national_numeric_minutes=national_numeric(candidate)-numeric_before,
                   state=state['state'], ordinary_export='PASS', reused_legacy_delta=adopted,
                   accepted=sum(row['data_accepted'] for row in matrix['units']),
                   source_ready=sum(row['source_ready'] for row in matrix['units']),
