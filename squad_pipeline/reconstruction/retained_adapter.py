@@ -122,10 +122,31 @@ class RetainedAdapter:
                     if key in seen_sources:continue
                     seen_sources.add(key)
                     source_rows.append(dict(match_id=match_row['match_id'],provider=source.get('provider') or 'UNKNOWN',payload_json=json.dumps(dict(source=source))))
+            # Retained batch responses have provider URL/identity but may not
+            # carry a canonical ID. Reuse only an already accepted exact binding.
+            bindings = {}
+            if 'canonical_fixture_sources' in tables:
+                for row in self.db.execute("""
+                    SELECT s.provider_match_id, s.match_id
+                    FROM canonical_fixture_sources s JOIN matches m USING(match_id)
+                    WHERE s.domain='CLUB' AND s.provider='Sky'
+                      AND (m.home_id=? OR m.away_id=?) AND m.local_date BETWEEN ? AND ?
+                """, (self.club_id, self.club_id, start, cutoff)):
+                    bindings.setdefault(str(row['provider_match_id']), set()).add(row['match_id'])
             for source in self.service.store.records:
-                mid=source.get('canonical_match_id')
-                if not mid or (mid,source.get('sha256')) in seen_sources:continue
-                match_row=self.db.execute('SELECT * FROM matches WHERE match_id=? AND (home_id=? OR away_id=?)',(mid,self.club_id,self.club_id)).fetchone()
+                mid = source.get('canonical_match_id')
+                if not mid and source.get('provider') == 'Sky':
+                    url = source.get('url') or ''
+                    exact = re.fullmatch(r'https://www\.skysports\.com/football/[a-z0-9-]+/teams/([0-9]+)', url)
+                    choices = bindings.get(exact[1], ()) if exact else ()
+                    if len(choices) == 1:
+                        mid = next(iter(choices))
+                if not mid or (mid,source.get('sha256')) in seen_sources:
+                    continue
+                match_row = self.db.execute("""
+                    SELECT match_id FROM matches WHERE match_id=? AND (home_id=? OR away_id=?)
+                    AND local_date BETWEEN ? AND ?
+                """, (mid, self.club_id, self.club_id, start, cutoff)).fetchone()
                 if match_row:
                     seen_sources.add((mid,source.get('sha256')))
                     source_rows.append(dict(match_id=mid,provider=source.get('provider') or 'UNKNOWN',payload_json=json.dumps(dict(source=source))))
@@ -235,7 +256,7 @@ class RetainedAdapter:
                 from dataclasses import replace
                 joined[-1]=replace(joined[-1],end=m.end)
             else:joined.append(m)
-        self.version=digest(['RETAINED_OBLIGATION_V3',VERSION,PARSER_VERSION,self.club_id,self.coverage,[e.sha256 for m in joined for e in m.evidence]])
+        self.version=digest(['RETAINED_OBLIGATION_V4',VERSION,PARSER_VERSION,self.club_id,self.coverage,[e.sha256 for m in joined for e in m.evidence]])
         return joined,fixtures,statuses,self.calendars
 
     def accepted_club_facts(self,start,cutoff):
