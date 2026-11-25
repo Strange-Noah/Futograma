@@ -400,7 +400,7 @@ def runtime_report(candidate, matrix, key, handoff, config, destination, request
         adapter = RetainedAdapter(db, ROOT / '.cloud', unit['club_id'], calendars, source_service=service)
         try:
             receipt('audit-start', round=round_number, candidate_bytes=candidate.stat().st_size)
-            audit = run(db, adapter, begin, cutoff, max_attempts=200)
+            audit = run(db, adapter, begin, cutoff, max_attempts=None)
             receipt('audit-done', round=round_number, **audit['metrics'])
             required = {(finding['domain'],mid,finding['player']) for finding in audit['gaps']
                         for mid in finding.get('opportunities', ())}
@@ -414,7 +414,7 @@ def runtime_report(candidate, matrix, key, handoff, config, destination, request
             write(work / 'adjudication-private.json', decisions)
             audit_adopted = bool(adjudicated['RECORDED_NEW'] or adjudicated['SUPPLEMENTED_UNKNOWN'])
             if audit_adopted:
-                audit = run(db, adapter, begin, cutoff, max_attempts=200)
+                audit = run(db, adapter, begin, cutoff, max_attempts=None)
                 db.commit()
             write(work / 'audit-private.json', audit)
             followup = audit_followup(db, audit)

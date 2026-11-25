@@ -437,7 +437,7 @@ def active_resolution(db, finding, adapter, dependency, cutoff, budget):
 
 
 def run(db, adapter, start, cutoff, mode='INCREMENTAL', max_attempts=200):
-    if mode not in MODES or type(max_attempts) is not int or max_attempts < 0:
+    if mode not in MODES or (max_attempts is not None and (type(max_attempts) is not int or max_attempts < 0)):
         raise ValueError('INVALID_MODE_OR_BUDGET')
     migrate(db)
     members, fixtures, statuses, calendars = adapter.discover(start, cutoff, mode)
@@ -452,7 +452,8 @@ def run(db, adapter, start, cutoff, mode='INCREMENTAL', max_attempts=200):
     r3 = gaps(members, fixtures, statuses, r4, start, cutoff)
     dependency = digest([adapter.version, [asdict(m) for m in members],
         [asdict(f) for f in fixtures], [asdict(s) for s in statuses], [asdict(w) for w in context]])
-    budget = [max_attempts]
+    attempt_limit = len(PATHS) * len(r4) if max_attempts is None else max_attempts
+    budget = [attempt_limit]
     resolutions = [active_resolution(db, f, adapter, dependency, cutoff, budget)
                    for f in r4 if f['state'] in {'CONFLICT','INSUFFICIENT_COVERAGE'} or f.get('challenge')]
     recovered = []
@@ -466,6 +467,10 @@ def run(db, adapter, start, cutoff, mode='INCREMENTAL', max_attempts=200):
     final_gaps = gaps(members, fixtures, final_statuses, final_r4, start, cutoff)
     # Resolving a precise squad status can remove a longitudinal trigger. Do not
     # open obsolete R3 tasks or rerun a full source search for those intervals.
+    if max_attempts is None:
+        r3_budget = len(PATHS) * len(final_gaps)
+        attempt_limit += r3_budget
+        budget[0] += r3_budget
     resolutions += [active_resolution(db, f, adapter, dependency, cutoff, budget) for f in final_gaps]
     return dict(mode=mode, stages=['R1','R2','R5','R3_R4','R6'], windows=[asdict(w) for w in context],
         opportunities=r4, gaps=r3, final_opportunities=final_r4, final_gaps=final_gaps, resolutions=resolutions,
@@ -473,7 +478,7 @@ def run(db, adapter, start, cutoff, mode='INCREMENTAL', max_attempts=200):
             r3_triggers=len(r3), r4_triggers=sum(f['state'] in {'CONFLICT','INSUFFICIENT_COVERAGE'} or bool(f.get('challenge')) for f in r4),
             resolved=sum(r['state']=='RESOLVED' for r in resolutions), final_gap_count=len(final_gaps),
             recovered_status_candidates=len(recovered), recovered_appearance_rows=0, pending=sum(r['state']=='PENDING' for r in resolutions),
-            conflicts=sum(r['state']=='CONFLICT' for r in resolutions), attempts=max_attempts-budget[0], reused=sum(r['reused'] for r in resolutions),
+            conflicts=sum(r['state']=='CONFLICT' for r in resolutions), attempts=attempt_limit-budget[0], reused=sum(r['reused'] for r in resolutions),
             source_work_required=sum(r['state']=='SOURCE_WORK_REQUIRED' for r in resolutions),
             accepted_challenges=sum(bool(f.get('challenge')) for f in r4),human_pending=sum(r.get('human_pending',False) for r in resolutions),
             compatible_source_variations=sum(f.get('compatible_source_variation',False) for f in r4),
