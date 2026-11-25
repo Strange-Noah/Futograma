@@ -12,6 +12,7 @@ import tarfile
 import resource
 import time
 from collections import Counter
+from dataclasses import asdict
 from contextlib import closing
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -24,6 +25,7 @@ from squad_pipeline.cloud.github_store import GitHubStore
 from squad_pipeline.cloud.quality import inspect, pack, sha
 from squad_pipeline.cloud.storage import StaleWriter
 from squad_pipeline.core import ROOT
+from squad_pipeline.canonical_fixture import digest
 from squad_pipeline.reconstruction.calendar import fifa_windows
 from squad_pipeline.reconstruction.engine import run
 from squad_pipeline.reconstruction.retained_adapter import RetainedAdapter
@@ -282,6 +284,9 @@ def runtime_report(candidate, matrix, key, handoff, config, destination, request
         entry = SourceRequest('FIFA','calendar',url,'international-match-calendar',policy='CACHE_FIRST')
         acquired, parsed = svc.observe(entry)
         calendar_evidence = acquired.outcome
+        if acquired.artifact and acquired.outcome == 'FOUND':
+            write(local.root / 'results-private.json', [dict(
+                url=url, outcome='FOUND', artifact=asdict(acquired.artifact))])
         calendar_parse = parsed.outcome if parsed else None
         if acquired.artifact and acquired.outcome == 'FOUND':
             stamp = acquired.artifact.metadata.get('response_timestamp') or acquired.artifact.metadata.get('observed_on')
@@ -377,6 +382,49 @@ def runtime_report(candidate, matrix, key, handoff, config, destination, request
                                     mapped_source_requests=len(followup['requests']),
                                     unmapped_fixture_groups=len(followup['unmapped']))
     return result, candidate, followup['requests']
+
+
+def write_whole_unit_inputs(work, key, candidate, matrix, config, report):
+    """Bind known acceptance inputs without replacing the approved acceptance gate."""
+    row = next(row for row in matrix['units'] if f'{row["club_id"]}:{row["unit"]}' == key)
+    unit = unit_window(row)
+    root = ROOT / '.cloud'
+    frozen = {}
+    for path in sorted(root.rglob('*.json')):
+        if not any(word in path.name.lower() for word in ('freeze', 'frozen', 'union', 'cohort')):
+            continue
+        item = read(path)
+        if not isinstance(item, dict) or item.get('unit') != unit:
+            continue
+        if item.get('observed_population_accepted') is not True:
+            continue
+        fingerprint = item.get('freeze_sha256')
+        if fingerprint and fingerprint == digest({k: v for k, v in item.items() if k != 'freeze_sha256'}):
+            frozen.setdefault(fingerprint, (path, len(item['player_ids'])))
+    audit = report['audit']
+    open_work = {state: count for state, count in audit.get('resolution_states', {}).items()
+                 if state != 'RESOLVED' and count}
+    approved_plan = config.get('unit_plans', {}).get(key)
+    missing = []
+    if len(frozen) != 1:
+        missing.append('UNIQUE_VERIFIED_FROZEN_POPULATION')
+    if not str(row.get('national_coverage', '')).startswith('PASS / VERIFIED'):
+        missing.append('VERIFIED_APPLICABLE_NATIONAL_COVERAGE')
+    if not audit.get('stages') or open_work or audit.get('metrics', {}).get('unperformed_paths'):
+        missing.append('COMPLETE_R1_R6_DISPOSITION')
+    if not approved_plan:
+        missing.append('APPROVED_WHOLE_UNIT_ACCEPTANCE_PLAN')
+    path = work / 'whole-unit-input-plan.json'
+    write(path, dict(
+        unit=unit, unit_key=key, source=str(candidate.relative_to(ROOT)),
+        source_sha256=sha(candidate),
+        frozen_populations=[dict(path=str(path.relative_to(ROOT)), sha256=fingerprint, players=count)
+                            for fingerprint, (path, count) in frozen.items()],
+        national_scope=report['pending'], open_audit_work=open_work,
+        approved_plan=approved_plan, missing=missing))
+    return dict(path=str(path.relative_to(ROOT)), frozen_population_count=len(frozen),
+                frozen_player_counts=sorted(n for _, n in frozen.values()),
+                approved_plan_present=bool(approved_plan), missing=missing)
 
 
 def sync_delivery_matrix(matrix, report):
@@ -565,6 +613,7 @@ def run_delivery(request_path, entry_path, base_checkout):
                   accepted=sum(row['data_accepted'] for row in matrix['units']),
                   source_ready=sum(row['source_ready'] for row in matrix['units']),
                   run=f'https://github.com/{repository}/actions/runs/{os.environ["GITHUB_RUN_ID"]}')
+    report['whole_unit_input_plan'] = write_whole_unit_inputs(work, key, candidate, matrix, config, report)
     write(work / 'scope.json', report)
     sync_delivery_matrix(matrix, report)
     write(matrix_path, matrix)
