@@ -119,6 +119,9 @@ def stage(store, handoff, source, temp):
     for path in (directory / '.cloud').rglob('*.json'):
         relocate_json(path, str(directory), ROOT)
     shutil.move(directory / '.cloud', target)
+    # The original verified assets remain in the private Release. The downloaded
+    # copies and verification export have no downstream consumers in this runner.
+    shutil.rmtree(directory)
     workers = ROOT / 'ops/cloud/historical_continuation_workers'
     for source in workers.rglob('*.py'):
         dest = target / source.relative_to(workers)
@@ -489,9 +492,6 @@ def run_delivery(request_path, entry_path, base_checkout):
         round_work.mkdir()
         candidate = Path(state['candidate']).resolve()
         matrix = read(matrix_path)
-        quality = inspect(candidate)
-        export_pointer = dict(pointer, current=dict(pointer['current'], database=quality))
-        export(candidate, temp / f'export-{rounds:03d}', parent, export_pointer, ROOT / 'web')
         report, candidate, mapped = runtime_report(
             candidate, matrix, key, handoff, config, round_work / 'scope.json', request, receipt, rounds)
         if probe:
@@ -502,9 +502,6 @@ def run_delivery(request_path, entry_path, base_checkout):
             write(checkpoint, state)
             matrix = refresh_matrix(matrix, candidate)
             write(matrix_path, matrix)
-            repeat_quality = inspect(candidate)
-            repeat_pointer = dict(pointer, current=dict(pointer['current'], database=repeat_quality))
-            export(candidate, temp / f'reaudit-export-{rounds:03d}', parent, repeat_pointer, ROOT / 'web')
         if report['data_accepted'] or state['state'] in {'ACCESS_RESTRICTED', 'RATE_LIMITED', 'ROBOTS_DISALLOWED'}:
             break
         next_sources = [
@@ -572,6 +569,9 @@ def run_delivery(request_path, entry_path, base_checkout):
                                       database=str(accepted.relative_to(ROOT)),sha256=sha(accepted))
     if len(snapshots) != report['accepted']:
         raise ValueError('ACCUMULATED_ACCEPTANCE_COUNT_MISMATCH')
+    quality = inspect(candidate)
+    export_pointer = dict(pointer, current=dict(pointer['current'], database=quality))
+    export(candidate, temp / 'verified-output-export', parent, export_pointer, ROOT / 'web')
     receipt('bundle-start', batches=len(batches), rounds=rounds)
     manifest, archive = build_bundle(candidate, report, matrix, temp)
     receipt('bundle-done', archive_bytes=archive.stat().st_size)
