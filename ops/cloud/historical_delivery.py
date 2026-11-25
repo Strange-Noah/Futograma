@@ -755,6 +755,42 @@ def national_numeric(path):
         return db.execute('SELECT count(minutes) FROM international_appearances').fetchone()[0]
 
 
+def refresh_retained_unit_inputs(work, matrix, config, candidate, continuation):
+    """Rebind signed inputs against the exact audit snapshot without reacquiring evidence."""
+    current = sha(candidate)
+    rebound = {}
+    for row in matrix['units']:
+        if row['data_accepted']:
+            continue
+        key = f'{row["club_id"]}:{row["unit"]}'
+        action = row.get('audit_execution', {}).get('action', '')
+        run_id = action.rsplit('/', 1)[-1]
+        if not run_id.isdigit():
+            continue
+        tag = key.replace(':', '-').replace('/', '_')
+        delivery = continuation / ('delivery-' + run_id)
+        candidates = (delivery / tag / 'scope.json', delivery / 'scope.json')
+        for path in candidates:
+            if not path.is_file():
+                continue
+            latest = read(path)
+            if latest.get('unit') != key:
+                continue
+            previous = latest.get('whole_unit_input_plan', {}).get('path')
+            if not previous:
+                continue
+            old = ROOT / relative_path(previous)
+            if not old.is_file() or read(old).get('source_sha256') != current:
+                continue
+            output = work / tag
+            output.mkdir(parents=True, exist_ok=True)
+            status = write_whole_unit_inputs(output, key, candidate, matrix, config, latest)
+            row['whole_unit_input_plan'] = status
+            rebound[key] = status
+            break
+    return rebound
+
+
 def matrix_targets(matrix, config, preferred):
     plans = config.get('unit_plans', {})
     ranked = []
@@ -1015,6 +1051,15 @@ def run_delivery(request_path, entry_path, base_checkout):
         write(work / 'scope.json', report)
     batches = read(checkpoint)['batches'][len(state_before['batches']):]
     rounds = sum(r['audit_followup']['rounds'] for r in reports)
+    if request.get('verify_frozen_inputs'):
+        rebound = refresh_retained_unit_inputs(work / 'frozen-plan-refresh', matrix, config,
+                                                candidate, checkpoint.parent)
+        report['retained_plan_refresh'] = rebound
+        write(matrix_path, matrix)
+        write(work / 'scope.json', report)
+        receipt('matrix-frozen-inputs', represented=len(rebound),
+                frozen=sum(item['frozen_population_count'] for item in rebound.values()),
+                approved_plans=sum(item['approved_plan_present'] for item in rebound.values()))
     # Keep every previously accepted independent reference and validate any new receipt.
     snapshots = dict(handoff['accepted_snapshots'])
     for row in matrix['units']:
