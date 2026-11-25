@@ -61,10 +61,17 @@ class DeliveryReceipt:
             process_peak_rss_kib=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
             child_peak_rss_kib=resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss,
             free_bytes=shutil.disk_usage(self.root).free, **counts)
-        name = f'historical-stage-{self.run_id}-{self.number:04d}.json'
+        name = f'historical-stage-{self.run_id}-{self.number:04d}-{stage}.json'
         path = self.root / name
         write(path, result)
-        self.store.upload(self.release_id, path)
+        asset = self.store.upload(self.release_id, path)
+        label = f"{result['elapsed_seconds']}s freeMiB={result['free_bytes']//1048576} rssKiB={result['process_peak_rss_kib']} childKiB={result['child_peak_rss_kib']}"
+        for key in ('round', 'batch', 'worker', 'tasks', 'attempts', 'replays', 'outcome',
+                    'official_windows', 'parser', 'mapped', 'unmapped', 'source_work_required'):
+            if key in counts:
+                label += f' {key}={counts[key]}'
+        self.store.api('PATCH', self.store.base + '/releases/assets/' + str(asset['id']),
+                       dict(label=label[:250]))
         print('HISTORICAL_STAGE=' + json.dumps(result, sort_keys=True), flush=True)
 
 
