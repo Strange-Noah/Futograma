@@ -16,7 +16,10 @@ from dataclasses import asdict, replace
 from contextlib import closing
 from pathlib import Path
 from urllib.parse import urlsplit
+from zoneinfo import ZoneInfo
 
+from squad_pipeline.coldstart_national import offlineapply
+from squad_pipeline.roster_policy import roster_decision
 from ops.cloud.historical_batch import continue_batches, discover_gaps, refresh_matrix, unit_window, write
 from ops.cloud.obligation_execution import adjudicate_packets
 from ops.cloud.verify_historical_handoff import relative_path, relocate_json, verify
@@ -335,6 +338,108 @@ def collect_national_directories(candidate, unit, work, reviewed_urls):
         if acquired.outcome in {'ACCESS_RESTRICTED', 'RATE_LIMITED', 'ROBOTS_DISALLOWED', 'BUDGET_EXHAUSTED'}:
             break
     return {item['url'] for item in responses}, Counter(item['outcome'] for item in responses)
+
+
+def apply_scoped_national_fixtures(candidate, work, scratch, unit, request, receipt):
+    """Use typed directory claims and the preserved national writer for explicit open dates."""
+    targets = [item for item in request.get('coverage_queries', ())
+               if item['date'] in request.get('national_apply_dates', ())]
+    if not targets:
+        return dict(matches=0, rows=0, requests=0)
+    source = retained_store(work)
+    archive = SourceService(source, 'historical-national-match-index', set(), max_calls=0)
+    cutoff = (datetime.date.fromisoformat(unit['end_exclusive'])-datetime.timedelta(days=1)).isoformat()
+    fixtures = {}
+    reviewed = set(request.get('national_directory_urls', {}).values())
+    for url in sorted(reviewed):
+        match = re.fullmatch(r'https://www\.fotmob\.com/teams/([0-9]+)/fixtures/[a-z0-9-]+', url)
+        if not match:
+            raise ValueError('EXACT_REVIEWED_NATIONAL_TEAM_URL_REQUIRED')
+        observed = SourceRequest('FotMob','team_history',url,'reviewed-team-fixtures',
+                                 expected_ids=dict(team=match[1]),
+                                 context=dict(start=unit['start'],cutoff=cutoff,level='SENIOR'))
+        _, observation = archive.observe(observed)
+        if not observation or observation.outcome != 'PARSED':
+            continue
+        for fixture in observation.native['matches']:
+            fixtures[fixture['provider_match_id']] = fixture
+    transport = SourceService(EvidenceStore(work / 'national-match-sources'), 'historical-exact-national',
+                              {'www.fotmob.com'}, max_calls=2 * len(targets), max_bytes=10000000 * len(targets))
+    aliases = request.get('national_team_aliases', {})
+    def name(label):
+        return aliases.get(label, label).casefold()
+    metrics = dict(matches=0, rows=0, requests=0, outcomes=[])
+    for query in targets:
+        on = query['date']
+        if not unit['start'] <= on < unit['end_exclusive']:
+            raise ValueError('NATIONAL_APPLY_DATE_OUTSIDE_UNIT')
+        candidates = [item for item in fixtures.values()
+                      if datetime.datetime.fromisoformat(item['kickoff']).astimezone(ZoneInfo('Europe/Madrid')).date().isoformat() == on
+                      and [name(item[side]['name']) for side in ('home','away')] == [name(label) for label in query['teams']]]
+        if len(candidates) != 1:
+            metrics['outcomes'].append(dict(date=on, status='UNIQUE_TYPED_FIXTURE_REQUIRED', candidates=len(candidates)))
+            continue
+        fixture = candidates[0]
+        native = str(fixture['provider_match_id'])
+        with closing(sqlite3.connect(candidate.as_uri() + '?mode=ro', uri=True)) as db:
+            db.row_factory = sqlite3.Row
+            previous = coverage_projection(db, unit, [query])[0]
+            if all(value['status']=='EXISTING_NUMERIC_FACT' for value in previous['players'].values()):
+                continue
+            if db.execute("""
+                    SELECT 1 FROM international_acquisition_queue
+                    WHERE entity_type='MATCH' AND provider='FotMob' AND provider_entity_id=?
+                      AND state IN ('QUARANTINED','HUMAN_REVIEW')""", (native,)).fetchone():
+                metrics['outcomes'].append(dict(date=on, status='EXISTING_PROVIDER_QUARANTINE'))
+                continue
+            ids = {}
+            for selected in query['players']:
+                details = selected if isinstance(selected, dict) else dict(label=selected)
+                links = db.execute("""
+                    SELECT DISTINCT links.provider_player_id, players.player_id
+                    FROM verified_identity_links links JOIN players USING(player_id)
+                    WHERE provider='FotMob' AND json_extract(links.evidence_json,'$.identity_status')='VERIFIED'
+                      AND (lower(players.display_name)=lower(?) OR links.provider_player_id=?)
+                """, (details['label'], str(details.get('provider_id', '')))).fetchall()
+                if details.get('provider_id'):
+                    links = [row for row in links if str(row[0]) == str(details['provider_id'])]
+                if len(links) == 1 and roster_decision(db, unit['club_id'], links[0][1], on)['included']:
+                    ids[str(links[0][0])] = links[0][1]
+        if not ids:
+            metrics['outcomes'].append(dict(date=on, status='NO_VERIFIED_APPLICABLE_PLAYER'))
+            continue
+        detail = SourceRequest('FotMob','match',fixture['url'],'exact-reviewed-national-match',
+                               expected_ids=dict(match=native), policy='LIVE_ALLOWED')
+        response = transport.acquire(detail)
+        metrics['requests'] += 1
+        if response.outcome != 'FOUND':
+            metrics['outcomes'].append(dict(date=on, status=response.outcome))
+            continue
+        artifact = response.artifact
+        raw = transport.store.read(artifact)
+        capture = dict(url=fixture['url'], status='SUCCESS', provider_match_id=native,
+                       sha256=artifact.content_sha256, body=raw,
+                       path=str(transport.store.root / artifact.locator),
+                       fetched_at=artifact.metadata.get('response_timestamp'))
+        trial = scratch / 'national-trial.sqlite'
+        with closing(sqlite3.connect(candidate.as_uri() + '?mode=ro', uri=True)) as db, closing(sqlite3.connect(trial)) as copy:
+            db.backup(copy)
+            copy.row_factory = sqlite3.Row
+            result = offlineapply(copy, dict(fixtures={native: fixture}, managing_club_id=unit['club_id']),
+                                  [capture], ids, on)
+            copy.commit()
+        if result['new_player_facts']:
+            inspect(trial)
+            os.replace(trial, candidate)
+            metrics['matches'] += result['new_matches']
+            metrics['rows'] += result['new_player_facts']
+        else:
+            trial.unlink()
+        metrics['outcomes'].append(dict(date=on, status='WRITER_CHECKED', result=result))
+    write(work / 'national-match-application.json', metrics)
+    receipt('national-match-done', attempts=metrics['requests'],
+            new_matches=metrics['matches'], new_rows=metrics['rows'])
+    return metrics
 
 
 def runtime_report(candidate, matrix, key, handoff, config, destination, request, receipt, round_number):
@@ -665,6 +770,18 @@ def run_delivery(request_path, entry_path, base_checkout):
     work = checkpoint.parent / ('delivery-' + os.environ['GITHUB_RUN_ID'])
     work.mkdir()
     config = read(config_path)
+    selected_matrix = read(matrix_path)
+    selected_row = next(row for row in selected_matrix['units']
+                        if f'{row["club_id"]}:{row["unit"]}' == key)
+    active_candidate = Path(state['candidate']).resolve()
+    if request.get('national_apply_dates') and any(
+            active_candidate == ROOT / relative_path(snap['database'])
+            for snap in handoff['accepted_snapshots'].values()):
+        raise ValueError('ACCEPTED_SNAPSHOT_IMMUTABLE')
+    national_apply = apply_scoped_national_fixtures(
+        active_candidate, work, temp, unit_window(selected_row), request, receipt)
+    if national_apply['rows']:
+        write(matrix_path, refresh_matrix(selected_matrix, active_candidate))
     offered = {item['url'].rsplit('/', 1)[-1] for item in sources}
     followup_batches = 0
     direct_requests = set()
@@ -762,6 +879,10 @@ def run_delivery(request_path, entry_path, base_checkout):
                   accepted=sum(row['data_accepted'] for row in matrix['units']),
                   source_ready=sum(row['source_ready'] for row in matrix['units']),
                   run=f'https://github.com/{repository}/actions/runs/{os.environ["GITHUB_RUN_ID"]}')
+    report['national_match_application'] = national_apply
+    report['counts']['new_national_matches'] += national_apply['matches']
+    report['counts']['new_national_player_rows'] += national_apply['rows']
+    report['source_requests'] += national_apply['requests']
     report['whole_unit_input_plan'] = write_whole_unit_inputs(work, key, candidate, matrix, config, report)
     write(work / 'scope.json', report)
     sync_delivery_matrix(matrix, report)
