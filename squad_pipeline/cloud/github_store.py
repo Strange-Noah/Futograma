@@ -102,8 +102,8 @@ class GitHubStore:
   self.api('PATCH',self.base+'/releases/'+str(release['id']),dict(draft=False))
   commit=self.api('GET',self.base+'/git/commits/'+expected_head)
   entries=[]
-  for path,value in files.items():
-   content=(json.dumps(value,ensure_ascii=False,indent=2)+'\n').encode()
+  encoded_files={path:(json.dumps(value,ensure_ascii=False,indent=2)+'\n').encode() for path,value in files.items()}
+  for path,content in encoded_files.items():
    blob=self.api('POST',self.base+'/git/blobs',dict(content=base64.b64encode(content).decode(),encoding='base64'))
    entries.append(dict(path=path,mode='100644',type='blob',sha=blob['sha']))
   tree=self.api('POST',self.base+'/git/trees',dict(base_tree=commit['tree']['sha'],tree=entries))
@@ -111,11 +111,11 @@ class GitHubStore:
   self.api('PATCH',self.base+'/git/refs/heads/'+urllib.parse.quote(self.ref,safe='/'),dict(sha=new['sha'],force=False))
   actual,p=self.head()
   if actual!=new['sha'] or p!=pointer:raise UploadFailed('PUBLISHED_POINTER_READBACK_MISMATCH')
-  for name,value in files.items():
+  for name,content in encoded_files.items():
    if name=='current.json':continue
    stored=self.api('GET',self.base+'/contents/'+name+'?ref='+actual)
-   if json.loads(base64.b64decode(stored['content']))!=value:
-    raise UploadFailed('PUBLISHED_COMPANION_READBACK_MISMATCH')
+   if base64.b64decode(stored['content'])!=content:
+    raise UploadFailed('PUBLISHED_COMPANION_READBACK_MISMATCH:'+name)
   return actual,pointer
  def prune(self,apply=False):
   expected,pointer=self.head()
