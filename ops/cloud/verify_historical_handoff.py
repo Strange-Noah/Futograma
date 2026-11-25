@@ -15,6 +15,7 @@ from squad_pipeline.cloud.github_store import GitHubStore
 from squad_pipeline.cloud.quality import sha
 from squad_pipeline.source_interface import EvidenceStore
 from ops.cloud.historical_unit import artifact
+from squad_pipeline.international_store import digest
 
 
 def relative_path(value):
@@ -45,6 +46,12 @@ def verify_archive(archive_path, root, manifest):
 def relocate_json(path, old, root):
     def relocate(value):
         if isinstance(value, dict):
+            fingerprint = value.get('freeze_sha256')
+            if (value.get('observed_population_accepted') is True and fingerprint
+                    and fingerprint == digest({k: v for k, v in value.items() if k != 'freeze_sha256'})):
+                # Preserve the exact accepted observation, including the source
+                # descriptors covered by its original fingerprint.
+                return value
             return {key: relocate(item) for key, item in value.items()}
         if isinstance(value, list):
             return [relocate(item) for item in value]

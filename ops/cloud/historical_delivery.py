@@ -601,6 +601,7 @@ def write_whole_unit_inputs(work, key, candidate, matrix, config, report):
     freeze_key = PeriodUnit(season=season, half=half, **unit).key
     root = ROOT / '.cloud'
     frozen = {}
+    candidates = []
     for path in sorted(root.rglob('*.json')):
         if not any(word in path.name.lower() for word in ('freeze', 'frozen', 'union', 'cohort', 'roster', 'population', 'plan', 'acceptance')):
             continue
@@ -608,7 +609,7 @@ def write_whole_unit_inputs(work, key, candidate, matrix, config, report):
         if not isinstance(doc, dict):
             continue
         for item in [doc, *(value for value in doc.values() if isinstance(value, dict))]:
-            if item.get('unit_key') not in (freeze_key, key):
+            if item.get('unit_key') not in (None, freeze_key, key):
                 continue
             bound = item.get('unit') or {}
             if any(bound.get(field) != value for field, value in unit.items()):
@@ -621,6 +622,9 @@ def write_whole_unit_inputs(work, key, candidate, matrix, config, report):
                     output = work / ('verified-freeze-' + fingerprint + '.json')
                     write(output, item)
                 frozen.setdefault(fingerprint, (output, len(item['player_ids'])))
+            else:
+                candidates.append(dict(path=str(path.relative_to(ROOT)), accepted=item.get('observed_population_accepted'),
+                                       has_fingerprint=bool(fingerprint), has_player_ids=isinstance(item.get('player_ids'), list)))
     audit = report['audit']
     open_work = {state: count for state, count in audit.get('resolution_states', {}).items()
                  if state != 'RESOLVED' and count}
@@ -640,10 +644,11 @@ def write_whole_unit_inputs(work, key, candidate, matrix, config, report):
         source_sha256=sha(candidate),
         frozen_populations=[dict(path=str(path.relative_to(ROOT)), sha256=fingerprint, players=count)
                             for fingerprint, (path, count) in frozen.items()],
-        national_scope=report['pending'], open_audit_work=open_work,
+        candidate_freeze_records=candidates, national_scope=report['pending'], open_audit_work=open_work,
         approved_plan=approved_plan, missing=missing))
     return dict(path=str(path.relative_to(ROOT)), frozen_population_count=len(frozen),
                 frozen_player_counts=sorted(n for _, n in frozen.values()),
+                candidate_freeze_record_count=len(candidates),
                 approved_plan_present=bool(approved_plan), missing=missing)
 
 
