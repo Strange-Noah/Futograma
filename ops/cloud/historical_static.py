@@ -7,6 +7,7 @@ from contextlib import closing
 
 from ops.cloud.historical_batch import local_path, unit_window, write
 from squad_pipeline.cloud.quality import sha
+from squad_pipeline.core import ROOT
 from squad_pipeline.international_store import digest
 
 
@@ -55,17 +56,49 @@ def project(database, unit, players):
             eligibility=records(f'SELECT * FROM player_eligibility WHERE club_id=? AND player_id IN ({marks}) ORDER BY player_id, rowid', (club_id, *players)))
 
 
-def publish_static(store, handoff, config, matrix, work, receipt):
+def frozen_receipts(fingerprints):
+    """Index only original bundles referenced by independently accepted receipts."""
+    indexed = {}
+    for path in sorted((ROOT / '.cloud').rglob('*.json')):
+        if not any(word in path.name.lower() for word in ('freeze', 'union', 'cohort', 'population', 'roster', 'acceptance', 'plan')):
+            continue
+        text = path.read_text()
+        if not any(fingerprint in text for fingerprint in fingerprints):
+            continue
+        root = json.loads(text)
+        if not isinstance(root, dict):
+            continue
+        for item in [root, *(value for value in root.values() if isinstance(value, dict))]:
+            fingerprint = item.get('freeze_sha256')
+            if (fingerprint in fingerprints and item.get('observed_population_accepted') is True
+                    and digest({k: v for k, v in item.items() if k != 'freeze_sha256'}) == fingerprint):
+                indexed[fingerprint] = item
+    return indexed
+
+
+def publish_static(store, handoff, config, matrix, work, receipt, selected=()):
+    if selected and not set(selected) <= set(handoff['accepted_snapshots']):
+        raise ValueError('STATIC_PROJECTION_REQUIRES_ACCEPTED_TARGETS')
+    eligible = {key: item for key, item in handoff['accepted_snapshots'].items()
+                if not selected or key in selected}
+    verdicts = {key: json.loads(local_path(item['receipt']).read_text()) for key, item in eligible.items()}
+    known = frozen_receipts({item['frozen_union_sha256'] for item in verdicts.values()
+                             if item.get('frozen_union_sha256')})
+
     results, assets = {}, []
     rows = {f'{r["club_id"]}:{r["unit"]}': r for r in matrix['units']}
-    for key, metadata in sorted(handoff['accepted_snapshots'].items()):
+    for key, metadata in sorted(eligible.items()):
+        verdict = verdicts[key]
+        freeze = known.get(verdict.get('frozen_union_sha256'))
         path = config.get('unit_plans', {}).get(key)
-        if not path:
-            results[key] = dict(status='ORIGINAL_PLAN_REFERENCE_MISSING')
+        if freeze is None and path and local_path(path).is_file():
+            plan = json.loads(local_path(path).read_text())
+            original = local_path(plan['freeze'])
+            if original.is_file():
+                freeze = json.loads(original.read_text())
+        if freeze is None:
+            results[key] = dict(status='ORIGINAL_FREEZE_NOT_RESTORED', plan_reference=bool(path))
             continue
-        plan = json.loads(local_path(path).read_text())
-        freeze = json.loads(local_path(plan['freeze']).read_text())
-        verdict = json.loads(local_path(metadata['receipt']).read_text())
         database = local_path(metadata['database'])
         fingerprint = freeze.get('freeze_sha256')
         players = freeze.get('player_ids')
