@@ -9,6 +9,8 @@ import shutil
 import sqlite3
 import subprocess
 import tarfile
+import resource
+import time
 from collections import Counter
 from contextlib import closing
 from pathlib import Path
@@ -37,6 +39,33 @@ def download(store, record, target):
     if target.stat().st_size != record['size'] or sha(target) != record['sha256']:
         raise ValueError('HISTORICAL_ASSET_DIGEST_MISMATCH')
     return target
+
+
+class DeliveryReceipt:
+    """Append small phase records to the base historical release, outside the CAS pointer."""
+
+    def __init__(self, store, release_id, root, request):
+        self.store = store
+        self.release_id = release_id
+        self.root = root
+        self.run_id = int(os.environ['GITHUB_RUN_ID'])
+        self.start = time.monotonic()
+        self.number = 0
+        self.unit = request['unit']
+
+    def __call__(self, stage, **counts):
+        self.number += 1
+        result = dict(
+            run=self.run_id, stage=stage, unit=self.unit, sequence=self.number,
+            elapsed_seconds=round(time.monotonic()-self.start, 2),
+            process_peak_rss_kib=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
+            child_peak_rss_kib=resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss,
+            free_bytes=shutil.disk_usage(self.root).free, **counts)
+        name = f'historical-stage-{self.run_id}-{self.number:04d}.json'
+        path = self.root / name
+        write(path, result)
+        self.store.upload(self.release_id, path)
+        print('HISTORICAL_STAGE=' + json.dumps(result, sort_keys=True), flush=True)
 
 
 def overlay_retained_batch(store, handoff, staging, temp):
@@ -209,7 +238,7 @@ def audit_followup(db, audit):
     return dict(requests=requests, unmapped=unmapped, exact_fixture_groups=len(groups))
 
 
-def runtime_report(candidate, matrix, key, handoff, config, destination, request):
+def runtime_report(candidate, matrix, key, handoff, config, destination, request, receipt, round_number):
     row = next(row for row in matrix['units'] if f'{row["club_id"]}:{row["unit"]}' == key)
     unit = unit_window(row)
     work = destination.parent
@@ -225,6 +254,8 @@ def runtime_report(candidate, matrix, key, handoff, config, destination, request
         calendar = ROOT / relative_path(config['calendar'])
     calendars = []
     calendar_evidence = 'NONE'
+    calendar_parse = None
+    calendar_issue = None
     if calendar is None and request.get('use_fifa_calendar'):
         url = 'https://inside.fifa.com/tournament-organisation/international-match-calendars'
         local = retained_store(work)
@@ -232,15 +263,25 @@ def runtime_report(candidate, matrix, key, handoff, config, destination, request
         entry = SourceRequest('FIFA','calendar',url,'international-match-calendar',policy='CACHE_FIRST')
         acquired, parsed = svc.observe(entry)
         calendar_evidence = acquired.outcome
-        if acquired.artifact and acquired.outcome=='FOUND':
+        calendar_parse = parsed.outcome if parsed else None
+        if acquired.artifact and acquired.outcome == 'FOUND':
             stamp = acquired.artifact.metadata.get('response_timestamp') or acquired.artifact.metadata.get('observed_on')
             if stamp:
-                calendars = fifa_windows(local.read(acquired.artifact),url,stamp,begin,cutoff,observation=parsed)
+                try:
+                    precision = 'DAY' if len(stamp) == 10 else 'TIMESTAMP'
+                    calendars = fifa_windows(local.read(acquired.artifact), url, stamp, begin, cutoff,
+                                             time_precision=precision, observation=parsed)
+                except ValueError as error:
+                    calendar_issue = str(error)
+            else:
+                calendar_issue = 'SOURCE_OBSERVATION_TIMESTAMP_MISSING'
     if calendar is not None:
         observed = datetime.datetime.fromtimestamp(calendar.stat().st_mtime, datetime.timezone.utc).isoformat()
         calendars = fifa_windows(calendar.read_bytes(),
                     'https://inside.fifa.com/tournament-organisation/international-match-calendars',
                     observed, begin, cutoff)
+    receipt('calendar', round=round_number, acquisition=calendar_evidence,
+            parser=calendar_parse, official_windows=len(calendars), issue=calendar_issue)
     # Audit operates on a disposable SQLite copy. Its disposition and evidence
     # remain separate from the existing whole-unit acceptance gate.
     audit_copy = work / 'audit-input.sqlite'
@@ -253,7 +294,9 @@ def runtime_report(candidate, matrix, key, handoff, config, destination, request
                                 'historical-delivery-audit', set(), max_calls=0)
         adapter = RetainedAdapter(db, ROOT / '.cloud', unit['club_id'], calendars, source_service=service)
         try:
+            receipt('audit-start', round=round_number, candidate_bytes=candidate.stat().st_size)
             audit = run(db, adapter, begin, cutoff, max_attempts=200)
+            receipt('audit-done', round=round_number, **audit['metrics'])
             required = {(finding['domain'],mid,finding['player']) for finding in audit['gaps']
                         for mid in finding.get('opportunities', ())}
             required.update((finding['domain'],finding['canonical'],finding['player'])
@@ -270,10 +313,13 @@ def runtime_report(candidate, matrix, key, handoff, config, destination, request
                 db.commit()
             write(work / 'audit-private.json', audit)
             followup = audit_followup(db, audit)
+            receipt('audit-mapped', round=round_number, mapped=len(followup['requests']),
+                    unmapped=len(followup['unmapped']), coverage=adapter.coverage)
             write(work / 'audit-followup-private.json', followup)
             audit_summary = dict(stages=audit['stages'], metrics=audit['metrics'],
                                  retained_calendar_supplied=bool(calendars), retained_source_calls=service.parse_calls,
-                                 adapter_coverage=adapter.coverage,
+                                 adapter_coverage=adapter.coverage, official_window_count=len(calendars),
+                                 calendar_coverage=audit['calendar_coverage'],
                                  resolution_states=dict(Counter(item.get('state') for item in audit['resolutions'])))
         except (ValueError, OSError, sqlite3.Error) as exc:
             if audit_adopted:
@@ -300,6 +346,8 @@ def runtime_report(candidate, matrix, key, handoff, config, destination, request
                   pending=obligations[key])
     result['coverage_queries'] = projection
     result['calendar_evidence'] = calendar_evidence
+    result['calendar_parser'] = calendar_parse
+    result['calendar_issue'] = calendar_issue
     closed = handoff.get('latest_evidence_checkpoint', {}).get('official_selection', {})
     if handoff.get('latest_evidence_checkpoint', {}).get('unit') == key:
         result['reused_verified_appearances'] = sum(
@@ -395,7 +443,10 @@ def run_delivery(request_path, entry_path, base_checkout):
         raise ValueError('HISTORICAL_REQUEST_CODE_MISMATCH')
     temp = Path(os.environ['RUNNER_TEMP']) / 'historical-delivery'
     temp.mkdir(exist_ok=False)
+    receipt = DeliveryReceipt(store, pointer['current']['release_id'], temp, request)
+    receipt('restore-start', evidence_bytes=handoff['evidence_asset']['size'])
     verified, adopted = stage(store, handoff, base_checkout, temp)
+    receipt('restore-done', evidence_files=verified['evidence_files'])
     if verified['data_commit'] != parent:
         raise StaleWriter('HISTORICAL_RESTORE_PARENT_MISMATCH')
     config_path = ROOT / relative_path(handoff['runner_config'])
@@ -408,10 +459,15 @@ def run_delivery(request_path, entry_path, base_checkout):
     before = len(state_before['batches'])
     numeric_before = national_numeric(Path(state_before['candidate']))
     sources = request.get('sources', ())
-    state = continue_batches(config_path, checkpoint.parent, key, sources,
-                             national_only=request.get('scope') == 'national',
-                             duration_certificates=request.get('duration_certificates', ()),
-                             selection_certificates=request.get('selection_certificates', ()))
+    probe = request.get('probe') == 'retained-audit'
+    if probe and sources:
+        raise ValueError('RETAINED_AUDIT_PROBE_REQUIRES_NO_SOURCES')
+    state = state_before if probe else continue_batches(
+        config_path, checkpoint.parent, key, sources,
+        national_only=request.get('scope') == 'national',
+        duration_certificates=request.get('duration_certificates', ()),
+        selection_certificates=request.get('selection_certificates', ()), receipt=receipt)
+    receipt('initial-batches-done', batches=len(state['batches'])-before)
     # The exporter reads the historical snapshot; publish only after the last
     # round has passed verification. A blocked source is preserved in its receipt.
     work = checkpoint.parent / ('delivery-' + os.environ['GITHUB_RUN_ID'])
@@ -430,7 +486,10 @@ def run_delivery(request_path, entry_path, base_checkout):
         export_pointer = dict(pointer, current=dict(pointer['current'], database=quality))
         export(candidate, temp / f'export-{rounds:03d}', parent, export_pointer, ROOT / 'web')
         report, candidate, mapped = runtime_report(
-            candidate, matrix, key, handoff, config, round_work / 'scope.json', request)
+            candidate, matrix, key, handoff, config, round_work / 'scope.json', request, receipt, rounds)
+        if probe:
+            receipt('probe-done', audit=report['audit'], followup=report['audit_followup'])
+            return
         if str(candidate) != state['candidate']:
             state['candidate'] = str(candidate)
             write(checkpoint, state)
@@ -452,7 +511,7 @@ def run_delivery(request_path, entry_path, base_checkout):
         # Keep the latest audit evidence path even if the collector has already
         # attempted every mapped request in persisted continuation state.
         state = continue_batches(config_path, checkpoint.parent, key, next_sources,
-                                 national_only=request.get('scope') == 'national')
+                                 national_only=request.get('scope') == 'national', receipt=receipt)
         delta = len(state['batches']) - batch_count
         followup_batches += delta
         if not delta and read(matrix_path) == matrix:
@@ -506,7 +565,9 @@ def run_delivery(request_path, entry_path, base_checkout):
                                       database=str(accepted.relative_to(ROOT)),sha256=sha(accepted))
     if len(snapshots) != report['accepted']:
         raise ValueError('ACCUMULATED_ACCEPTANCE_COUNT_MISMATCH')
+    receipt('bundle-start', batches=len(batches), rounds=rounds)
     manifest, archive = build_bundle(candidate, report, matrix, temp)
+    receipt('bundle-done', archive_bytes=archive.stat().st_size)
     compressed = temp / 'candidate.sqlite.gz'
     pack(candidate, compressed)
 
@@ -534,6 +595,7 @@ def run_delivery(request_path, entry_path, base_checkout):
                 'HISTORICAL_UNIT_MATRIX.json':matrix,
                 'HANDOFF_READY':marker}
 
+    receipt('publish-start')
     head, published = store.publish(candidate, compressed, parent, code,
                                     evidence=(manifest, archive), companion=companion)
     print('HISTORICAL_DELIVERY=' + json.dumps(dict(report, data_commit=head,

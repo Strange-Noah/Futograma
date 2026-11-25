@@ -250,14 +250,15 @@ def refresh_matrix(matrix, candidate):
     return matrix
 
 
-def continue_batches(config_path, work, national_unit=None, national_sources=(), *, national_only=True, duration_certificates=(), selection_certificates=()):
+def continue_batches(config_path, work, national_unit=None, national_sources=(), *, national_only=True, duration_certificates=(), selection_certificates=(), receipt=None):
     config = json.loads(local_path(config_path).read_text())
     work = local_path(work)
     work.mkdir(exist_ok=True)
     with (work / 'batch.lock').open('a') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         return consume_sources(config, work, national_unit, national_sources, national_only=national_only,
-                               duration_certificates=duration_certificates, selection_certificates=selection_certificates)
+                               duration_certificates=duration_certificates, selection_certificates=selection_certificates,
+                               phase_receipt=receipt)
 
 
 def discover_gaps(candidate, matrix, catalogues):
@@ -386,7 +387,7 @@ def discover_gaps(candidate, matrix, catalogues):
                    for key, gap in gaps.items()}
 
 
-def consume_sources(config, work, national_unit=None, national_sources=(), *, national_only=True, duration_certificates=(), selection_certificates=()):
+def consume_sources(config, work, national_unit=None, national_sources=(), *, national_only=True, duration_certificates=(), selection_certificates=(), phase_receipt=None):
     matrix_path = work / 'matrix-private.json'
     matrix = json.loads((matrix_path if matrix_path.exists() else local_path(config['matrix'])).read_text())
     state_path = work / 'continuation-private.json'
@@ -598,6 +599,8 @@ def consume_sources(config, work, national_unit=None, national_sources=(), *, na
         if selection:
             write(batch / 'verified-selections.json', selection)
         receipt = batch / 'result-private.json'
+        if phase_receipt:
+            phase_receipt('source-batch-start', batch=batch.name, worker=kind, tasks=len(urls))
         if not receipt.exists():
             with (batch / 'run.log').open('a') as log:
                 worker = config.get('workers', {}).get(kind, config['worker'])
@@ -605,6 +608,12 @@ def consume_sources(config, work, national_unit=None, national_sources=(), *, na
                                 str(queue), str(candidate), str(local_path(state['reference'])),
                                 str(batch)], cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, check=True)
         result = json.loads(receipt.read_text())
+        if not result['attempted_urls']:
+            raise ValueError('HISTORICAL_BATCH_MADE_NO_SOURCE_PROGRESS')
+        if phase_receipt:
+            phase_receipt('source-batch-done', batch=batch.name, worker=kind,
+                          attempts=len(result['attempted_urls']), replays=len(result.get('replayed_urls', ())),
+                          outcome=result['source_stop'], export=result['ordinary_export'])
         state.update(candidate=result['candidate'], reference=result['reference'])
         candidate = local_path(state['candidate'])
         progress = result['ordinary_export'] == 'PASS' and any(result.get(field, 0) > 0 for field in (
