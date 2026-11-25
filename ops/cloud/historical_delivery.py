@@ -48,6 +48,32 @@ def download(store, record, target):
     return target
 
 
+class HistoricalStore(GitHubStore):
+    """Recover from an ambiguous asset upload on an isolated draft release."""
+
+    def upload(self, release_id, path):
+        for delay in (7, 17, 31, None):
+            try:
+                return super().upload(release_id, path)
+            except UploadFailed as error:
+                if delay is None or not re.fullmatch(r'ASSET_UPLOAD_HTTP_(429|5[0-9]{2})', str(error)):
+                    raise
+                release = self.api('GET', f'{self.base}/releases/{release_id}')
+                if not release['draft']:
+                    raise
+                matches = [asset for asset in release['assets'] if asset['name'] == path.name]
+                if matches:
+                    asset, = matches
+                    if (asset['state'] == 'uploaded' and asset['size'] == path.stat().st_size
+                            and asset.get('digest') == 'sha256:' + sha(path)):
+                        return asset
+                    if asset['state'] != 'starter' or asset['size'] != 0:
+                        raise
+                    self.api('DELETE', f"{self.base}/releases/assets/{asset['id']}")
+                print(f'HISTORICAL_ASSET_RETRY={path.name} delay={delay}', flush=True)
+                time.sleep(delay)
+
+
 class DeliveryReceipt:
     """Append small phase records to the base historical release, outside the CAS pointer."""
 
@@ -87,7 +113,7 @@ class DeliveryReceipt:
             if key in counts:
                 label += f' {key}={counts[key]}'
         try:
-            asset = self.store.upload(self.release_id, path)
+            asset = GitHubStore.upload(self.store, self.release_id, path)
             self.store.api('PATCH', self.store.base + '/releases/assets/' + str(asset['id']),
                            dict(label=label[:250]))
         except (URLError, TimeoutError):
@@ -968,7 +994,7 @@ def run_delivery(request_path, entry_path, base_checkout):
     if (repository != 'Strange-Noah/Futograma-data' or not ref.startswith('codex/historical-')
             or os.environ['GITHUB_REF'] != 'refs/heads/' + ref):
         raise ValueError('ISOLATED_HISTORICAL_RUNNER_REQUIRED')
-    store = GitHubStore(repository, os.environ['GH_TOKEN'], ref)
+    store = HistoricalStore(repository, os.environ['GH_TOKEN'], ref)
     head, pointer = store.head()
     if head != parent or request['database_sha256'] != pointer['current']['database']['sha256'] or (
             request['database_sha256'] != handoff['database_sha256']):
