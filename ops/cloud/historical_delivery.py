@@ -15,6 +15,7 @@ from collections import Counter
 from dataclasses import asdict, replace
 from contextlib import closing
 from pathlib import Path
+from urllib.error import URLError
 from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo
 
@@ -26,7 +27,7 @@ from ops.cloud.verify_historical_handoff import relative_path, relocate_json, ve
 from squad_pipeline.cloud.export import export
 from squad_pipeline.cloud.github_store import GitHubStore
 from squad_pipeline.cloud.quality import inspect, pack, sha
-from squad_pipeline.cloud.storage import StaleWriter
+from squad_pipeline.cloud.storage import StaleWriter, UploadFailed
 from squad_pipeline.core import ROOT
 from squad_pipeline.international_store import digest
 from squad_pipeline.roster_initialization import PeriodUnit
@@ -79,15 +80,29 @@ class DeliveryReceipt:
         name = f'historical-stage-{self.run_id}-{self.number:04d}-{stage}.json'
         path = self.root / name
         write(path, result)
-        asset = self.store.upload(self.release_id, path)
+        print('HISTORICAL_STAGE=' + json.dumps(result, sort_keys=True), flush=True)
         label = f"{result['elapsed_seconds']}s freeMiB={result['free_bytes']//1048576} rssKiB={result['process_peak_rss_kib']} childKiB={result['child_peak_rss_kib']}"
         for key in ('round', 'batch', 'worker', 'tasks', 'attempts', 'replays', 'outcome',
                     'official_windows', 'parser', 'mapped', 'unmapped', 'source_work_required', 'frozen', 'plan'):
             if key in counts:
                 label += f' {key}={counts[key]}'
-        self.store.api('PATCH', self.store.base + '/releases/assets/' + str(asset['id']),
-                       dict(label=label[:250]))
-        print('HISTORICAL_STAGE=' + json.dumps(result, sort_keys=True), flush=True)
+        try:
+            asset = self.store.upload(self.release_id, path)
+            self.store.api('PATCH', self.store.base + '/releases/assets/' + str(asset['id']),
+                           dict(label=label[:250]))
+        except (URLError, TimeoutError):
+            print(f'HISTORICAL_STAGE_MIRROR_DEFERRED={name} transport', flush=True)
+        except (UploadFailed, RuntimeError) as error:
+            status = re.match(r'(?:ASSET_UPLOAD|GITHUB)_HTTP_(429|5[0-9]{2})\b', str(error))
+            if not status:
+                raise
+            print(f'HISTORICAL_STAGE_MIRROR_DEFERRED={name} HTTP {status[1]}', flush=True)
+
+    def archive(self, work):
+        destination = work / 'stage-receipts'
+        destination.mkdir()
+        for path in sorted(self.root.glob(f'historical-stage-{self.run_id}-*.json')):
+            shutil.copyfile(path, destination / path.name)
 
 
 def overlay_retained_batch(store, handoff, staging, temp):
@@ -1078,6 +1093,7 @@ def run_delivery(request_path, entry_path, base_checkout):
     export_pointer = dict(pointer, current=dict(pointer['current'], database=quality))
     export(candidate, temp / 'verified-output-export', parent, export_pointer, ROOT / 'web')
     receipt('bundle-start', batches=len(batches), rounds=rounds)
+    receipt.archive(work)
     manifest, archives = build_bundle(candidate, report, matrix, temp)
     archive_record = read(manifest)['evidence_archive']
     receipt('bundle-done', archive_bytes=archive_record['size'], parts=len(archives))
