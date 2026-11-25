@@ -170,9 +170,16 @@ class RetainedAdapter:
                 if not bindings and 'validation_match_aliases' in tables:
                     bindings=self.db.execute("SELECT DISTINCT substr(alias,8) FROM validation_match_aliases WHERE match_id=? AND alias LIKE 'fotmob:%'",(row['match_id'],)).fetchall()
                 if len(bindings)==1:expected['match']=str(bindings[0][0])
+            linked_sky_url = None
             if row['provider']=='Sky':
-                bindings=self.db.execute('SELECT provider_match_id FROM canonical_fixture_sources WHERE domain=? AND provider=? AND match_id=?',('CLUB','Sky',row['match_id'])).fetchall()
-                if len(bindings)==1:expected['match']=str(bindings[0][0])
+                bindings=self.db.execute('SELECT provider_match_id,evidence_json FROM canonical_fixture_sources WHERE domain=? AND provider=? AND match_id=?',('CLUB','Sky',row['match_id'])).fetchall()
+                exact = [binding for binding in bindings
+                         if json.loads(binding['evidence_json']).get('url') == a.request.url
+                         and str(binding['provider_match_id']) == urlsplit(a.request.url).path.rsplit('/', 1)[-1]]
+                if len(exact)==1:
+                    expected['match']=str(exact[0]['provider_match_id'])
+                    linked_sky_url=a.request.url
+                elif len(bindings)==1:expected['match']=str(bindings[0][0])
                 elif source.get('directory_match_id'):expected['match']=str(source['directory_match_id'])
                 else:
                     retained=json.loads(match['metadata_json'] or '{}').get('source_evidence',[])
@@ -182,7 +189,8 @@ class RetainedAdapter:
             context=dict(
                 home_id=match['home_id'],away_id=match['away_id'],kickoff=match['kickoff'],
                 competition_id=match['source_competition_id'] or match['competition_id'])
-            if row['provider']=='Sky' and any(s.get('url')==a.request.url for s in json.loads(match['metadata_json'] or '{}').get('source_evidence',[])):
+            if row['provider']=='Sky' and (linked_sky_url or any(
+                    s.get('url')==a.request.url for s in json.loads(match['metadata_json'] or '{}').get('source_evidence',[]))):
                 context['accepted_source_url']=a.request.url
             request=SourceRequest(row['provider'],'match',a.request.url,'fixture-detail',expected_ids=expected,context=context)
             a=RawSourceArtifact(request,a.content_sha256,a.locator,a.metadata,a.authority)
@@ -256,7 +264,7 @@ class RetainedAdapter:
                 from dataclasses import replace
                 joined[-1]=replace(joined[-1],end=m.end)
             else:joined.append(m)
-        self.version=digest(['RETAINED_OBLIGATION_V4',VERSION,PARSER_VERSION,self.club_id,self.coverage,[e.sha256 for m in joined for e in m.evidence]])
+        self.version=digest(['RETAINED_OBLIGATION_V5',VERSION,PARSER_VERSION,self.club_id,self.coverage,[e.sha256 for m in joined for e in m.evidence]])
         return joined,fixtures,statuses,self.calendars
 
     def accepted_club_facts(self,start,cutoff):
