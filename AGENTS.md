@@ -116,6 +116,26 @@ Agent reasoning is for solving unresolved problems, not repeatedly executing sol
 - Diagnose repeated failures instead of mechanically retrying.
 - Avoid unnecessary polling. Long-running deterministic commands are preferable to fragmented model-driven execution.
 
+### Generic Deterministic Execution — Mandatory
+
+Routine database construction must run through reusable, parameterized, deterministic execution pipelines:
+
+Gap discovery → task generation → collection → parsing and verification → canonical ingestion → auditing → renewed gap discovery.
+
+The pipeline must continue autonomously within authorized limits, without requiring Agent intervention between routine stages.
+
+Agents control execution primarily by changing keywords, target scopes, structured inputs, and task parameters. Agents inspect concise results and resolve only exceptional cases that cannot be handled deterministically.
+
+Do not implement routine target changes through one-off scripts, hardcoded fixtures or players, repeated workflow modifications, or unnecessary code revisions. Pin trusted code and data versions through validated manifests and handoffs.
+
+New logic must address reusable problem classes rather than isolated cases wherever feasible.
+
+Return only aggregated progress and actionable unresolved exceptions to the model. Persist full evidence and logs separately.
+
+Feed Agent-supplied evidence and decisions back into the deterministic pipeline as structured inputs.
+
+Engineering improvements must serve actual database delivery. Evaluate efficiency primarily by verified data increments, closed audit obligations, and accepted units, not by the number of Agent actions or engineering changes.
+
 ### Context
 
 - Read exact paths and relevant sections only.
