@@ -68,34 +68,43 @@ class GitHubStore:
   remote_digest=asset.get('digest')
   if remote_digest and remote_digest!='sha256:'+sha(path):raise UploadFailed('ASSET_REPORTED_DIGEST_MISMATCH')
   return asset
- def publish(self,snapshot,compressed,expected_head,code_commit,allow_bootstrap=False):
+ def publish(self,snapshot,compressed,expected_head,code_commit,allow_bootstrap=False,*,evidence=(),companion=None):
   if not re.fullmatch(r'[a-f0-9]{40}',code_commit):raise ValueError('REAL_CODE_COMMIT_SHA_REQUIRED')
   head,old=self.head()
   if head!=expected_head:raise StaleWriter('BASE_HEAD_ALREADY_STALE')
   if not old and not allow_bootstrap:raise ValueError('EXPLICIT_BOOTSTRAP_REQUIRED')
   if old and allow_bootstrap:raise ValueError('REFUSE_REBOOTSTRAP_EXISTING_AUTHORITY')
+  if self.ref=='main' and (evidence or companion is not None):raise ValueError('ISOLATED_PUBLICATION_REQUIRED')
   m=metadata(snapshot,compressed,expected_head,code_commit);tag='futbol-data-'+m['version'];release=self.api('POST',self.base+'/releases',dict(tag_name=tag,target_commitish=expected_head,name='Futbol data '+m['version'],body=self.marker,draft=True,prerelease=False));asset=self.upload(release['id'],compressed);m.update(release_id=release['id'],asset_id=asset['id'],tag=tag)
   # Download the actual uploaded bytes before publishing a pointer; a mere API success is insufficient.
   verify=Path(str(compressed)+'.verify-download.'+m['version']);self.download(asset['id'],verify)
   if sha(verify)!=m['compressed']['sha256']:raise UploadFailed('UPLOADED_ASSET_READBACK_FAILED')
-  checkdb=Path(str(snapshot)+'.verify-restore.'+m['version']+'.sqlite');unpack(verify,checkdb);inspect(checkdb,m['database']);self.api('PATCH',self.base+'/releases/'+str(release['id']),dict(draft=False))
+  checkdb=Path(str(snapshot)+'.verify-restore.'+m['version']+'.sqlite');unpack(verify,checkdb);inspect(checkdb,m['database'])
+
   pointer=dict(schema_version=1,generation=(old['generation']+1 if old else 1),current=m,previous=old['current'] if old else None)
-  # Commit has exactly the expected parent. A concurrent descendant makes force=false reject it.
-  commit=self.api('GET',self.base+'/git/commits/'+expected_head);blob=self.api('POST',self.base+'/git/blobs',dict(content=base64.b64encode((json.dumps(pointer,ensure_ascii=False,indent=2)+'\n').encode()).decode(),encoding='base64'));tree=self.api('POST',self.base+'/git/trees',dict(base_tree=commit['tree']['sha'],tree=[dict(path='current.json',mode='100644',type='blob',sha=blob['sha'])]));new=self.api('POST',self.base+'/git/commits',dict(message='data: '+m['version'],tree=tree['sha'],parents=[expected_head]));self.api('PATCH',self.base+'/git/refs/heads/'+urllib.parse.quote(self.ref,safe='/'),dict(sha=new['sha'],force=False));actual,p=self.head()
-  if actual!=new['sha'] or p!=pointer:raise UploadFailed('PUBLISHED_POINTER_READBACK_MISMATCH')
-  return actual,pointer
- def prune(self,apply=False):
-  expected,pointer=self.head()
-  if not pointer:raise ValueError('NO_VERIFIED_POINTER;REFUSE_PRUNING')
-  keep={m['release_id'] for m in [pointer['current'],pointer['previous']] if m};cut=(datetime.now(timezone.utc)-timedelta(days=7)).isoformat();candidates=[]
-  for page in range(1,21):
-   rows=self.api('GET',self.base+'/releases?per_page=100&page='+str(page))
-   for r in rows:
-    if r['id'] in keep or r.get('body')!=self.marker or not r['tag_name'].startswith('futbol-data-'):continue
-    if r.get('draft') and r['created_at']>=cut:continue # interrupted fresh upload may still be in progress
-    candidates.append(dict(id=r['id'],tag=r['tag_name']))
-   if len(rows)<100:break
-  for r in candidates if apply else []:
-   if self.head()[0]!=expected:raise StaleWriter('DATA_HEAD_CHANGED_DURING_RETENTION;STOP')
-   self.api('DELETE',self.base+'/releases/'+str(r['id']))
-  return dict(mode='APPLY_MANAGED_RELEASE_RETENTION' if apply else 'DRY_RUN',keep_release_ids=sorted(keep),candidates=candidates,git_history_rewritten=False,git_tags_deleted=False)
+  assets={compressed.name:dict(id=asset['id'],name=compressed.name,sha256=m['compressed']['sha256'],size=compressed.stat().st_size)}
+  for path in map(Path,evidence):
+   if path.name in assets:raise ValueError('DUPLICATE_PUBLICATION_ASSET')
+   remote=self.upload(release['id'],path)
+   copy=verify.with_name(verify.name+'.'+path.name)
+   self.download(remote['id'],copy)
+   digest=sha(path)
+   if sha(copy)!=digest or copy.stat().st_size!=path.stat().st_size:raise UploadFailed('UPLOADED_EVIDENCE_READBACK_FAILED')
+   assets[path.name]=dict(id=remote['id'],name=path.name,sha256=digest,size=path.stat().st_size)
+  files={'current.json':pointer}
+  if companion is not None:
+   extra=companion(pointer,assets)
+   if any(name in files or not re.fullmatch(r'[A-Za-z0-9_.-]+',name) or name in ('.','..') for name in extra):
+    raise ValueError('INVALID_ISOLATED_COMPANION_PATH')
+   files.update(extra)
+  self.api('PATCH',self.base+'/releases/'+str(release['id']),dict(draft=False))
+  commit=self.api('GET',self.base+'/git/commits/'+expected_head)
+  entries=[]
+  for path,value in files.items():
+   content=(json.dumps(value,ensure_ascii=False,indent=2)+'\n').encode()
+   blob=self.api('POST',self.base+'/git/blobs',dict(content=base64.b64encode(content).decode(),encoding='base64'))
+   entries.append(dict(path=path,mode='100644',type='blob',sha=blob['sha']))
+  tree=self.api('POST',self.base+'/git/trees',dict(base_tree=commit['tree']['sha'],tree=entries))
+  new=self.api('POST',self.base+'/git/commits',dict(message='data: '+m['version'],tree=tree['sha'],parents=[expected_head]))
+  self.api('PATCH',self.base+'/git/refs/heads/'+urllib.parse.quote(self.ref,safe='/'),dict(sha=new['sha'],force=False))
+

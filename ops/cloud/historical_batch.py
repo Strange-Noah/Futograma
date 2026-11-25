@@ -248,13 +248,13 @@ def refresh_matrix(matrix, candidate):
     return matrix
 
 
-def continue_batches(config_path, work, national_unit=None, national_sources=()):
+def continue_batches(config_path, work, national_unit=None, national_sources=(), *, national_only=True):
     config = json.loads(local_path(config_path).read_text())
     work = local_path(work)
     work.mkdir(exist_ok=True)
     with (work / 'batch.lock').open('a') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        return consume_sources(config, work, national_unit, national_sources)
+        return consume_sources(config, work, national_unit, national_sources, national_only=national_only)
 
 
 def discover_gaps(candidate, matrix, catalogues):
@@ -383,7 +383,7 @@ def discover_gaps(candidate, matrix, catalogues):
                    for key, gap in gaps.items()}
 
 
-def consume_sources(config, work, national_unit=None, national_sources=()):
+def consume_sources(config, work, national_unit=None, national_sources=(), *, national_only=True):
     matrix_path = work / 'matrix-private.json'
     matrix = json.loads((matrix_path if matrix_path.exists() else local_path(config['matrix'])).read_text())
     state_path = work / 'continuation-private.json'
@@ -394,7 +394,7 @@ def consume_sources(config, work, national_unit=None, national_sources=()):
                    if national_unit is None or f'{row["club_id"]}:{row["unit"]}' == national_unit]
     if not active_rows:
         raise ValueError('UNKNOWN_HISTORICAL_UNIT')
-    if national_unit and not active_rows[0]['source_ready']:
+    if national_unit and national_only and not active_rows[0]['source_ready']:
         raise ValueError('NATIONAL_ONLY_BATCH_REQUIRES_SOURCE_READY_UNIT')
     active_matrix = dict(matrix, units=active_rows)
     attempted, archived = set(), {}
@@ -524,8 +524,8 @@ def consume_sources(config, work, national_unit=None, national_sources=()):
     while any(not row['data_accepted'] for row in active_rows):
         remaining = pending()
         if not remaining:
-            discovered, obligations = discover_gaps(candidate, active_matrix, () if national_unit else config.get('catalogues', []))
-            if national_unit:
+            discovered, obligations = discover_gaps(candidate, active_matrix, () if national_unit and national_only else config.get('catalogues', []))
+            if national_unit and national_only:
                 discovered = {key: value for key, value in discovered.items() if value[2] == 'national'}
             write(work / 'obligations-private.json', obligations)
             remaining = [(url, kind) for key, (url, _, kind) in discovered.items()
@@ -541,7 +541,7 @@ def consume_sources(config, work, national_unit=None, national_sources=()):
         queue = batch / 'queue-private.json'
         if queue.exists():
             urls = json.loads(queue.read_text())
-            if national_unit and any(source_id(url) not in queued or queued[source_id(url)][2] not in ('national', 'afcon')
+            if national_unit and any(source_id(url) not in queued or (national_only and queued[source_id(url)][2] not in ('national', 'afcon'))
                                      for url in urls):
                 raise ValueError('EXISTING_QUEUE_OUTSIDE_NATIONAL_UNIT')
             kind = queued[source_id(urls[0])][2]

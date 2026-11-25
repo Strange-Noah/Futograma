@@ -124,7 +124,7 @@ def verify(store, handoff, root, code):
     return dict(status='PASS', code_commit=executed, data_commit=head, database_sha256=sha(candidate),
                 evidence_sha256=sha(evidence), evidence_files=len(manifest['files']), accepted=accepted,
                 source_ready=source_ready, total=manifest['units'], accepted_snapshots_reused=reused,
-                ordinary_export='PASS', evidence_replay='PASS', next_scope='BAYERN_2025_26_H2_NATIONAL',
+                ordinary_export='PASS', evidence_replay='PASS', next_scope=handoff['next_action']['unit'],
                 mac_files_required=False)
 
 
@@ -134,8 +134,10 @@ def main():
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
     handoff = json.loads(args.entry.read_text())
-    ref = 'codex/historical-cloud-handoff-20261125'
-    if os.environ.get('GITHUB_REPOSITORY') != 'Strange-Noah/Futograma-data' or os.environ.get('GITHUB_REF') != 'refs/heads/' + ref:
+    ref = handoff['data_ref']
+    if (os.environ.get('GITHUB_REPOSITORY') != 'Strange-Noah/Futograma-data'
+            or not ref.startswith('codex/historical-')
+            or os.environ.get('GITHUB_REF') != 'refs/heads/' + ref):
         raise ValueError('ISOLATED_HANDOFF_ACTION_REQUIRED')
     if handoff['data_ref'] != ref or not re.fullmatch('[a-f0-9]{40}', handoff['code_commit']):
         raise ValueError('INVALID_HANDOFF_ENTRY')
