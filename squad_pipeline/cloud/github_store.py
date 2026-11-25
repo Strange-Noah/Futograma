@@ -107,4 +107,26 @@ class GitHubStore:
   tree=self.api('POST',self.base+'/git/trees',dict(base_tree=commit['tree']['sha'],tree=entries))
   new=self.api('POST',self.base+'/git/commits',dict(message='data: '+m['version'],tree=tree['sha'],parents=[expected_head]))
   self.api('PATCH',self.base+'/git/refs/heads/'+urllib.parse.quote(self.ref,safe='/'),dict(sha=new['sha'],force=False))
-
+  actual,p=self.head()
+  if actual!=new['sha'] or p!=pointer:raise UploadFailed('PUBLISHED_POINTER_READBACK_MISMATCH')
+  for name,value in files.items():
+   if name=='current.json':continue
+   stored=self.api('GET',self.base+'/contents/'+name+'?ref='+actual)
+   if json.loads(base64.b64decode(stored['content']))!=value:
+    raise UploadFailed('PUBLISHED_COMPANION_READBACK_MISMATCH')
+  return actual,pointer
+ def prune(self,apply=False):
+  expected,pointer=self.head()
+  if not pointer:raise ValueError('NO_VERIFIED_POINTER;REFUSE_PRUNING')
+  keep={m['release_id'] for m in [pointer['current'],pointer['previous']] if m};cut=(datetime.now(timezone.utc)-timedelta(days=7)).isoformat();candidates=[]
+  for page in range(1,21):
+   rows=self.api('GET',self.base+'/releases?per_page=100&page='+str(page))
+   for r in rows:
+    if r['id'] in keep or r.get('body')!=self.marker or not r['tag_name'].startswith('futbol-data-'):continue
+    if r.get('draft') and r['created_at']>=cut:continue # interrupted fresh upload may still be in progress
+    candidates.append(dict(id=r['id'],tag=r['tag_name']))
+   if len(rows)<100:break
+  for r in candidates if apply else []:
+   if self.head()[0]!=expected:raise StaleWriter('DATA_HEAD_CHANGED_DURING_RETENTION;STOP')
+   self.api('DELETE',self.base+'/releases/'+str(r['id']))
+  return dict(mode='APPLY_MANAGED_RELEASE_RETENTION' if apply else 'DRY_RUN',keep_release_ids=sorted(keep),candidates=candidates,git_history_rewritten=False,git_tags_deleted=False)

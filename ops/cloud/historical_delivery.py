@@ -89,6 +89,30 @@ def stage(store, handoff, source, temp):
     return verified, applied
 
 
+def retained_store(work):
+    root = ROOT / '.cloud'
+    index, records = {}, []
+    for path in sorted(root.rglob('*.response')):
+        if re.fullmatch(r'[a-f0-9]{64}', path.stem):
+            index.setdefault(path.stem, []).append(str(path))
+    for path in sorted(root.rglob('results-private.json')):
+        rows = read(path)
+        if not isinstance(rows, list):
+            continue
+        for row in rows:
+            if not isinstance(row, dict) or row.get('outcome') != 'FOUND' or not row.get('artifact'):
+                continue
+            record = row['artifact']
+            if not {'locator', 'request', 'metadata', 'content_sha256'} <= record.keys():
+                continue
+            locator = Path(record['locator'])
+            if not locator.is_absolute():
+                locator = path.parent / locator
+            records.append(dict(record['metadata'], url=row['url'], sha256=record['content_sha256'],
+                                path=str(locator), provider=record['request']['provider']))
+    return EvidenceStore(work / 'audit-sources', archives=[root], index=index, records=records)
+
+
 def runtime_report(candidate, matrix, key, handoff, config, destination):
     row = next(row for row in matrix['units'] if f'{row["club_id"]}:{row["unit"]}' == key)
     unit = unit_window(row)
@@ -114,14 +138,14 @@ def runtime_report(candidate, matrix, key, handoff, config, destination):
         src.backup(dst)
     with closing(sqlite3.connect(audit_copy)) as db:
         db.row_factory = sqlite3.Row
-        service = SourceService(EvidenceStore(work / 'audit-sources', archives=[ROOT / '.cloud']),
+        service = SourceService(retained_store(work),
                                 'historical-delivery-audit', set(), max_calls=0)
         adapter = RetainedAdapter(db, ROOT / '.cloud', unit['club_id'], calendars, source_service=service)
         try:
             audit = run(db, adapter, begin, cutoff, max_attempts=200)
             write(work / 'audit-private.json', audit)
             audit_summary = dict(stages=audit['stages'], metrics=audit['metrics'],
-                                 retained_calendar_supplied=bool(calendar),
+                                 retained_calendar_supplied=bool(calendar), retained_source_calls=service.parse_calls,
                                  resolution_states=dict(Counter(item.get('state') for item in audit['resolutions'])))
         except (ValueError, OSError, sqlite3.Error) as exc:
             audit_summary = dict(status='AUDIT_INPUT_BLOCKER', detail=str(exc))
