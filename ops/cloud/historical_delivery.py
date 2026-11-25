@@ -126,7 +126,7 @@ def runtime_report(candidate, matrix, key, handoff, config, destination):
             audit_summary = dict(status='AUDIT_INPUT_BLOCKER', detail=str(exc))
         club = db.execute("""
             SELECT m.competition_id,count(DISTINCT m.match_id),count(*),
-                   count(p.minutes),sum(m.kickoff_utc IS NULL)
+                   count(p.minutes),sum(nullif(m.kickoff, '') IS NULL)
             FROM player_match_minutes p JOIN matches m USING(match_id)
             WHERE p.club_id=? AND m.local_date>=? AND m.local_date<?
             GROUP BY m.competition_id ORDER BY m.competition_id
