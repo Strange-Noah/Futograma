@@ -286,7 +286,7 @@ def collect_club_audit_evidence(work, tasks):
     return requested, Counter(item['outcome'] for item in results)
 
 
-def collect_national_directories(candidate, unit, work):
+def collect_national_directories(candidate, unit, work, reviewed_urls):
     """Resolve available team-history inputs from verified national affiliations."""
     with closing(sqlite3.connect(candidate.as_uri() + '?mode=ro', uri=True)) as db:
         teams = db.execute("""
@@ -306,7 +306,7 @@ def collect_national_directories(candidate, unit, work):
     blocked = set()
     for path in (ROOT / '.cloud').glob('**/national-directory-sources/results-private.json'):
         blocked.update(item['url'] for item in read(path)
-                       if item['outcome'] in {'ACCESS_RESTRICTED', 'ROBOTS_DISALLOWED'})
+                       if item['outcome'] in {'ACCESS_RESTRICTED', 'ROBOTS_DISALLOWED', 'REDIRECT_REQUIRES_REVIEW'})
     service = SourceService(EvidenceStore(directory), 'historical-national-directories',
                             {'www.fotmob.com'}, max_calls=2 * len(teams),
                             max_bytes=max(1, len(teams)) * 8000000)
@@ -315,7 +315,10 @@ def collect_national_directories(candidate, unit, work):
     for identity, level in teams:
         if not str(identity).isdigit():
             continue
-        url = f'https://www.fotmob.com/teams/{identity}/fixtures'
+        base_url = f'https://www.fotmob.com/teams/{identity}/fixtures'
+        url = reviewed_urls.get(str(identity), base_url)
+        if url != base_url and not re.fullmatch(re.escape(base_url) + r'/[a-z0-9-]+', url):
+            raise ValueError('EXACT_REVIEWED_NATIONAL_TEAM_URL_REQUIRED')
         request = SourceRequest('FotMob', 'team_history', url, 'Known senior team fixture history',
                                 expected_ids=dict(team=str(identity)),
                                 context=dict(start=unit['start'], cutoff=cutoff, level=level),
@@ -695,7 +698,8 @@ def run_delivery(request_path, entry_path, base_checkout):
         if not directory_checked and report['pending'].get('applicable_national_scope_requires_evidence'):
             directory_checked = True
             selected = next(row for row in matrix['units'] if f'{row["club_id"]}:{row["unit"]}' == key)
-            requests, outcomes = collect_national_directories(candidate, unit_window(selected), round_work)
+            requests, outcomes = collect_national_directories(
+                candidate, unit_window(selected), round_work, request.get('national_directory_urls', {}))
             direct_requests.update(requests)
             directory_outcomes.update(outcomes)
             directories_found = outcomes['FOUND']

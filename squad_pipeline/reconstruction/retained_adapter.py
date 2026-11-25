@@ -404,7 +404,12 @@ class RetainedAdapter:
     def team_capture(self,team_id,level,start,cutoff):
         key=(team_id,level,start,cutoff)
         if key not in self.team_cache:
-            request=SourceRequest('FotMob','team_history','https://www.fotmob.com/teams/'+team_id+'/fixtures','team-fixtures',
+            base='https://www.fotmob.com/teams/'+team_id+'/fixtures'
+            exact = {item.get('url') for item in self.service.store.records
+                     if item.get('provider') == 'FotMob'
+                     and re.fullmatch(re.escape(base) + r'/[a-z0-9-]+', item.get('url') or '')}
+            url = next(iter(exact)) if len(exact) == 1 else base
+            request=SourceRequest('FotMob','team_history',url,'team-fixtures',
                 expected_ids=dict(team=team_id),context=dict(start=start,cutoff=cutoff,level=level))
             self.team_cache[key]=self.service.observe(request)
         return self.team_cache[key]
