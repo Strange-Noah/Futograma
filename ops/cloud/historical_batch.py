@@ -387,6 +387,31 @@ def discover_gaps(candidate, matrix, catalogues):
                    for key, gap in gaps.items()}
 
 
+def compact_verified_batch(batch, result, candidate, reference):
+    """Discard only reproducible SQLite intermediates of this completed invocation."""
+    if result['ordinary_export'] != 'PASS':
+        return 0
+    for field, prior in (('candidate', candidate), ('reference', reference)):
+        current = local_path(result[field])
+        if current.is_relative_to(batch) and current != prior and sha(current) == sha(prior):
+            result[field] = str(prior)
+    retained = {local_path(result[field]) for field in ('candidate', 'reference')}
+    removed = []
+    for pattern in ('fixture-labels-*', 'ingestion-*', 'minutes-*', 'reference-*'):
+        for folder in sorted(batch.glob(pattern)):
+            for name in ('candidate.sqlite', 'reference.sqlite'):
+                item = folder / name
+                if not item.is_file() or item.resolve() in retained or item.is_symlink():
+                    continue
+                removed.append(dict(path=str(item.relative_to(batch)), sha256=sha(item), bytes=item.stat().st_size))
+    if removed:
+        write(batch / 'transient-sqlite-receipt.json', removed)
+        write(batch / 'result-private.json', result)
+        for item in removed:
+            (batch / item['path']).unlink()
+    return sum(item['bytes'] for item in removed)
+
+
 def consume_sources(config, work, national_unit=None, national_sources=(), *, national_only=True, duration_certificates=(), selection_certificates=(), phase_receipt=None):
     matrix_path = work / 'matrix-private.json'
     matrix = json.loads((matrix_path if matrix_path.exists() else local_path(config['matrix'])).read_text())
@@ -565,6 +590,10 @@ def consume_sources(config, work, national_unit=None, national_sources=(), *, na
                 break
         kind = remaining[0][1]
         urls = [url for url, source_kind in remaining if source_kind == kind][:config.get('chunk_size', 8)]
+        if phase_receipt and not phase_receipt.can_start_batch(candidate):
+            source_stop = 'RESOURCE_CHECKPOINT'
+            phase_receipt('source-batch-deferred', worker=kind, tasks=len(urls), outcome=source_stop)
+            break
         # Only this independent subset must be available before it can be ingested.
         batch = work / f'batch-{len(state["batches"]) + 1:04d}'
         batch.mkdir(exist_ok=True)
@@ -601,19 +630,31 @@ def consume_sources(config, work, national_unit=None, national_sources=(), *, na
         receipt = batch / 'result-private.json'
         if phase_receipt:
             phase_receipt('source-batch-start', batch=batch.name, worker=kind, tasks=len(urls))
-        if not receipt.exists():
-            with (batch / 'run.log').open('a') as log:
-                worker = config.get('workers', {}).get(kind, config['worker'])
-                subprocess.run([sys.executable, '-B', str(local_path(worker)),
-                                str(queue), str(candidate), str(local_path(state['reference'])),
-                                str(batch)], cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, check=True)
+        executed = not receipt.exists()
+        if executed:
+            try:
+                with (batch / 'run.log').open('a') as log:
+                    worker = config.get('workers', {}).get(kind, config['worker'])
+                    subprocess.run([sys.executable, '-B', str(local_path(worker)),
+                                    str(queue), str(candidate), str(local_path(state['reference'])),
+                                    str(batch)], cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, check=True)
+            except subprocess.CalledProcessError as error:
+                if phase_receipt:
+                    phase_receipt('source-batch-failed', batch=batch.name, worker=kind,
+                                  outcome=error.returncode)
+                raise
         result = json.loads(receipt.read_text())
+        reclaimed = (compact_verified_batch(batch, result, candidate, local_path(state['reference']))
+                     if executed and phase_receipt else 0)
         if not result['attempted_urls']:
             raise ValueError('HISTORICAL_BATCH_MADE_NO_SOURCE_PROGRESS')
         if phase_receipt:
             phase_receipt('source-batch-done', batch=batch.name, worker=kind,
                           attempts=len(result['attempted_urls']), replays=len(result.get('replayed_urls', ())),
-                          outcome=result['source_stop'], export=result['ordinary_export'])
+                          outcome=result['source_stop'], export=result['ordinary_export'],
+                          reclaimed_bytes=reclaimed, new_matches=result.get('new_matches', 0),
+                          new_rows=result.get('new_player_match_rows', 0),
+                          new_national_rows=result.get('new_national_player_rows', 0))
         state.update(candidate=result['candidate'], reference=result['reference'])
         candidate = local_path(state['candidate'])
         progress = result['ordinary_export'] == 'PASS' and any(result.get(field, 0) > 0 for field in (

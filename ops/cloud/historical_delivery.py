@@ -44,7 +44,7 @@ def download(store, record, target):
 class DeliveryReceipt:
     """Append small phase records to the base historical release, outside the CAS pointer."""
 
-    def __init__(self, store, release_id, root, request):
+    def __init__(self, store, release_id, root, request, archive_bytes):
         self.store = store
         self.release_id = release_id
         self.root = root
@@ -52,6 +52,15 @@ class DeliveryReceipt:
         self.start = time.monotonic()
         self.number = 0
         self.unit = request['unit']
+        self.archive_bytes = archive_bytes
+
+    def can_start_batch(self, snapshot):
+        # Two compressed evidence copies coexist during publish/readback.
+        # One latest candidate and one readback can also coexist during verification.
+        snapshot_size = snapshot.stat().st_size
+        publish_reserve = 2 * self.archive_bytes + 2 * snapshot_size + 384 * 1024**2
+        worker_reserve = 4 * snapshot_size + 256 * 1024**2
+        return shutil.disk_usage(self.root).free >= max(publish_reserve, worker_reserve)
 
     def __call__(self, stage, **counts):
         self.number += 1
@@ -453,7 +462,8 @@ def run_delivery(request_path, entry_path, base_checkout):
         raise ValueError('HISTORICAL_REQUEST_CODE_MISMATCH')
     temp = Path(os.environ['RUNNER_TEMP']) / 'historical-delivery'
     temp.mkdir(exist_ok=False)
-    receipt = DeliveryReceipt(store, pointer['current']['release_id'], temp, request)
+    receipt = DeliveryReceipt(store, pointer['current']['release_id'], temp, request,
+                              handoff['evidence_asset']['size'])
     receipt('restore-start', evidence_bytes=handoff['evidence_asset']['size'])
     verified, adopted = stage(store, handoff, base_checkout, temp)
     receipt('restore-done', evidence_files=verified['evidence_files'])
@@ -502,7 +512,8 @@ def run_delivery(request_path, entry_path, base_checkout):
             write(checkpoint, state)
             matrix = refresh_matrix(matrix, candidate)
             write(matrix_path, matrix)
-        if report['data_accepted'] or state['state'] in {'ACCESS_RESTRICTED', 'RATE_LIMITED', 'ROBOTS_DISALLOWED'}:
+        if report['data_accepted'] or state['state'] in {
+                'ACCESS_RESTRICTED', 'RATE_LIMITED', 'ROBOTS_DISALLOWED', 'RESOURCE_CHECKPOINT'}:
             break
         next_sources = [
             item for item in mapped if item['url'].rsplit('/', 1)[-1] not in offered
@@ -547,6 +558,8 @@ def run_delivery(request_path, entry_path, base_checkout):
     fields = ('new_matches','new_player_match_rows','new_national_matches','new_national_player_rows','minutes_recovered')
     report.update(status='CHECKPOINT_VERIFIED', batches=len(batches),
                   counts={field:sum(batch.get(field, 0) or 0 for batch in batches) for field in fields},
+                  source_requests=len({url for batch in batches for url in batch['attempted_urls']}),
+                  replayed_source_requests=len({url for batch in batches for url in batch.get('replayed_urls', ())}),
                   new_national_numeric_minutes=national_numeric(candidate)-numeric_before,
                   state=state['state'], ordinary_export='PASS', reused_legacy_delta=adopted,
                   accepted=sum(row['data_accepted'] for row in matrix['units']),
