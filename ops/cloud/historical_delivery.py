@@ -253,6 +253,46 @@ def runtime_report(candidate, matrix, key, handoff, config, destination, request
     return result, candidate
 
 
+def sync_delivery_matrix(matrix, report):
+    """Project verified runtime observations without promoting a unit."""
+    row = next(row for row in matrix['units']
+               if f'{row["club_id"]}:{row["unit"]}' == report['unit'])
+    if row['data_accepted']:
+        return matrix
+    audit = report['audit']
+    if set(audit.get('stages', ())) == {'R1', 'R2', 'R5', 'R3_R4', 'R6'}:
+        open_count = sum(count for state, count in audit['resolution_states'].items()
+                         if state != 'RESOLVED')
+        row['R1_R6'] = (
+            f'EXECUTED / OPEN: {open_count} unresolved audit obligations'
+            if open_count else 'EXECUTED / WHOLE-UNIT ACCEPTANCE PENDING'
+        )
+        row['audit_execution'] = dict(
+            status='EXECUTED', metrics=audit['metrics'],
+            resolution_states=audit['resolution_states'], action=report['run'])
+    elif audit.get('status') == 'AUDIT_INPUT_BLOCKER':
+        row['audit_execution'] = dict(status='INPUT_BLOCKER', action=report['run'])
+        if row.get('R1_R6') == 'NOT TESTED / UNKNOWN':
+            row['R1_R6'] = 'NOT EXECUTED / INPUT BLOCKER'
+
+    columns = report['club_coverage_columns']
+    coverage = [dict(zip(columns, values, strict=True)) for values in report['club_coverage']]
+    row['club_competition_coverage'] = coverage
+    fixture_count = sum(item['matches'] for item in coverage)
+    player_rows = sum(item['appearances'] for item in coverage)
+    numeric_minutes = sum(item['numeric_minutes'] for item in coverage)
+    missing_kickoff_rows = sum(item['missing_kickoff_rows'] for item in coverage)
+    if (fixture_count and fixture_count == row['canonical_matches']
+            and player_rows == row['canonical_player_rows']
+            and numeric_minutes == player_rows and not missing_kickoff_rows
+            and row.get('fixture_catalogue_completion', '').startswith('PASS')):
+        row['canonical_scope'] = 'VERIFIED_COMPETITIVE_CATALOGUE;CANONICAL_FIXTURES_HAVE_KICKOFF'
+        row['remaining_identity_minutes'] = (
+            'All canonical club player-match rows have numeric minutes. '
+            'National scope and whole-unit audit disposition remain subject to acceptance.'
+        )
+    return matrix
+
 def build_bundle(candidate, progress, matrix, output):
     files = []
     archive = output / 'historical-evidence.tar.gz'
@@ -363,6 +403,8 @@ def run_delivery(request_path, entry_path, base_checkout):
                   source_ready=sum(row['source_ready'] for row in matrix['units']),
                   run=f'https://github.com/{repository}/actions/runs/{os.environ["GITHUB_RUN_ID"]}')
     write(work / 'scope.json', report)
+    sync_delivery_matrix(matrix, report)
+    write(matrix_path, matrix)
     # Keep every previously accepted independent reference and validate any new receipt.
     snapshots = dict(handoff['accepted_snapshots'])
     for row in matrix['units']:
