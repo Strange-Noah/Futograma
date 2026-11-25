@@ -986,6 +986,30 @@ def run_unit(request, key, handoff, repository, config_path, config, checkpoint,
     return report, candidate, matrix
 
 
+def acceptance_input_inventory(handoff, config):
+    """Describe independently retained acceptance inputs without altering their identity."""
+    examples = {}
+    for key, metadata in handoff['accepted_snapshots'].items():
+        accepted = ROOT / relative_path(metadata['receipt'])
+        database = ROOT / relative_path(metadata['database'])
+        result = read(accepted)
+        examples[key] = dict(database_bytes=database.stat().st_size,
+                             receipt_fields=sorted(result),
+                             receipt_bytes=accepted.stat().st_size,
+                             source_snapshot_sha256=metadata['sha256'])
+    cohort = handoff.get('next_action', {}).get('cohorts')
+    cohort_path = ROOT / relative_path(cohort) if cohort else None
+    indexed = dict(path=cohort, present=bool(cohort_path and cohort_path.is_file()))
+    if indexed['present']:
+        result = read(cohort_path)
+        indexed['record_type'] = type(result).__name__
+        if isinstance(result, dict):
+            indexed['fields'] = sorted(result)
+            indexed['has_observed_population_fingerprint'] = 'freeze_sha256' in result
+    return dict(accepted_snapshots=examples, indexed_cohort=indexed,
+                configured_unit_plans=sorted(config.get('unit_plans', {})))
+
+
 def run_foundations(work, handoff, config_path, config, checkpoint, matrix_path, before, receipt):
     """Use one shared club-source queue for unfinished foundational coverage."""
     keys = ('new_matches', 'new_player_match_rows', 'new_national_matches',
@@ -1074,6 +1098,11 @@ def run_delivery(request_path, entry_path, base_checkout):
     work = checkpoint.parent / ('delivery-' + os.environ['GITHUB_RUN_ID'])
     work.mkdir()
     matrix = read(matrix_path)
+    if request.get('probe') == 'acceptance-input-inventory':
+        if rebuild_sha or request.get('sources'):
+            raise ValueError('INPUT_INVENTORY_MUST_BE_READ_ONLY')
+        receipt('acceptance-input-inventory', **acceptance_input_inventory(handoff, config))
+        return
     if request.get('matrix_mode') == 'SOURCE_READY_FOUNDATIONS':
         if rebuild_sha or request.get('probe') or request.get('sources'):
             raise ValueError('FOUNDATION_DELIVERY_REQUIRES_STANDARD_CONTINUATION')
