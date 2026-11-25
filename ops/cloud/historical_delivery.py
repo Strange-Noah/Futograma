@@ -275,6 +275,8 @@ def collect_club_audit_evidence(work, tasks):
     """Capture exact existing club fixtures without rebuilding the candidate per request."""
     directory = work / 'club-audit-sources'
     prior = retained_store(work)
+    unavailable = {item['url'] for path in (ROOT / '.cloud').glob('**/club-audit-sources/results-private.json')
+                   for item in read(path) if item['outcome'] in {'UNAVAILABLE', 'REDIRECT_REQUIRES_REVIEW'}}
     capture = EvidenceStore(directory)
     service = SourceService(capture, 'historical-club-audit', {'www.skysports.com'},
                             max_calls=2 * len(tasks), max_bytes=12000000 * len(tasks))
@@ -284,7 +286,7 @@ def collect_club_audit_evidence(work, tasks):
         url = task['url']
         request = SourceRequest('Sky', 'match', url, 'Known canonical club audit fixture',
                                 expected_ids={'match': url.rsplit('/', 1)[-1]}, policy='LIVE_ALLOWED')
-        if prior.lookup(request).outcome == 'FOUND':
+        if url in unavailable or prior.lookup(request).outcome == 'FOUND':
             continue
         requested.add(url)
         response = service.acquire(request)
