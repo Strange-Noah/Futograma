@@ -394,7 +394,10 @@ def write_whole_unit_inputs(work, key, candidate, matrix, config, report):
         if not any(word in path.name.lower() for word in ('freeze', 'frozen', 'union', 'cohort')):
             continue
         item = read(path)
-        if not isinstance(item, dict) or item.get('unit') != unit:
+        if not isinstance(item, dict) or item.get('unit_key') != key:
+            continue
+        bound = item.get('unit') or {}
+        if any(bound.get(field) != value for field, value in unit.items()):
             continue
         if item.get('observed_population_accepted') is not True:
             continue
