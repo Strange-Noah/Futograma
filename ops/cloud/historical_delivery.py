@@ -12,7 +12,7 @@ import tarfile
 import resource
 import time
 from collections import Counter
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from contextlib import closing
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -286,6 +286,54 @@ def collect_club_audit_evidence(work, tasks):
     return requested, Counter(item['outcome'] for item in results)
 
 
+def collect_national_directories(candidate, unit, work):
+    """Resolve available team-history inputs from verified national affiliations."""
+    with closing(sqlite3.connect(candidate.as_uri() + '?mode=ro', uri=True)) as db:
+        teams = db.execute("""
+            SELECT DISTINCT ids.provider_team_id, teams.level
+            FROM national_affiliation_events affiliations
+            JOIN football_teams teams USING(team_key)
+            JOIN football_team_provider_ids ids USING(team_key)
+            JOIN player_match_minutes players ON players.player_id=affiliations.player_id
+            JOIN matches fixtures ON fixtures.match_id=players.match_id
+            WHERE ids.provider='FotMob' AND players.club_id=?
+              AND fixtures.local_date>=? AND fixtures.local_date<?
+            ORDER BY ids.provider_team_id, teams.level
+        """, (unit['club_id'], unit['start'], unit['end_exclusive'])).fetchall()
+    retained = retained_store(work)
+    directory = work / 'national-directory-sources'
+    # Cache restricted outcomes by exact URL as well as successful bodies.
+    blocked = set()
+    for path in (ROOT / '.cloud').glob('**/national-directory-sources/results-private.json'):
+        blocked.update(item['url'] for item in read(path)
+                       if item['outcome'] in {'ACCESS_RESTRICTED', 'ROBOTS_DISALLOWED'})
+    service = SourceService(EvidenceStore(directory), 'historical-national-directories',
+                            {'www.fotmob.com'}, max_calls=2 * len(teams),
+                            max_bytes=max(1, len(teams)) * 8000000)
+    cutoff = (datetime.date.fromisoformat(unit['end_exclusive'])-datetime.timedelta(days=1)).isoformat()
+    responses = []
+    for identity, level in teams:
+        if not str(identity).isdigit():
+            continue
+        url = f'https://www.fotmob.com/teams/{identity}/fixtures'
+        request = SourceRequest('FotMob', 'team_history', url, 'Known senior team fixture history',
+                                expected_ids=dict(team=str(identity)),
+                                context=dict(start=unit['start'], cutoff=cutoff, level=level),
+                                policy='LIVE_ALLOWED')
+        if url in blocked or retained.lookup(request).outcome == 'FOUND':
+            continue
+        acquired, parsed = service.observe(request)
+        responses.append(dict(url=url, outcome=acquired.outcome, reason=acquired.reason,
+                              parser=parsed.outcome if parsed else None,
+                              fixtures=len(parsed.native.get('matches', ())) if parsed else 0,
+                              artifact=asdict(acquired.artifact) if acquired.artifact else None))
+        directory.mkdir(parents=True, exist_ok=True)
+        write(directory / 'results-private.json', responses)
+        if acquired.outcome in {'ACCESS_RESTRICTED', 'RATE_LIMITED', 'ROBOTS_DISALLOWED', 'BUDGET_EXHAUSTED'}:
+            break
+    return {item['url'] for item in responses}, Counter(item['outcome'] for item in responses)
+
+
 def runtime_report(candidate, matrix, key, handoff, config, destination, request, receipt, round_number):
     row = next(row for row in matrix['units'] if f'{row["club_id"]}:{row["unit"]}' == key)
     unit = unit_window(row)
@@ -309,7 +357,9 @@ def runtime_report(candidate, matrix, key, handoff, config, destination, request
         local = retained_store(work)
         svc = SourceService(local, 'historical-calendar', {'inside.fifa.com'}, max_calls=2)
         entry = SourceRequest('FIFA','calendar',url,'international-match-calendar',policy='CACHE_FIRST')
-        acquired, parsed = svc.observe(entry)
+        acquired, parsed = svc.observe(replace(entry, policy='ARCHIVE_ONLY'))
+        if acquired.outcome in {'NOT_REQUESTED', 'ARCHIVE_LOCATOR_UNRESOLVED'}:
+            acquired, parsed = svc.observe(entry)
         calendar_evidence = acquired.outcome
         if acquired.artifact and acquired.outcome == 'FOUND':
             write(local.root / 'results-private.json', [dict(
@@ -615,6 +665,8 @@ def run_delivery(request_path, entry_path, base_checkout):
     followup_batches = 0
     direct_requests = set()
     direct_outcomes = Counter()
+    directory_outcomes = Counter()
+    directory_checked = False
     rounds = 0
     while True:
         rounds += 1
@@ -638,7 +690,16 @@ def run_delivery(request_path, entry_path, base_checkout):
             item for item in mapped if item['url'].rsplit('/', 1)[-1] not in offered
             and (request.get('scope') != 'national' or item['worker'] != 'club')
         ]
-        if not next_sources:
+        directories_found = 0
+        if not directory_checked and report['pending'].get('applicable_national_scope_requires_evidence'):
+            directory_checked = True
+            selected = next(row for row in matrix['units'] if f'{row["club_id"]}:{row["unit"]}' == key)
+            requests, outcomes = collect_national_directories(candidate, unit_window(selected), round_work)
+            direct_requests.update(requests)
+            directory_outcomes.update(outcomes)
+            directories_found = outcomes['FOUND']
+            receipt('national-discovery-done', round=rounds, attempts=len(requests), outcome=dict(outcomes))
+        if not next_sources and not directories_found:
             break
         offered.update(item['url'].rsplit('/', 1)[-1] for item in next_sources)
         club = [item for item in next_sources if item['worker'] == 'club']
@@ -658,10 +719,11 @@ def run_delivery(request_path, entry_path, base_checkout):
                                      national_only=request.get('scope') == 'national', receipt=receipt)
         delta = len(state['batches']) - batch_count
         followup_batches += delta
-        if not captured and not delta and read(matrix_path) == matrix:
+        if not captured and not directories_found and not delta and read(matrix_path) == matrix:
             break
     report['audit_followup'].update(rounds=rounds, executed_batches=followup_batches,
-                                    direct_outcomes=dict(direct_outcomes))
+                                    direct_outcomes=dict(direct_outcomes),
+                                    national_directory_outcomes=dict(directory_outcomes))
     duration_result = checkpoint.parent / 'duration-obligations.json'
     if request.get('duration_certificates') and duration_result.exists():
         report['duration_exceptions'] = read(duration_result)
