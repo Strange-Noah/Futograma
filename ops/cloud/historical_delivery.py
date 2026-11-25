@@ -611,8 +611,8 @@ def write_whole_unit_inputs(work, key, candidate, matrix, config, report):
         for item in [doc, *(value for value in doc.values() if isinstance(value, dict))]:
             if item.get('unit_key') not in (None, freeze_key, key):
                 continue
-            bound = item.get('unit') or {}
-            if any(bound.get(field) != value for field, value in unit.items()):
+            bound = item.get('unit')
+            if not isinstance(bound, dict) or any(bound.get(field) != value for field, value in unit.items()):
                 continue
             fingerprint = item.get('freeze_sha256')
             if (item.get('observed_population_accepted') is True and isinstance(item.get('player_ids'), list)
