@@ -1006,8 +1006,25 @@ def acceptance_input_inventory(handoff, config):
         if isinstance(result, dict):
             indexed['fields'] = sorted(result)
             indexed['has_observed_population_fingerprint'] = 'freeze_sha256' in result
+    state = read(ROOT / relative_path(handoff['checkpoint']))
+    protected = {Path(state[field]).resolve() for field in ('candidate', 'reference')}
+    protected.update(ROOT / relative_path(item['database']) for item in handoff['accepted_snapshots'].values())
+    for batch in state['batches']:
+        protected.update(Path(batch[field]).resolve() for field in ('candidate', 'reference'))
+    transients = set()
+    for batch in state['batches']:
+        if batch['ordinary_export'] != 'PASS':
+            continue
+        folder = Path(batch['queue']).parent
+        for prefix in ('fixture-labels-', 'ingestion-', 'minutes-', 'reference-'):
+            for stage in folder.glob(prefix + '*'):
+                for name in ('candidate.sqlite', 'reference.sqlite'):
+                    item = stage / name
+                    if item.is_file() and not item.is_symlink() and item.resolve() not in protected:
+                        transients.add(item.resolve())
     return dict(accepted_snapshots=examples, indexed_cohort=indexed,
-                configured_unit_plans=sorted(config.get('unit_plans', {})))
+                configured_unit_plans=sorted(config.get('unit_plans', {})),
+                transient_files=len(transients), transient_bytes=sum(path.stat().st_size for path in transients))
 
 
 def run_foundations(work, handoff, config_path, config, checkpoint, matrix_path, before, receipt):
