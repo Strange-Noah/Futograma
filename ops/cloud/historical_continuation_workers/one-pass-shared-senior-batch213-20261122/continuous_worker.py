@@ -9,6 +9,7 @@ from urllib.parse import urlsplit
 
 sys.path.insert(0, str(Path.cwd()))
 from ops.cloud.historical_batch import write
+from ops.cloud.historical_selection_certificate import match_claims
 from squad_pipeline.source_interface import EvidenceStore, SourceRequest, SourceService
 
 queue, candidate, reference, batch = map(Path, sys.argv[1:5])
@@ -97,11 +98,18 @@ if duration_proofs.exists():
 if not (prepared / 'SUMMARY.json').exists():
     runpy.run_path(str(stages / 'prepare.py'), init_globals=dict(
         source=reference, parent=archive, root=prepared, **prepare_options))
+selection_path = batch / 'verified-selections.json'
+options = {}
+if selection_path.exists():
+    claims, aliases, errors = match_claims(candidate, prepared / 'reference.sqlite', archive,
+                                           json.loads(selection_path.read_text()))
+    options.update(selection_claims=claims, selection_aliases=aliases)
+    write(batch / 'selection-reconciliation.json', errors)
 output = stage_directory('ingestion')
 if not (output / 'SUMMARY.json').exists():
     runpy.run_path(str(stages / 'ingest.py'), init_globals=dict(
         source=candidate, reference=prepared / 'reference.sqlite', root=output,
-        source_receipts=[receipt]))
+        source_receipts=[receipt], **options))
 result = json.loads((output / 'SUMMARY.json').read_text())
 write(batch / 'result-private.json', dict(result,
     candidate=str(output / 'candidate.sqlite') if result['ordinary_export'] == 'PASS' else str(candidate),

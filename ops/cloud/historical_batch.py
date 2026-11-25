@@ -14,6 +14,7 @@ from urllib.parse import urlsplit
 
 from ops.cloud.historical_unit import within
 from ops.cloud.historical_duration import bind
+from ops.cloud.historical_selection_certificate import prepare as selection_proofs
 from squad_pipeline.cloud.quality import inspect, sha
 from squad_pipeline.core import ROOT
 
@@ -249,14 +250,14 @@ def refresh_matrix(matrix, candidate):
     return matrix
 
 
-def continue_batches(config_path, work, national_unit=None, national_sources=(), *, national_only=True, duration_certificates=()):
+def continue_batches(config_path, work, national_unit=None, national_sources=(), *, national_only=True, duration_certificates=(), selection_certificates=()):
     config = json.loads(local_path(config_path).read_text())
     work = local_path(work)
     work.mkdir(exist_ok=True)
     with (work / 'batch.lock').open('a') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         return consume_sources(config, work, national_unit, national_sources, national_only=national_only,
-                               duration_certificates=duration_certificates)
+                               duration_certificates=duration_certificates, selection_certificates=selection_certificates)
 
 
 def discover_gaps(candidate, matrix, catalogues):
@@ -385,7 +386,7 @@ def discover_gaps(candidate, matrix, catalogues):
                    for key, gap in gaps.items()}
 
 
-def consume_sources(config, work, national_unit=None, national_sources=(), *, national_only=True, duration_certificates=()):
+def consume_sources(config, work, national_unit=None, national_sources=(), *, national_only=True, duration_certificates=(), selection_certificates=()):
     matrix_path = work / 'matrix-private.json'
     matrix = json.loads((matrix_path if matrix_path.exists() else local_path(config['matrix'])).read_text())
     state_path = work / 'continuation-private.json'
@@ -450,7 +451,22 @@ def consume_sources(config, work, national_unit=None, national_sources=(), *, na
                                       set(state.get('duration_certificates', ()))) if duration_certificates else ({}, [])
     if duration_certificates:
         write(work / 'duration-obligations.json', duration_errors)
-    for url in durations:
+    if selection_certificates:
+        selected_scope = unit_window(active_rows[0])
+        supplied = [dict(item,unit=selected_scope) for item in selection_certificates]
+        selections, selection_errors = selection_proofs(supplied, archived, work, set(state.get('selection_certificates', ())))
+        write(work / 'selection-obligations.json', selection_errors)
+    else:
+        selections = {}
+    if selections:
+        for old_batch in state['batches']:
+            proof_path = Path(old_batch['queue']).parent / 'verified-durations.json'
+            if proof_path.is_file():
+                for native, proof in json.loads(proof_path.read_text()).items():
+                    matched = next((url for url in selections if source_id(url)[1] == native), None)
+                    if matched and proof['match_sha256'] == selections[matched][0]['raw_sha256']:
+                        durations.setdefault(matched, proof)
+    for url in set(durations) | set(selections):
         key = source_id(url)
         if key not in queued:
             raise ValueError('DURATION_CERTIFICATE_REQUIRES_SCOPED_SOURCE_TASK')
@@ -577,6 +593,9 @@ def consume_sources(config, work, national_unit=None, national_sources=(), *, na
         duration_proofs = {url.rsplit('/', 1)[-1]:durations[url] for url in urls if url in durations}
         if duration_proofs:
             write(batch / 'verified-durations.json', duration_proofs)
+        selection = {url:selections[url] for url in urls if url in selections}
+        if selection:
+            write(batch / 'verified-selections.json', selection)
         receipt = batch / 'result-private.json'
         if not receipt.exists():
             with (batch / 'run.log').open('a') as log:
@@ -594,6 +613,10 @@ def consume_sources(config, work, national_unit=None, national_sources=(), *, na
         applied = state.setdefault('duration_certificates', [])
         applied.extend(proof['certificate_key'] for proof in duration_proofs.values()
                        if proof['certificate_key'] not in applied)
+        selection_done = state.setdefault('selection_certificates', [])
+        for cert in (cert for packet in selection.values() for cert in packet):
+            if cert['certificate_key'] not in selection_done:
+                selection_done.append(cert['certificate_key'])
         attempted.update(map(source_id, result['attempted_urls']))
         processed.update(map(source_id, result['attempted_urls']))
         replayed.update(result.get('replayed_urls', []))

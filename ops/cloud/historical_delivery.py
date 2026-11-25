@@ -311,7 +311,8 @@ def run_delivery(request_path, entry_path, base_checkout):
     sources = request.get('sources', ())
     state = continue_batches(config_path, checkpoint.parent, key, sources,
                              national_only=request.get('scope') == 'national',
-                             duration_certificates=request.get('duration_certificates', ()))
+                             duration_certificates=request.get('duration_certificates', ()),
+                             selection_certificates=request.get('selection_certificates', ()))
     candidate = Path(state['candidate']).resolve()
     matrix = read(matrix_path)
     # The exporter reads the historical snapshot; the pointer is attached only
@@ -333,7 +334,12 @@ def run_delivery(request_path, entry_path, base_checkout):
     duration_result = checkpoint.parent / 'duration-obligations.json'
     if request.get('duration_certificates') and duration_result.exists():
         report['duration_exceptions'] = read(duration_result)
+    selection_failures = checkpoint.parent / 'selection-obligations.json'
+    if request.get('selection_certificates') and selection_failures.exists():
+        report['selection_exceptions'] = read(selection_failures)
     batches = state['batches'][before:]
+    report['selection_reconciliation'] = [item for batch in batches
+        if (check := Path(batch['queue']).parent / 'selection-reconciliation.json').exists() for item in read(check)]
     proofs = []
     for batch in state['batches']:
         folder = Path(batch['queue']).parent
