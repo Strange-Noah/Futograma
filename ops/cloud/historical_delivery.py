@@ -600,19 +600,25 @@ def write_whole_unit_inputs(work, key, candidate, matrix, config, report):
     root = ROOT / '.cloud'
     frozen = {}
     for path in sorted(root.rglob('*.json')):
-        if not any(word in path.name.lower() for word in ('freeze', 'frozen', 'union', 'cohort')):
+        if not any(word in path.name.lower() for word in ('freeze', 'frozen', 'union', 'cohort', 'roster', 'population', 'plan', 'acceptance')):
             continue
-        item = read(path)
-        if not isinstance(item, dict) or item.get('unit_key') != freeze_key:
+        doc = read(path)
+        if not isinstance(doc, dict):
             continue
-        bound = item.get('unit') or {}
-        if any(bound.get(field) != value for field, value in unit.items()):
-            continue
-        if item.get('observed_population_accepted') is not True:
-            continue
-        fingerprint = item.get('freeze_sha256')
-        if fingerprint and fingerprint == digest({k: v for k, v in item.items() if k != 'freeze_sha256'}):
-            frozen.setdefault(fingerprint, (path, len(item['player_ids'])))
+        for item in [doc, *(value for value in doc.values() if isinstance(value, dict))]:
+            if item.get('unit_key') not in (freeze_key, key):
+                continue
+            bound = item.get('unit') or {}
+            if any(bound.get(field) != value for field, value in unit.items()):
+                continue
+            fingerprint = item.get('freeze_sha256')
+            if (item.get('observed_population_accepted') is True and isinstance(item.get('player_ids'), list)
+                    and fingerprint and fingerprint == digest({k: v for k, v in item.items() if k != 'freeze_sha256'})):
+                output = path
+                if item is not doc:
+                    output = work / ('verified-freeze-' + fingerprint + '.json')
+                    write(output, item)
+                frozen.setdefault(fingerprint, (output, len(item['player_ids'])))
     audit = report['audit']
     open_work = {state: count for state, count in audit.get('resolution_states', {}).items()
                  if state != 'RESOLVED' and count}
@@ -742,54 +748,22 @@ def national_numeric(path):
         return db.execute('SELECT count(minutes) FROM international_appearances').fetchone()[0]
 
 
-def run_delivery(request_path, entry_path, base_checkout):
-    handoff, request = read(entry_path), read(request_path)
-    ref = handoff['data_ref']
-    repository = os.environ['GITHUB_REPOSITORY']
-    parent = os.environ['GITHUB_SHA']
-    if (repository != 'Strange-Noah/Futograma-data' or not ref.startswith('codex/historical-')
-            or os.environ['GITHUB_REF'] != 'refs/heads/' + ref):
-        raise ValueError('ISOLATED_HISTORICAL_RUNNER_REQUIRED')
-    store = GitHubStore(repository, os.environ['GH_TOKEN'], ref)
-    head, pointer = store.head()
-    if head != parent or request['database_sha256'] != pointer['current']['database']['sha256'] or (
-            request['database_sha256'] != handoff['database_sha256']):
-        raise StaleWriter('HISTORICAL_REQUEST_PARENT_MISMATCH')
-    code = subprocess.check_output(['git','rev-parse','HEAD'], cwd=ROOT, text=True).strip()
-    if request['code_commit'] != code:
-        raise ValueError('HISTORICAL_REQUEST_CODE_MISMATCH')
-    temp = Path(os.environ['RUNNER_TEMP']) / 'historical-delivery'
-    temp.mkdir(exist_ok=False)
-    receipt = DeliveryReceipt(store, pointer['current']['release_id'], temp, request,
-                              handoff['evidence_asset']['size'])
-    receipt('restore-start', evidence_bytes=handoff['evidence_asset']['size'])
-    verified, adopted = stage(store, handoff, base_checkout, temp)
-    receipt('restore-done', evidence_files=verified['evidence_files'])
-    if verified['data_commit'] != parent:
-        raise StaleWriter('HISTORICAL_RESTORE_PARENT_MISMATCH')
-    config_path = ROOT / relative_path(handoff['runner_config'])
-    checkpoint = ROOT / relative_path(handoff['checkpoint'])
-    matrix_path = ROOT / relative_path(handoff['matrix'])
-    key = request['unit']
-    if not re.fullmatch(r'\d+:\d{4}/\d{2}-H[12]', key):
-        raise ValueError('INVALID_HISTORICAL_UNIT')
-    state_before = read(checkpoint)
-    rebuild_sha = request.get('rebuild_from_previous_sha256')
-    if rebuild_sha:
-        previous = pointer.get('previous')
-        if not previous or previous['database']['sha256'] != rebuild_sha:
-            raise ValueError('REBUILD_REQUIRES_EXACT_VERIFIED_PREVIOUS_DATABASE')
-        candidate = Path(state_before['candidate']).resolve()
-        if any(candidate == ROOT / relative_path(snap['database']) for snap in handoff['accepted_snapshots'].values()):
-            raise ValueError('ACCEPTED_SNAPSHOT_IMMUTABLE')
-        restored = temp / 'historical-rebuild.sqlite'
-        previous_head, _ = store.restore(restored, previous=True)
-        if previous_head != parent or sha(restored) != rebuild_sha:
-            raise ValueError('REBUILD_PREVIOUS_DATABASE_HASH_MISMATCH')
-        os.replace(restored, candidate)
-        Path(str(restored) + '.download.gz').unlink()
-        write(matrix_path, refresh_matrix(read(matrix_path), candidate))
-        receipt('rebuild-restored', database_sha256=rebuild_sha)
+def matrix_targets(matrix, config, preferred):
+    plans = config.get('unit_plans', {})
+    ranked = []
+    for row in matrix['units']:
+        key = f'{row["club_id"]}:{row["unit"]}'
+        if row['data_accepted']:
+            continue
+        known = row.get('audit_execution', {}).get('resolution_states', {})
+        remaining = sum(count for state, count in known.items() if state != 'RESOLVED')
+        ranked.append(((not row['source_ready'], key != preferred, key not in plans,
+                        not bool(known), remaining, key), key))
+    return [key for _, key in sorted(ranked)]
+
+
+def run_unit(request, key, handoff, repository, config_path, config, checkpoint,
+             matrix_path, state_before, rebuild_sha, work, temp, receipt):
     before = len(state_before['batches'])
     numeric_before = national_numeric(Path(state_before['candidate']))
     sources = request.get('sources', ())
@@ -804,9 +778,6 @@ def run_delivery(request_path, entry_path, base_checkout):
     receipt('initial-batches-done', batches=len(state['batches'])-before)
     # The exporter reads the historical snapshot; publish only after the last
     # round has passed verification. A blocked source is preserved in its receipt.
-    work = checkpoint.parent / ('delivery-' + os.environ['GITHUB_RUN_ID'])
-    work.mkdir()
-    config = read(config_path)
     selected_matrix = read(matrix_path)
     selected_row = next(row for row in selected_matrix['units']
                         if f'{row["club_id"]}:{row["unit"]}' == key)
@@ -836,7 +807,7 @@ def run_delivery(request_path, entry_path, base_checkout):
             candidate, matrix, key, handoff, config, round_work / 'scope.json', request, receipt, rounds)
         if probe:
             receipt('probe-done', audit=report['audit'], followup=report['audit_followup'])
-            return
+            return None, candidate, matrix
         if str(candidate) != state['candidate']:
             state['candidate'] = str(candidate)
             write(checkpoint, state)
@@ -928,17 +899,122 @@ def run_delivery(request_path, entry_path, base_checkout):
     write(work / 'scope.json', report)
     sync_delivery_matrix(matrix, report)
     write(matrix_path, matrix)
+    return report, candidate, matrix
+
+
+def run_delivery(request_path, entry_path, base_checkout):
+    handoff, request = read(entry_path), read(request_path)
+    ref = handoff['data_ref']
+    repository = os.environ['GITHUB_REPOSITORY']
+    parent = os.environ['GITHUB_SHA']
+    if (repository != 'Strange-Noah/Futograma-data' or not ref.startswith('codex/historical-')
+            or os.environ['GITHUB_REF'] != 'refs/heads/' + ref):
+        raise ValueError('ISOLATED_HISTORICAL_RUNNER_REQUIRED')
+    store = GitHubStore(repository, os.environ['GH_TOKEN'], ref)
+    head, pointer = store.head()
+    if head != parent or request['database_sha256'] != pointer['current']['database']['sha256'] or (
+            request['database_sha256'] != handoff['database_sha256']):
+        raise StaleWriter('HISTORICAL_REQUEST_PARENT_MISMATCH')
+    code = subprocess.check_output(['git','rev-parse','HEAD'], cwd=ROOT, text=True).strip()
+    if request['code_commit'] != code:
+        raise ValueError('HISTORICAL_REQUEST_CODE_MISMATCH')
+    temp = Path(os.environ['RUNNER_TEMP']) / 'historical-delivery'
+    temp.mkdir(exist_ok=False)
+    receipt = DeliveryReceipt(store, pointer['current']['release_id'], temp, request,
+                              handoff['evidence_asset']['size'])
+    receipt('restore-start', evidence_bytes=handoff['evidence_asset']['size'])
+    verified, adopted = stage(store, handoff, base_checkout, temp)
+    receipt('restore-done', evidence_files=verified['evidence_files'])
+    if verified['data_commit'] != parent:
+        raise StaleWriter('HISTORICAL_RESTORE_PARENT_MISMATCH')
+    config_path = ROOT / relative_path(handoff['runner_config'])
+    checkpoint = ROOT / relative_path(handoff['checkpoint'])
+    matrix_path = ROOT / relative_path(handoff['matrix'])
+    key = request['unit']
+    if not re.fullmatch(r'\d+:\d{4}/\d{2}-H[12]', key):
+        raise ValueError('INVALID_HISTORICAL_UNIT')
+    state_before = read(checkpoint)
+    rebuild_sha = request.get('rebuild_from_previous_sha256')
+    if rebuild_sha:
+        previous = pointer.get('previous')
+        if not previous or previous['database']['sha256'] != rebuild_sha:
+            raise ValueError('REBUILD_REQUIRES_EXACT_VERIFIED_PREVIOUS_DATABASE')
+        candidate = Path(state_before['candidate']).resolve()
+        if any(candidate == ROOT / relative_path(snap['database']) for snap in handoff['accepted_snapshots'].values()):
+            raise ValueError('ACCEPTED_SNAPSHOT_IMMUTABLE')
+        restored = temp / 'historical-rebuild.sqlite'
+        previous_head, _ = store.restore(restored, previous=True)
+        if previous_head != parent or sha(restored) != rebuild_sha:
+            raise ValueError('REBUILD_PREVIOUS_DATABASE_HASH_MISMATCH')
+        os.replace(restored, candidate)
+        Path(str(restored) + '.download.gz').unlink()
+        write(matrix_path, refresh_matrix(read(matrix_path), candidate))
+        receipt('rebuild-restored', database_sha256=rebuild_sha)
+    config = read(config_path)
+    work = checkpoint.parent / ('delivery-' + os.environ['GITHUB_RUN_ID'])
+    work.mkdir()
+    matrix = read(matrix_path)
+    sweep = request.get('matrix_mode') == 'OPEN_UNITS'
+    if sweep and (rebuild_sha or request.get('probe')):
+        raise ValueError('MATRIX_RUN_REQUIRES_STANDARD_CONTINUATION')
+    cycle_path = checkpoint.parent / 'matrix-cycle.json'
+    prior = read(cycle_path) if sweep and cycle_path.exists() else {}
+    pending = set(prior.get('pending', ()))
+    targets = matrix_targets(matrix, config, key) if sweep else [key]
+    if pending:
+        targets.sort(key=lambda target: target not in pending)
+    if not targets:
+        raise ValueError('NO_OPEN_HISTORICAL_UNIT')
+    reports = []
+    for index, target in enumerate(targets):
+        # Deadline reserve for packaging and readback in the existing 35 minute job.
+        if reports and time.monotonic() - receipt.start >= 23 * 60:
+            receipt('matrix-checkpoint', completed=len(reports), pending=len(targets)-index)
+            break
+        scoped = dict(request)
+        if target != key:
+            for option in ('coverage_queries', 'sources', 'duration_certificates', 'selection_certificates',
+                           'national_apply_dates', 'national_team_aliases', 'national_directory_urls'):
+                scoped.pop(option, None)
+        unit_work = work / target.replace(':', '-').replace('/', '_') if sweep else work
+        unit_work.mkdir(exist_ok=True)
+        receipt.unit = target
+        report, candidate, matrix = run_unit(scoped, target, handoff, repository, config_path, config,
+            checkpoint, matrix_path, read(checkpoint), rebuild_sha, unit_work, temp, receipt)
+        if report is None:
+            return
+        reports.append(report)
+        if sweep:
+            write(cycle_path, dict(selected=targets, completed=[r['unit'] for r in reports],
+                                   pending=targets[len(reports):]))
+    report = reports[-1]
+    if sweep:
+        totals = Counter()
+        for entry in reports:
+            totals.update(entry['counts'])
+        report = dict(report, matrix_cycle=dict(
+            **read(cycle_path), counts=dict(totals),
+            numeric_minutes=sum(r['new_national_numeric_minutes'] for r in reports),
+            source_requests=sum(r['source_requests'] for r in reports),
+            units={r['unit']: dict(metrics=r['audit'].get('metrics', {}),
+                                   outcomes=r['audit'].get('resolution_states', {}),
+                                   state=r['state'], counts=r['counts'],
+                                   sources=r['source_requests'], plan=r['whole_unit_input_plan'])
+                   for r in reports}))
+        write(work / 'scope.json', report)
+    batches = read(checkpoint)['batches'][len(state_before['batches']):]
+    rounds = sum(r['audit_followup']['rounds'] for r in reports)
     # Keep every previously accepted independent reference and validate any new receipt.
     snapshots = dict(handoff['accepted_snapshots'])
     for row in matrix['units']:
         row_key = f'{row["club_id"]}:{row["unit"]}'
         if row['data_accepted'] and row_key not in snapshots:
-            receipt = Path(row['acceptance_receipt'])
+            acceptance_receipt = Path(row['acceptance_receipt'])
             accepted = Path(row['accepted_candidate'])
-            verdict = read(receipt)
+            verdict = read(acceptance_receipt)
             if verdict.get('data_accepted') is not True or verdict.get('sqlite_sha256') != sha(accepted):
                 raise ValueError('INVALID_NEW_UNIT_ACCEPTANCE')
-            snapshots[row_key] = dict(receipt=str(receipt.relative_to(ROOT)),
+            snapshots[row_key] = dict(receipt=str(acceptance_receipt.relative_to(ROOT)),
                                       database=str(accepted.relative_to(ROOT)),sha256=sha(accepted))
     if len(snapshots) != report['accepted']:
         raise ValueError('ACCUMULATED_ACCEPTANCE_COUNT_MISMATCH')
