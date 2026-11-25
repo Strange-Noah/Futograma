@@ -259,6 +259,32 @@ def audit_followup(db, audit):
     return dict(requests=requests, unmapped=unmapped, exact_fixture_groups=len(groups))
 
 
+def collect_club_audit_evidence(work, tasks):
+    """Capture exact existing club fixtures without rebuilding the candidate per request."""
+    directory = work / 'club-audit-sources'
+    prior = retained_store(work)
+    capture = EvidenceStore(directory)
+    service = SourceService(capture, 'historical-club-audit', {'www.skysports.com'},
+                            max_calls=2 * len(tasks), max_bytes=12000000 * len(tasks))
+    results = []
+    requested = set()
+    for task in tasks:
+        url = task['url']
+        request = SourceRequest('Sky', 'match', url, 'Known canonical club audit fixture',
+                                expected_ids={'match': url.rsplit('/', 1)[-1]}, policy='LIVE_ALLOWED')
+        if prior.lookup(request).outcome == 'FOUND':
+            continue
+        requested.add(url)
+        response = service.acquire(request)
+        results.append(dict(url=url, outcome=response.outcome, reason=response.reason,
+                            claims=task['claims'], artifact=asdict(response.artifact) if response.artifact else None))
+        directory.mkdir(parents=True, exist_ok=True)
+        write(directory / 'results-private.json', results)
+        if response.outcome in {'ACCESS_RESTRICTED', 'ROBOTS_DISALLOWED', 'RATE_LIMITED', 'BUDGET_EXHAUSTED'}:
+            break
+    return requested, Counter(item['outcome'] for item in results)
+
+
 def runtime_report(candidate, matrix, key, handoff, config, destination, request, receipt, round_number):
     row = next(row for row in matrix['units'] if f'{row["club_id"]}:{row["unit"]}' == key)
     unit = unit_window(row)
@@ -584,6 +610,8 @@ def run_delivery(request_path, entry_path, base_checkout):
     config = read(config_path)
     offered = {item['url'].rsplit('/', 1)[-1] for item in sources}
     followup_batches = 0
+    direct_requests = set()
+    direct_outcomes = Counter()
     rounds = 0
     while True:
         rounds += 1
@@ -601,8 +629,7 @@ def run_delivery(request_path, entry_path, base_checkout):
             write(checkpoint, state)
             matrix = refresh_matrix(matrix, candidate)
             write(matrix_path, matrix)
-        if report['data_accepted'] or state['state'] in {
-                'ACCESS_RESTRICTED', 'RATE_LIMITED', 'ROBOTS_DISALLOWED', 'RESOURCE_CHECKPOINT'}:
+        if report['data_accepted']:
             break
         next_sources = [
             item for item in mapped if item['url'].rsplit('/', 1)[-1] not in offered
@@ -611,16 +638,27 @@ def run_delivery(request_path, entry_path, base_checkout):
         if not next_sources:
             break
         offered.update(item['url'].rsplit('/', 1)[-1] for item in next_sources)
+        club = [item for item in next_sources if item['worker'] == 'club']
+        national = [item for item in next_sources if item['worker'] != 'club']
+        captured = 0
+        if club and not any(direct_outcomes[state] for state in ('ACCESS_RESTRICTED', 'RATE_LIMITED', 'ROBOTS_DISALLOWED')):
+            receipt('direct-audit-start', round=rounds, tasks=len(club))
+            requests, outcomes = collect_club_audit_evidence(round_work, club)
+            direct_requests.update(requests)
+            direct_outcomes.update(outcomes)
+            captured = outcomes['FOUND']
+            receipt('direct-audit-done', round=rounds, attempts=len(requests), outcome=dict(outcomes))
         batch_count = len(state['batches'])
-        # Keep the latest audit evidence path even if the collector has already
-        # attempted every mapped request in persisted continuation state.
-        state = continue_batches(config_path, checkpoint.parent, key, next_sources,
-                                 national_only=request.get('scope') == 'national', receipt=receipt)
+        if national and state['state'] not in {
+                'ACCESS_RESTRICTED', 'RATE_LIMITED', 'ROBOTS_DISALLOWED', 'RESOURCE_CHECKPOINT'}:
+            state = continue_batches(config_path, checkpoint.parent, key, national,
+                                     national_only=request.get('scope') == 'national', receipt=receipt)
         delta = len(state['batches']) - batch_count
         followup_batches += delta
-        if not delta and read(matrix_path) == matrix:
+        if not captured and not delta and read(matrix_path) == matrix:
             break
-    report['audit_followup'].update(rounds=rounds, executed_batches=followup_batches)
+    report['audit_followup'].update(rounds=rounds, executed_batches=followup_batches,
+                                    direct_outcomes=dict(direct_outcomes))
     duration_result = checkpoint.parent / 'duration-obligations.json'
     if request.get('duration_certificates') and duration_result.exists():
         report['duration_exceptions'] = read(duration_result)
@@ -647,7 +685,7 @@ def run_delivery(request_path, entry_path, base_checkout):
     fields = ('new_matches','new_player_match_rows','new_national_matches','new_national_player_rows','minutes_recovered')
     report.update(status='CHECKPOINT_VERIFIED', batches=len(batches),
                   counts={field:sum(batch.get(field, 0) or 0 for batch in batches) for field in fields},
-                  source_requests=len({url for batch in batches for url in batch['attempted_urls']}),
+                  source_requests=len(direct_requests | {url for batch in batches for url in batch['attempted_urls']}),
                   replayed_source_requests=len({url for batch in batches for url in batch.get('replayed_urls', ())}),
                   new_national_numeric_minutes=national_numeric(candidate)-numeric_before,
                   state=state['state'], ordinary_export='PASS', reused_legacy_delta=adopted,
