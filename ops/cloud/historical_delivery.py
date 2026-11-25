@@ -82,7 +82,7 @@ class DeliveryReceipt:
         asset = self.store.upload(self.release_id, path)
         label = f"{result['elapsed_seconds']}s freeMiB={result['free_bytes']//1048576} rssKiB={result['process_peak_rss_kib']} childKiB={result['child_peak_rss_kib']}"
         for key in ('round', 'batch', 'worker', 'tasks', 'attempts', 'replays', 'outcome',
-                    'official_windows', 'parser', 'mapped', 'unmapped', 'source_work_required'):
+                    'official_windows', 'parser', 'mapped', 'unmapped', 'source_work_required', 'frozen', 'plan'):
             if key in counts:
                 label += f' {key}={counts[key]}'
         self.store.api('PATCH', self.store.base + '/releases/assets/' + str(asset['id']),
@@ -763,7 +763,7 @@ def matrix_targets(matrix, config, preferred):
 
 
 def run_unit(request, key, handoff, repository, config_path, config, checkpoint,
-             matrix_path, state_before, rebuild_sha, work, temp, receipt):
+             matrix_path, state_before, rebuild_sha, adopted, work, temp, receipt):
     before = len(state_before['batches'])
     numeric_before = national_numeric(Path(state_before['candidate']))
     sources = request.get('sources', ())
@@ -962,7 +962,7 @@ def run_delivery(request_path, entry_path, base_checkout):
     pending = set(prior.get('pending', ()))
     targets = matrix_targets(matrix, config, key) if sweep else [key]
     if pending:
-        targets.sort(key=lambda target: target not in pending)
+        targets = [target for target in targets if target in pending] or targets
     if not targets:
         raise ValueError('NO_OPEN_HISTORICAL_UNIT')
     reports = []
@@ -980,10 +980,14 @@ def run_delivery(request_path, entry_path, base_checkout):
         unit_work.mkdir(exist_ok=True)
         receipt.unit = target
         report, candidate, matrix = run_unit(scoped, target, handoff, repository, config_path, config,
-            checkpoint, matrix_path, read(checkpoint), rebuild_sha, unit_work, temp, receipt)
+            checkpoint, matrix_path, read(checkpoint), rebuild_sha, adopted, unit_work, temp, receipt)
         if report is None:
             return
         reports.append(report)
+        receipt('unit-finished', outcome=report['state'],
+                source_work_required=report['audit'].get('metrics', {}).get('source_work_required'),
+                frozen=report['whole_unit_input_plan']['frozen_population_count'],
+                plan=report['whole_unit_input_plan']['approved_plan_present'])
         if sweep:
             write(cycle_path, dict(selected=targets, completed=[r['unit'] for r in reports],
                                    pending=targets[len(reports):]))
