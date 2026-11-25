@@ -1091,6 +1091,40 @@ def run_foundations(work, handoff, config_path, config, checkpoint, matrix_path,
     return report, candidate, matrix
 
 
+def acquire_foundation_checkpoint(work, handoff, config, matrix, checkpoint, store, receipt):
+    """Preserve shared club inputs independently of the copy-heavy canonical writer."""
+    candidate = Path(read(checkpoint)['candidate']).resolve()
+    active = dict(matrix, units=[row for row in matrix['units'] if not row['source_ready']])
+    tasks, gaps = discover_gaps(candidate, active, config.get('catalogues', ()))
+    selected = [dict(url=url, claims=[], dates=sorted(days))
+                for url, days, kind in tasks.values() if kind == 'club']
+    selected.sort(key=lambda item: item['url'])
+    receipt('foundation-capture-start', tasks=len(selected), units=len(active['units']))
+    requested, outcomes = collect_club_audit_evidence(work, selected)
+    summary = dict(candidate_sha256=handoff['database_sha256'], queue=selected,
+                   scope_gaps=gaps, requested=len(requested), outcomes=dict(outcomes),
+                   canonical_writes=0)
+    if not requested:
+        receipt('foundation-capture-done', tasks=len(selected), attempts=0, outcome={})
+        return
+    write(work / 'foundation-source-checkpoint.json', summary)
+    archive = work / 'foundation-source-evidence.tar.gz'
+    with tarfile.open(archive, 'w:gz') as target:
+        target.add(work / 'club-audit-sources', arcname='club-audit-sources')
+        target.add(work / 'foundation-source-checkpoint.json', arcname='foundation-source-checkpoint.json')
+    tag = 'historical-foundation-evidence-' + os.environ['GITHUB_RUN_ID']
+    release = store.api('POST', store.base + '/releases', dict(
+        tag_name=tag, target_commitish=store.ref, name='Historical foundational source checkpoint',
+        body='Exact captured club-source evidence; canonical candidate is unchanged.', draft=True))
+    asset = store.upload(release['id'], archive)
+    size, checksum = store.download(asset['id'], None)
+    if (size, checksum) != (archive.stat().st_size, sha(archive)):
+        raise ValueError('FOUNDATION_SOURCE_CHECKPOINT_READBACK_MISMATCH')
+    store.api('PATCH', store.base + '/releases/' + str(release['id']), dict(draft=False))
+    receipt('foundation-capture-done', attempts=len(requested), outcome=dict(outcomes),
+            tasks=len(selected), release=tag, asset_id=asset['id'], sha256=checksum, bytes=size)
+
+
 def run_delivery(request_path, entry_path, base_checkout):
     handoff, request = read(entry_path), read(request_path)
     ref = handoff['data_ref']
@@ -1143,6 +1177,11 @@ def run_delivery(request_path, entry_path, base_checkout):
     work = checkpoint.parent / ('delivery-' + os.environ['GITHUB_RUN_ID'])
     work.mkdir()
     matrix = read(matrix_path)
+    if request.get('probe') == 'foundation-source-checkpoint':
+        if rebuild_sha or request.get('sources'):
+            raise ValueError('FOUNDATION_SOURCE_CAPTURE_REQUIRES_STANDARD_SCOPE')
+        acquire_foundation_checkpoint(work, handoff, config, matrix, checkpoint, store, receipt)
+        return
     if request.get('probe') == 'accepted-static':
         if rebuild_sha or request.get('sources'):
             raise ValueError('STATIC_PROJECTION_MUST_USE_EXACT_ACCEPTED_INPUTS')
