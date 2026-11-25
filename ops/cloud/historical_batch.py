@@ -439,10 +439,11 @@ def consume_sources(config, work, national_unit=None, national_sources=(), *, na
         window = unit_window(active_rows[0])
         for item in national_sources:
             url, day, kind = item['url'], item['date'], item['worker']
+            allowed_workers = ('national', 'afcon') if national_only else ('club', 'national', 'afcon')
             if (not re.fullmatch(r'https://www\.skysports\.com/football/[a-z0-9-]+/teams/[0-9]+', url)
                     or not window['start'] <= datetime.date.fromisoformat(day).isoformat() < window['end_exclusive']
-                    or kind not in ('national', 'afcon') or kind not in config['workers']):
-                raise ValueError('INVALID_SCOPED_NATIONAL_SOURCE')
+                    or kind not in allowed_workers or (kind != 'club' and kind not in config['workers'])):
+                raise ValueError('INVALID_SCOPED_HISTORICAL_SOURCE')
             key = source_id(url)
             queued[key] = (url, {day}, kind)
             if url in archived:

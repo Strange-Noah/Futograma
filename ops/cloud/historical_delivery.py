@@ -12,6 +12,7 @@ import tarfile
 from collections import Counter
 from contextlib import closing
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from ops.cloud.historical_batch import continue_batches, discover_gaps, refresh_matrix, unit_window, write
 from ops.cloud.obligation_execution import adjudicate_packets
@@ -157,12 +158,64 @@ def coverage_projection(db, unit, queries):
     return results
 
 
+def audit_followup(db, audit):
+    """Share exact fixture acquisition across independent R3/R4 obligations."""
+    opportunities = {(item['domain'], item['canonical']): item['on']
+                     for item in audit['final_opportunities']}
+    groups = {}
+    for claim in audit['resolutions']:
+        if claim['state'] == 'RESOLVED':
+            continue
+        for match in claim.get('opportunities', ()) if claim['trigger'] == 'R3' else (claim['canonical'],):
+            domain = claim['domain']
+            group = groups.setdefault((domain, match), set())
+            group.add(claim['claim_key'])
+
+    tasks = {}
+    unmapped = []
+    for (domain, match), claims in sorted(groups.items()):
+        if domain == 'CLUB':
+            sources = db.execute("""
+                SELECT provider_match_id, json_extract(evidence_json, '$.url')
+                FROM canonical_fixture_sources
+                WHERE domain='CLUB' AND match_id=? AND provider='Sky'
+            """, (match,))
+        else:
+            sources = db.execute("""
+                SELECT ids.provider_match_id, sources.source_url
+                FROM international_match_provider_ids ids
+                JOIN persistent_source_evidence sources USING(evidence_id)
+                WHERE ids.match_id=? AND ids.provider='Sky'
+            """, (match,))
+        on = opportunities.get((domain, match))
+        found = False
+        for native, url in sources:
+            if (not on or not isinstance(url, str)
+                    or not re.fullmatch(r'https://www\.skysports\.com/football/[a-z0-9-]+/teams/[0-9]+', url)
+                    or urlsplit(url).path.rsplit('/', 1)[-1] != str(native)):
+                continue
+            found = True
+            record = tasks.setdefault(str(native), dict(url=url, date=on,
+                worker='club' if domain == 'CLUB' else 'national',
+                claims=set(), fixtures=set()))
+            record['claims'].update(claims)
+            record['fixtures'].add((domain, match))
+        if not found:
+            unmapped.append(dict(domain=domain, match=match, on=on, claims=sorted(claims)))
+    requests = [
+        dict(item, claims=sorted(item['claims']), fixtures=sorted(item['fixtures']))
+        for _, item in sorted(tasks.items())
+    ]
+    return dict(requests=requests, unmapped=unmapped, exact_fixture_groups=len(groups))
+
+
 def runtime_report(candidate, matrix, key, handoff, config, destination, request):
     row = next(row for row in matrix['units'] if f'{row["club_id"]}:{row["unit"]}' == key)
     unit = unit_window(row)
     work = destination.parent
     adjudicated = Counter()
     audit_adopted = False
+    followup = dict(requests=[], unmapped=[], exact_fixture_groups=0)
     candidate = candidate.resolve()
     begin, end = unit['start'], unit['end_exclusive']
     cutoff = (datetime.date.fromisoformat(end) - datetime.timedelta(days=1)).isoformat()
@@ -216,8 +269,11 @@ def runtime_report(candidate, matrix, key, handoff, config, destination, request
                 audit = run(db, adapter, begin, cutoff, max_attempts=200)
                 db.commit()
             write(work / 'audit-private.json', audit)
+            followup = audit_followup(db, audit)
+            write(work / 'audit-followup-private.json', followup)
             audit_summary = dict(stages=audit['stages'], metrics=audit['metrics'],
-                                 retained_calendar_supplied=bool(calendar), retained_source_calls=service.parse_calls,
+                                 retained_calendar_supplied=bool(calendars), retained_source_calls=service.parse_calls,
+                                 adapter_coverage=adapter.coverage,
                                  resolution_states=dict(Counter(item.get('state') for item in audit['resolutions'])))
         except (ValueError, OSError, sqlite3.Error) as exc:
             if audit_adopted:
@@ -250,7 +306,10 @@ def runtime_report(candidate, matrix, key, handoff, config, destination, request
             len(records) for fixture in closed.get('verified_existing_appearances', ())
             for records in fixture['players'].values())
     write(destination, result)
-    return result, candidate
+    result['audit_followup'] = dict(exact_fixture_groups=followup['exact_fixture_groups'],
+                                    mapped_source_requests=len(followup['requests']),
+                                    unmapped_fixture_groups=len(followup['unmapped']))
+    return result, candidate, followup['requests']
 
 
 def sync_delivery_matrix(matrix, report):
@@ -353,24 +412,52 @@ def run_delivery(request_path, entry_path, base_checkout):
                              national_only=request.get('scope') == 'national',
                              duration_certificates=request.get('duration_certificates', ()),
                              selection_certificates=request.get('selection_certificates', ()))
-    candidate = Path(state['candidate']).resolve()
-    matrix = read(matrix_path)
-    # The exporter reads the historical snapshot; the pointer is attached only
-    # after the new bundle passes verified readback and compare-and-swap.
-    quality = inspect(candidate)
-    export_pointer = dict(pointer, current=dict(pointer['current'], database=quality))
-    export(candidate, temp / 'export', parent, export_pointer, ROOT / 'web')
+    # The exporter reads the historical snapshot; publish only after the last
+    # round has passed verification. A blocked source is preserved in its receipt.
     work = checkpoint.parent / ('delivery-' + os.environ['GITHUB_RUN_ID'])
     work.mkdir()
-    report, candidate = runtime_report(candidate, matrix, key, handoff, read(config_path), work / 'scope.json', request)
-    if str(candidate) != state['candidate']:
-        state['candidate'] = str(candidate)
-        write(checkpoint, state)
-        matrix = refresh_matrix(matrix, candidate)
-        write(matrix_path, matrix)
-        repeat_quality = inspect(candidate)
-        repeat_pointer = dict(pointer, current=dict(pointer['current'],database=repeat_quality))
-        export(candidate, temp / 'reaudit-export', parent, repeat_pointer, ROOT / 'web')
+    config = read(config_path)
+    offered = {item['url'].rsplit('/', 1)[-1] for item in sources}
+    followup_batches = 0
+    rounds = 0
+    while True:
+        rounds += 1
+        round_work = work / f'round-{rounds:03d}'
+        round_work.mkdir()
+        candidate = Path(state['candidate']).resolve()
+        matrix = read(matrix_path)
+        quality = inspect(candidate)
+        export_pointer = dict(pointer, current=dict(pointer['current'], database=quality))
+        export(candidate, temp / f'export-{rounds:03d}', parent, export_pointer, ROOT / 'web')
+        report, candidate, mapped = runtime_report(
+            candidate, matrix, key, handoff, config, round_work / 'scope.json', request)
+        if str(candidate) != state['candidate']:
+            state['candidate'] = str(candidate)
+            write(checkpoint, state)
+            matrix = refresh_matrix(matrix, candidate)
+            write(matrix_path, matrix)
+            repeat_quality = inspect(candidate)
+            repeat_pointer = dict(pointer, current=dict(pointer['current'], database=repeat_quality))
+            export(candidate, temp / f'reaudit-export-{rounds:03d}', parent, repeat_pointer, ROOT / 'web')
+        if report['data_accepted'] or state['state'] in {'ACCESS_RESTRICTED', 'RATE_LIMITED', 'ROBOTS_DISALLOWED'}:
+            break
+        next_sources = [
+            item for item in mapped if item['url'].rsplit('/', 1)[-1] not in offered
+            and (request.get('scope') != 'national' or item['worker'] != 'club')
+        ]
+        if not next_sources:
+            break
+        offered.update(item['url'].rsplit('/', 1)[-1] for item in next_sources)
+        batch_count = len(state['batches'])
+        # Keep the latest audit evidence path even if the collector has already
+        # attempted every mapped request in persisted continuation state.
+        state = continue_batches(config_path, checkpoint.parent, key, next_sources,
+                                 national_only=request.get('scope') == 'national')
+        delta = len(state['batches']) - batch_count
+        followup_batches += delta
+        if not delta and read(matrix_path) == matrix:
+            break
+    report['audit_followup'].update(rounds=rounds, executed_batches=followup_batches)
     duration_result = checkpoint.parent / 'duration-obligations.json'
     if request.get('duration_certificates') and duration_result.exists():
         report['duration_exceptions'] = read(duration_result)
