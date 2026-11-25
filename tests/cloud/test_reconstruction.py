@@ -316,6 +316,22 @@ class ReconstructionTests(unittest.TestCase):
         tables={x[0] for x in self.db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         self.assertNotIn('player_match_minutes',tables)
 
+    def test_audit_reporting_keeps_fact_checks_and_conflicts_out_of_supplementary_count(self):
+        from squad_pipeline.reconstruction.engine import classify_unperformed_paths
+        unresolved = {'outcome': 'NOT_REQUESTED'}
+        absent = {'canonical': 'match', 'state': 'RESOLVED', 'challenge': False,
+                  'resolved_status': {'complete_squad': True},
+                  'attempts': [dict(unresolved, path='injury_availability'),
+                               dict(unresolved, path='identity_archives')]}
+        self.assertEqual(classify_unperformed_paths([absent]), {
+            'unperformed_fact_or_unresolved_paths': 1,
+            'unperformed_supplementary_candidates': 1})
+        for finding in [dict(absent, state='CONFLICT'), dict(absent, challenge=True),
+                        dict(absent, resolved_status=None), dict(absent, canonical=None)]:
+            self.assertEqual(classify_unperformed_paths([finding]), {
+                'unperformed_fact_or_unresolved_paths': 2,
+                'unperformed_supplementary_candidates': 0})
+
     def test_conflicting_resolution_does_not_replace_fact(self):
         a=Adapter(answers={
             'fixture_details':Resolution('fixture_details','FOUND','exact squad',(E,),status('p')),

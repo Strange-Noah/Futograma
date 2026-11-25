@@ -436,6 +436,25 @@ def active_resolution(db, finding, adapter, dependency, cutoff, budget):
     return result
 
 
+def classify_unperformed_paths(resolutions):
+    """Reporting only. Identify candidates for closing ancillary investigations."""
+    candidate_ancillary = {'injury_availability', 'disciplinary', 'press_conference'}
+    required, supplementary = 0, 0
+    for resolution in resolutions:
+        status = resolution.get('resolved_status') or {}
+        exact_status = (resolution['state'] == 'RESOLVED' and status.get('complete_squad')
+                        and not resolution.get('challenge') and resolution.get('canonical') is not None)
+        for attempt in resolution['attempts']:
+            if attempt['outcome'] != 'NOT_REQUESTED':
+                continue
+            if exact_status and attempt['path'] in candidate_ancillary:
+                supplementary += 1
+            else:
+                required += 1
+    return dict(unperformed_fact_or_unresolved_paths=required,
+                unperformed_supplementary_candidates=supplementary)
+
+
 def run(db, adapter, start, cutoff, mode='INCREMENTAL', max_attempts=200):
     if mode not in MODES or (max_attempts is not None and (type(max_attempts) is not int or max_attempts < 0)):
         raise ValueError('INVALID_MODE_OR_BUDGET')
@@ -484,5 +503,6 @@ def run(db, adapter, start, cutoff, mode='INCREMENTAL', max_attempts=200):
             compatible_source_variations=sum(f.get('compatible_source_variation',False) for f in r4),
             retained_response_checks=sum(a['outcome'] in {'FOUND','NO_MATCH','CONFLICT'} for r in resolutions for a in r['attempts']),
             unperformed_paths=sum(a['outcome']=='NOT_REQUESTED' for r in resolutions for a in r['attempts']),
-            supported_absences=sum(f['state']=='ABSENT_COMPLETE_SQUAD' for f in r4)),
+            supported_absences=sum(f['state']=='ABSENT_COMPLETE_SQUAD' for f in r4),
+            **classify_unperformed_paths(resolutions)),
         completeness_certified=False, calendar_coverage='OFFICIAL_AND_OBSERVED' if calendars else 'OBSERVED_ONLY;OFFICIAL_CALENDAR_UNAVAILABLE')
