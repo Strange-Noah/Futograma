@@ -986,6 +986,42 @@ def run_unit(request, key, handoff, repository, config_path, config, checkpoint,
     return report, candidate, matrix
 
 
+def run_foundations(work, handoff, config_path, config, checkpoint, matrix_path, before, receipt):
+    """Use one shared club-source queue for unfinished foundational coverage."""
+    keys = ('new_matches', 'new_player_match_rows', 'new_national_matches',
+            'new_national_player_rows', 'minutes_recovered')
+    matrix = read(matrix_path)
+    open_rows = [row for row in matrix['units'] if not row['source_ready']]
+    if not open_rows:
+        raise ValueError('NO_UNFINISHED_FOUNDATIONS')
+    prior = Path(before['candidate']).resolve()
+    active = dict(matrix, units=open_rows)
+    tasks, gaps = discover_gaps(prior, active, config.get('catalogues', ()))
+    club_tasks = sum(value[2] == 'club' for value in tasks.values())
+    receipt('foundation-gaps', units=len(open_rows), tasks=club_tasks,
+            outcome={key: {k: v for k, v in item.items() if k != 'source_mapping_examples'}
+                     for key, item in gaps.items()})
+    state = continue_batches(config_path, checkpoint.parent, national_only=False,
+                             foundations_only=True, receipt=receipt)
+    matrix = read(matrix_path)
+    candidate = Path(state['candidate']).resolve()
+    active = dict(matrix, units=[row for row in matrix['units'] if not row['source_ready']])
+    tasks, remaining = discover_gaps(candidate, active, config.get('catalogues', ()))
+    batches = state['batches'][len(before['batches']):]
+    report = dict(mode='SOURCE_READY_FOUNDATIONS', status='CHECKPOINT_VERIFIED', state=state['state'],
+                  accepted=sum(row['data_accepted'] for row in matrix['units']),
+                  source_ready=sum(row['source_ready'] for row in matrix['units']),
+                  counts={key: sum(batch.get(key, 0) or 0 for batch in batches) for key in keys},
+                  source_requests=len({url for batch in batches for url in batch['attempted_urls']}),
+                  ordinary_export='PASS', audit_followup=dict(rounds=0),
+                  foundations=dict(before=gaps, remaining=remaining, initial_club_tasks=club_tasks,
+                                   remaining_club_tasks=sum(value[2] == 'club' for value in tasks.values())),
+                  run=f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}")
+    write(matrix_path, matrix)
+    write(work / 'scope.json', report)
+    return report, candidate, matrix
+
+
 def run_delivery(request_path, entry_path, base_checkout):
     handoff, request = read(entry_path), read(request_path)
     ref = handoff['data_ref']
@@ -1038,58 +1074,65 @@ def run_delivery(request_path, entry_path, base_checkout):
     work = checkpoint.parent / ('delivery-' + os.environ['GITHUB_RUN_ID'])
     work.mkdir()
     matrix = read(matrix_path)
-    sweep = request.get('matrix_mode') == 'OPEN_UNITS'
-    if sweep and (rebuild_sha or request.get('probe')):
-        raise ValueError('MATRIX_RUN_REQUIRES_STANDARD_CONTINUATION')
-    cycle_path = checkpoint.parent / 'matrix-cycle.json'
-    prior = read(cycle_path) if sweep and cycle_path.exists() else {}
-    pending = set(prior.get('pending', ()))
-    targets = matrix_targets(matrix, config, key) if sweep else [key]
-    if pending:
-        targets = [target for target in targets if target in pending] or targets
-    if not targets:
-        raise ValueError('NO_OPEN_HISTORICAL_UNIT')
-    reports = []
-    for index, target in enumerate(targets):
-        # Deadline reserve for packaging and readback in the existing 35 minute job.
-        if reports and time.monotonic() - receipt.start >= 23 * 60:
-            receipt('matrix-checkpoint', completed=len(reports), pending=len(targets)-index)
-            break
-        scoped = dict(request)
-        if target != key:
-            for option in ('coverage_queries', 'sources', 'duration_certificates', 'selection_certificates',
-                           'national_apply_dates', 'national_team_aliases', 'national_directory_urls'):
-                scoped.pop(option, None)
-        unit_work = work / target.replace(':', '-').replace('/', '_') if sweep else work
-        unit_work.mkdir(exist_ok=True)
-        receipt.unit = target
-        report, candidate, matrix = run_unit(scoped, target, handoff, repository, config_path, config,
-            checkpoint, matrix_path, read(checkpoint), rebuild_sha, adopted, unit_work, temp, receipt)
-        if report is None:
-            return
-        reports.append(report)
-        receipt('unit-finished', outcome=report['state'],
-                source_work_required=report['audit'].get('metrics', {}).get('source_work_required'),
-                frozen=report['whole_unit_input_plan']['frozen_population_count'],
-                plan=report['whole_unit_input_plan']['approved_plan_present'])
+    if request.get('matrix_mode') == 'SOURCE_READY_FOUNDATIONS':
+        if rebuild_sha or request.get('probe') or request.get('sources'):
+            raise ValueError('FOUNDATION_DELIVERY_REQUIRES_STANDARD_CONTINUATION')
+        report, candidate, matrix = run_foundations(
+            work, handoff, config_path, config, checkpoint, matrix_path, state_before, receipt)
+        reports = [report]
+    else:
+        sweep = request.get('matrix_mode') == 'OPEN_UNITS'
+        if sweep and (rebuild_sha or request.get('probe')):
+            raise ValueError('MATRIX_RUN_REQUIRES_STANDARD_CONTINUATION')
+        cycle_path = checkpoint.parent / 'matrix-cycle.json'
+        prior = read(cycle_path) if sweep and cycle_path.exists() else {}
+        pending = set(prior.get('pending', ()))
+        targets = matrix_targets(matrix, config, key) if sweep else [key]
+        if pending:
+            targets = [target for target in targets if target in pending] or targets
+        if not targets:
+            raise ValueError('NO_OPEN_HISTORICAL_UNIT')
+        reports = []
+        for index, target in enumerate(targets):
+            # Deadline reserve for packaging and readback in the existing 35 minute job.
+            if reports and time.monotonic() - receipt.start >= 23 * 60:
+                receipt('matrix-checkpoint', completed=len(reports), pending=len(targets)-index)
+                break
+            scoped = dict(request)
+            if target != key:
+                for option in ('coverage_queries', 'sources', 'duration_certificates', 'selection_certificates',
+                               'national_apply_dates', 'national_team_aliases', 'national_directory_urls'):
+                    scoped.pop(option, None)
+            unit_work = work / target.replace(':', '-').replace('/', '_') if sweep else work
+            unit_work.mkdir(exist_ok=True)
+            receipt.unit = target
+            report, candidate, matrix = run_unit(scoped, target, handoff, repository, config_path, config,
+                checkpoint, matrix_path, read(checkpoint), rebuild_sha, adopted, unit_work, temp, receipt)
+            if report is None:
+                return
+            reports.append(report)
+            receipt('unit-finished', outcome=report['state'],
+                    source_work_required=report['audit'].get('metrics', {}).get('source_work_required'),
+                    frozen=report['whole_unit_input_plan']['frozen_population_count'],
+                    plan=report['whole_unit_input_plan']['approved_plan_present'])
+            if sweep:
+                write(cycle_path, dict(selected=targets, completed=[r['unit'] for r in reports],
+                                       pending=targets[len(reports):]))
+        report = reports[-1]
         if sweep:
-            write(cycle_path, dict(selected=targets, completed=[r['unit'] for r in reports],
-                                   pending=targets[len(reports):]))
-    report = reports[-1]
-    if sweep:
-        totals = Counter()
-        for entry in reports:
-            totals.update(entry['counts'])
-        report = dict(report, matrix_cycle=dict(
-            **read(cycle_path), counts=dict(totals),
-            numeric_minutes=sum(r['new_national_numeric_minutes'] for r in reports),
-            source_requests=sum(r['source_requests'] for r in reports),
-            units={r['unit']: dict(metrics=r['audit'].get('metrics', {}),
-                                   outcomes=r['audit'].get('resolution_states', {}),
-                                   state=r['state'], counts=r['counts'],
-                                   sources=r['source_requests'], plan=r['whole_unit_input_plan'])
-                   for r in reports}))
-        write(work / 'scope.json', report)
+            totals = Counter()
+            for entry in reports:
+                totals.update(entry['counts'])
+            report = dict(report, matrix_cycle=dict(
+                **read(cycle_path), counts=dict(totals),
+                numeric_minutes=sum(r['new_national_numeric_minutes'] for r in reports),
+                source_requests=sum(r['source_requests'] for r in reports),
+                units={r['unit']: dict(metrics=r['audit'].get('metrics', {}),
+                                       outcomes=r['audit'].get('resolution_states', {}),
+                                       state=r['state'], counts=r['counts'],
+                                       sources=r['source_requests'], plan=r['whole_unit_input_plan'])
+                       for r in reports}))
+            write(work / 'scope.json', report)
     batches = read(checkpoint)['batches'][len(state_before['batches']):]
     rounds = sum(r['audit_followup']['rounds'] for r in reports)
     if request.get('verify_frozen_inputs'):

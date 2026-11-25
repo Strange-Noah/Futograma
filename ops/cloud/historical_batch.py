@@ -250,7 +250,7 @@ def refresh_matrix(matrix, candidate):
     return matrix
 
 
-def continue_batches(config_path, work, national_unit=None, national_sources=(), *, national_only=True, duration_certificates=(), selection_certificates=(), receipt=None):
+def continue_batches(config_path, work, national_unit=None, national_sources=(), *, national_only=True, duration_certificates=(), selection_certificates=(), receipt=None, foundations_only=False):
     config = json.loads(local_path(config_path).read_text())
     work = local_path(work)
     work.mkdir(exist_ok=True)
@@ -258,7 +258,7 @@ def continue_batches(config_path, work, national_unit=None, national_sources=(),
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         return consume_sources(config, work, national_unit, national_sources, national_only=national_only,
                                duration_certificates=duration_certificates, selection_certificates=selection_certificates,
-                               phase_receipt=receipt)
+                               phase_receipt=receipt, foundations_only=foundations_only)
 
 
 def discover_gaps(candidate, matrix, catalogues):
@@ -412,7 +412,7 @@ def compact_verified_batch(batch, result, candidate, reference):
     return sum(item['bytes'] for item in removed)
 
 
-def consume_sources(config, work, national_unit=None, national_sources=(), *, national_only=True, duration_certificates=(), selection_certificates=(), phase_receipt=None):
+def consume_sources(config, work, national_unit=None, national_sources=(), *, national_only=True, duration_certificates=(), selection_certificates=(), phase_receipt=None, foundations_only=False):
     matrix_path = work / 'matrix-private.json'
     matrix = json.loads((matrix_path if matrix_path.exists() else local_path(config['matrix'])).read_text())
     state_path = work / 'continuation-private.json'
@@ -420,7 +420,8 @@ def consume_sources(config, work, national_unit=None, national_sources=(), *, na
         'candidate': config['candidate'], 'reference': config['reference'], 'batches': []}
     unit_checks = state.setdefault('unit_checks', {})
     active_rows = [row for row in matrix['units']
-                   if national_unit is None or f'{row["club_id"]}:{row["unit"]}' == national_unit]
+                   if (national_unit is None or f'{row["club_id"]}:{row["unit"]}' == national_unit)
+                   and (not foundations_only or not row['source_ready'])]
     if not active_rows:
         raise ValueError('UNKNOWN_HISTORICAL_UNIT')
     if national_unit and national_only and not active_rows[0]['source_ready']:
@@ -457,6 +458,8 @@ def consume_sources(config, work, national_unit=None, national_sources=(), *, na
                 if parsed.hostname != 'www.skysports.com':
                     continue
                 kind = group.get('kind', 'national')
+                if foundations_only and kind != 'club':
+                    continue
                 key = source_id(url)
                 queued.setdefault(key, (url, set(), kind))[1].add(date)
                 if group.get('replay_unapplied_archives') and url in archived:
@@ -572,7 +575,8 @@ def consume_sources(config, work, national_unit=None, national_sources=(), *, na
             write(state_path, state)
 
     candidate = local_path(state['candidate'])
-    check_ready_units()
+    if not foundations_only:
+        check_ready_units()
     state['state'] = 'RUNNING'
     write(state_path, state)
     source_stop = None
@@ -582,6 +586,8 @@ def consume_sources(config, work, national_unit=None, national_sources=(), *, na
             discovered, obligations = discover_gaps(candidate, active_matrix, () if national_unit and national_only else config.get('catalogues', []))
             if national_unit and national_only:
                 discovered = {key: value for key, value in discovered.items() if value[2] == 'national'}
+            if foundations_only:
+                discovered = {key: value for key, value in discovered.items() if value[2] == 'club'}
             write(work / 'obligations-private.json', obligations)
             remaining = [(url, kind) for key, (url, _, kind) in discovered.items()
                          if key not in attempted or (url in archived and key not in processed)]
@@ -678,7 +684,7 @@ def consume_sources(config, work, national_unit=None, national_sources=(), *, na
             'canonical_matches', 'canonical_player_rows', 'unknown_minutes', 'canonical_national_matches',
             'canonical_national_player_rows', 'national_numeric_minutes')) for row in matrix['units']}
         refresh_matrix(matrix, candidate)
-        if progress:
+        if progress and not foundations_only:
             check_ready_units(before)
         write(matrix_path, matrix)
         if result['source_stop'] in {'ACCESS_RESTRICTED', 'RATE_LIMITED', 'ROBOTS_DISALLOWED'}:
