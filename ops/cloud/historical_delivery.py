@@ -166,10 +166,17 @@ def retained_store(work):
                 locator = path.parent / locator
             records.append(dict(record['metadata'], url=row['url'], sha256=record['content_sha256'],
                                 path=str(locator), provider=record['request']['provider']))
+    for path in sorted(root.glob('**/national-match-sources/artifacts/*.json')):
+        entry = read(path)
+        detail = entry['request']
+        locator = path.parent.parent / entry['locator']
+        records.append(dict(entry['metadata'], url=detail['url'], sha256=entry['content_sha256'],
+                            path=str(locator), provider=detail['provider']))
     return EvidenceStore(work / 'audit-sources', archives=[root], index=index, records=records)
 
 
-def coverage_projection(db, unit, queries):
+def coverage_projection(db, unit, queries, aliases=None):
+    aliases = aliases or {}
     results = []
     for query in queries:
         on, (home, away) = query['date'], query['teams']
@@ -179,8 +186,9 @@ def coverage_projection(db, unit, queries):
             SELECT m.match_id,m.duration_minutes,m.kickoff_utc FROM international_matches m
             JOIN football_teams h ON h.team_key=m.home_team_key
             JOIN football_teams a ON a.team_key=m.away_team_key
-            WHERE lower(h.display_name)=lower(?) AND lower(a.display_name)=lower(?) AND m.madrid_date=?
-            """, (home, away, on)).fetchall()
+            WHERE lower(h.display_name) IN (lower(?), lower(?))
+              AND lower(a.display_name) IN (lower(?), lower(?)) AND m.madrid_date=?
+            """, (home, aliases.get(home, home), away, aliases.get(away, away), on)).fetchall()
         coverage = dict(date=on,teams=[home,away], fixture_count=len(fixtures),players={})
         for player in query['players']:
             params = [unit['club_id'], unit['start'], unit['end_exclusive']]
@@ -383,7 +391,14 @@ def apply_scoped_national_fixtures(candidate, work, scratch, unit, request, rece
         native = str(fixture['provider_match_id'])
         with closing(sqlite3.connect(candidate.as_uri() + '?mode=ro', uri=True)) as db:
             db.row_factory = sqlite3.Row
-            previous = coverage_projection(db, unit, [query])[0]
+            previous = coverage_projection(db, unit, [query], aliases)[0]
+            exact = db.execute("""
+                SELECT match_id FROM international_match_provider_ids
+                WHERE provider='FotMob' AND provider_match_id=?
+            """, (native,)).fetchone()
+            if previous['fixture_count'] and not exact:
+                metrics['outcomes'].append(dict(date=on, status='EXISTING_FIXTURE_REQUIRES_PROVIDER_BRIDGE'))
+                continue
             if all(value['status']=='EXISTING_NUMERIC_FACT' for value in previous['players'].values()):
                 continue
             if db.execute("""
@@ -410,16 +425,21 @@ def apply_scoped_national_fixtures(candidate, work, scratch, unit, request, rece
             continue
         detail = SourceRequest('FotMob','match',fixture['url'],'exact-reviewed-national-match',
                                expected_ids=dict(match=native), policy='LIVE_ALLOWED')
-        response = transport.acquire(detail)
-        metrics['requests'] += 1
+        response = archive.acquire(replace(detail, policy='ARCHIVE_ONLY'))
+        if response.outcome in {'NOT_REQUESTED', 'ARCHIVE_LOCATOR_UNRESOLVED'}:
+            response = transport.acquire(detail)
+            metrics['requests'] += 1
+            detail_store = transport.store
+        else:
+            detail_store = archive.store
         if response.outcome != 'FOUND':
             metrics['outcomes'].append(dict(date=on, status=response.outcome))
             continue
         artifact = response.artifact
-        raw = transport.store.read(artifact)
+        raw = detail_store.read(artifact)
         capture = dict(url=fixture['url'], status='SUCCESS', provider_match_id=native,
                        sha256=artifact.content_sha256, body=raw,
-                       path=str(transport.store.root / artifact.locator),
+                       path=str(detail_store.root / artifact.locator),
                        fetched_at=artifact.metadata.get('response_timestamp'))
         trial = scratch / 'national-trial.sqlite'
         with closing(sqlite3.connect(candidate.as_uri() + '?mode=ro', uri=True)) as db, closing(sqlite3.connect(trial)) as copy:
@@ -535,7 +555,8 @@ def runtime_report(candidate, matrix, key, handoff, config, destination, request
             if audit_adopted:
                 raise
             audit_summary = dict(status='AUDIT_INPUT_BLOCKER', detail=str(exc))
-        projection = coverage_projection(db, unit, request.get('coverage_queries', ()))
+        projection = coverage_projection(db, unit, request.get('coverage_queries', ()),
+                                       request.get('national_team_aliases', {}))
         club = db.execute("""
             SELECT m.competition_id,count(DISTINCT m.match_id),count(*),
                    count(p.minutes),sum(nullif(m.kickoff, '') IS NULL)
@@ -753,6 +774,22 @@ def run_delivery(request_path, entry_path, base_checkout):
     if not re.fullmatch(r'\d+:\d{4}/\d{2}-H[12]', key):
         raise ValueError('INVALID_HISTORICAL_UNIT')
     state_before = read(checkpoint)
+    rebuild_sha = request.get('rebuild_from_previous_sha256')
+    if rebuild_sha:
+        previous = pointer.get('previous')
+        if not previous or previous['database']['sha256'] != rebuild_sha:
+            raise ValueError('REBUILD_REQUIRES_EXACT_VERIFIED_PREVIOUS_DATABASE')
+        candidate = Path(state_before['candidate']).resolve()
+        if any(candidate == ROOT / relative_path(snap['database']) for snap in handoff['accepted_snapshots'].values()):
+            raise ValueError('ACCEPTED_SNAPSHOT_IMMUTABLE')
+        restored = temp / 'historical-rebuild.sqlite'
+        previous_head, _ = store.restore(restored, previous=True)
+        if previous_head != parent or sha(restored) != rebuild_sha:
+            raise ValueError('REBUILD_PREVIOUS_DATABASE_HASH_MISMATCH')
+        os.replace(restored, candidate)
+        Path(str(restored) + '.download.gz').unlink()
+        write(matrix_path, refresh_matrix(read(matrix_path), candidate))
+        receipt('rebuild-restored', database_sha256=rebuild_sha)
     before = len(state_before['batches'])
     numeric_before = national_numeric(Path(state_before['candidate']))
     sources = request.get('sources', ())
@@ -879,6 +916,10 @@ def run_delivery(request_path, entry_path, base_checkout):
                   accepted=sum(row['data_accepted'] for row in matrix['units']),
                   source_ready=sum(row['source_ready'] for row in matrix['units']),
                   run=f'https://github.com/{repository}/actions/runs/{os.environ["GITHUB_RUN_ID"]}')
+    if request.get('national_apply_dates') and any(
+            query['fixture_count'] > 1 for query in report.get('coverage_queries', ())):
+        raise ValueError('SCOPED_NATIONAL_DUPLICATE_NO_PUBLICATION')
+    report['rebuild_base_sha256'] = rebuild_sha
     report['national_match_application'] = national_apply
     report['counts']['new_national_matches'] += national_apply['matches']
     report['counts']['new_national_player_rows'] += national_apply['rows']
