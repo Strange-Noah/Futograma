@@ -22,6 +22,7 @@ from zoneinfo import ZoneInfo
 from squad_pipeline.coldstart_national import offlineapply
 from squad_pipeline.roster_policy import roster_decision
 from ops.cloud.historical_batch import continue_batches, discover_gaps, refresh_matrix, unit_window, write
+from ops.cloud.historical_static import publish_static
 from ops.cloud.obligation_execution import adjudicate_packets
 from ops.cloud.verify_historical_handoff import relative_path, relocate_json, verify
 from squad_pipeline.cloud.export import export
@@ -1142,6 +1143,11 @@ def run_delivery(request_path, entry_path, base_checkout):
     work = checkpoint.parent / ('delivery-' + os.environ['GITHUB_RUN_ID'])
     work.mkdir()
     matrix = read(matrix_path)
+    if request.get('probe') == 'accepted-static':
+        if rebuild_sha or request.get('sources'):
+            raise ValueError('STATIC_PROJECTION_MUST_USE_EXACT_ACCEPTED_INPUTS')
+        publish_static(store, handoff, config, matrix, work, receipt)
+        return
     if request.get('probe') == 'acceptance-input-inventory':
         if rebuild_sha or request.get('sources'):
             raise ValueError('INPUT_INVENTORY_MUST_BE_READ_ONLY')
