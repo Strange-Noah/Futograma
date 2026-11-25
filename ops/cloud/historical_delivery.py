@@ -25,7 +25,8 @@ from squad_pipeline.cloud.github_store import GitHubStore
 from squad_pipeline.cloud.quality import inspect, pack, sha
 from squad_pipeline.cloud.storage import StaleWriter
 from squad_pipeline.core import ROOT
-from squad_pipeline.canonical_fixture import digest
+from squad_pipeline.international_store import digest
+from squad_pipeline.roster_initialization import PeriodUnit
 from squad_pipeline.reconstruction.calendar import fifa_windows
 from squad_pipeline.reconstruction.engine import run
 from squad_pipeline.reconstruction.retained_adapter import RetainedAdapter
@@ -414,13 +415,15 @@ def write_whole_unit_inputs(work, key, candidate, matrix, config, report):
     """Bind known acceptance inputs without replacing the approved acceptance gate."""
     row = next(row for row in matrix['units'] if f'{row["club_id"]}:{row["unit"]}' == key)
     unit = unit_window(row)
+    season, half = row['unit'].split('-')
+    freeze_key = PeriodUnit(season=season, half=half, **unit).key
     root = ROOT / '.cloud'
     frozen = {}
     for path in sorted(root.rglob('*.json')):
         if not any(word in path.name.lower() for word in ('freeze', 'frozen', 'union', 'cohort')):
             continue
         item = read(path)
-        if not isinstance(item, dict) or item.get('unit_key') != key:
+        if not isinstance(item, dict) or item.get('unit_key') != freeze_key:
             continue
         bound = item.get('unit') or {}
         if any(bound.get(field) != value for field, value in unit.items()):
