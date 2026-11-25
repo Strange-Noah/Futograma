@@ -32,7 +32,7 @@ from squad_pipeline.core import ROOT
 from squad_pipeline.international_store import digest
 from squad_pipeline.roster_initialization import PeriodUnit
 from squad_pipeline.reconstruction.calendar import fifa_windows
-from squad_pipeline.reconstruction.engine import run
+from squad_pipeline.reconstruction.engine import classify_unperformed_paths, run
 from squad_pipeline.reconstruction.retained_adapter import RetainedAdapter
 from squad_pipeline.source_interface import EvidenceStore, SourceRequest, SourceService
 
@@ -986,7 +986,7 @@ def run_unit(request, key, handoff, repository, config_path, config, checkpoint,
     return report, candidate, matrix
 
 
-def acceptance_input_inventory(handoff, config):
+def acceptance_input_inventory(handoff, config, matrix):
     """Describe independently retained acceptance inputs without altering their identity."""
     examples = {}
     for key, metadata in handoff['accepted_snapshots'].items():
@@ -1013,7 +1013,7 @@ def acceptance_input_inventory(handoff, config):
         protected.update(Path(batch[field]).resolve() for field in ('candidate', 'reference'))
     transients = set()
     for batch in state['batches']:
-        if batch['ordinary_export'] != 'PASS':
+        if batch.get('ordinary_export') != 'PASS':
             continue
         folder = Path(batch['queue']).parent
         for prefix in ('fixture-labels-', 'ingestion-', 'minutes-', 'reference-'):
@@ -1022,8 +1022,35 @@ def acceptance_input_inventory(handoff, config):
                     item = stage / name
                     if item.is_file() and not item.is_symlink() and item.resolve() not in protected:
                         transients.add(item.resolve())
+    audit_replay = {}
+    continuation = (ROOT / relative_path(handoff['checkpoint'])).parent
+    for row in matrix['units']:
+        if row['data_accepted'] or not row['source_ready']:
+            continue
+        key = f'{row["club_id"]}:{row["unit"]}'
+        tag = key.replace(':', '-').replace('/', '_')
+        execution = row.get('audit_execution', {})
+        run_id = execution.get('action', '').rsplit('/', 1)[-1]
+        if not run_id.isdigit():
+            continue
+        delivery = continuation / ('delivery-' + run_id)
+        for folder in (delivery / tag, delivery):
+            scope = folder / 'scope.json'
+            if not scope.is_file():
+                continue
+            summary = read(scope)
+            if summary.get('unit') != key:
+                continue
+            paths = sorted(folder.glob('round-*/audit-private.json'))
+            if paths:
+                audit = read(paths[-1])
+                if audit.get('metrics') == execution.get('metrics'):
+                    audit_replay[key] = dict(**classify_unperformed_paths(audit['resolutions']),
+                                             unresolved=execution['metrics']['source_work_required'],
+                                             conflicts=execution['metrics']['conflicts'])
+                break
     return dict(accepted_snapshots=examples, indexed_cohort=indexed,
-                configured_unit_plans=sorted(config.get('unit_plans', {})),
+                configured_unit_plans=sorted(config.get('unit_plans', {})), audit_replay=audit_replay,
                 transient_files=len(transients), transient_bytes=sum(path.stat().st_size for path in transients))
 
 
@@ -1118,7 +1145,7 @@ def run_delivery(request_path, entry_path, base_checkout):
     if request.get('probe') == 'acceptance-input-inventory':
         if rebuild_sha or request.get('sources'):
             raise ValueError('INPUT_INVENTORY_MUST_BE_READ_ONLY')
-        receipt('acceptance-input-inventory', **acceptance_input_inventory(handoff, config))
+        receipt('acceptance-input-inventory', **acceptance_input_inventory(handoff, config, matrix))
         return
     if request.get('matrix_mode') == 'SOURCE_READY_FOUNDATIONS':
         if rebuild_sha or request.get('probe') or request.get('sources'):
