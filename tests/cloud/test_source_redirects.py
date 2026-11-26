@@ -40,11 +40,12 @@ class PublicRedirectTests(unittest.TestCase):
 
  def test_fotmob_team_redirect_must_preserve_team_and_section(self):
   start = 'https://www.fotmob.com/teams/10/fixtures'
-  target = 'https://www.fotmob.com/teams/10/verified-name/fixtures'
+  target = 'https://www.fotmob.com/teams/10/fixtures/verified-name'
   client = Client({start:self.response(308,target),target:self.response(200)})
   fetch_fixture_discovery(client,start,'public team fixtures')
   self.assertEqual(client.calls,[start,target])
-  for blocked in ('/teams/11/wrong-team/fixtures','/teams/10/wrong-section/squad'):
+  for blocked in ('/teams/11/fixtures/wrong-team','/teams/10/squad/wrong-section',
+                  '/teams/10/wrong-section/fixtures'):
    client = Client({start:self.response(308,blocked)})
    with self.assertRaisesRegex(ValueError,'ENTITY_MISMATCH'):
     fetch_fixture_discovery(client,start,'public team fixtures')

@@ -21,7 +21,7 @@ def fetch_public_redirects(client,url,purpose,max_hops=3,allowed_hosts=frozenset
  raise AssertionError('UNREACHABLE')
 
 def fetch_fixture_discovery(client, url, purpose):
-    """Follow a public player profile redirect only for the same provider ID."""
+    """Follow an observed public redirect only for the same entity and page type."""
     origin = urlsplit(url)
     profile = re.fullmatch(r'/players/([0-9]+)/?', origin.path)
     if origin.scheme == 'https' and origin.netloc == 'www.fotmob.com' and profile and not origin.query:
@@ -36,5 +36,5 @@ def fetch_fixture_discovery(client, url, purpose):
         return fetch_public_redirects(
             client, url, purpose, allowed_hosts=frozenset({'www.fotmob.com'}),
             path_allowed=lambda path: bool(re.fullmatch(
-                r'/teams/' + native + r'(?:/[a-zA-Z0-9-]+)?/' + section + r'/?', path)))
+                r'/teams/' + native + '/' + section + r'(?:/[a-zA-Z0-9-]+)?/?', path)))
     return fetch_public_redirects(client, url, purpose)
