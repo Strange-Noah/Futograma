@@ -55,6 +55,7 @@
             "repository": "Strange-Noah/Futograma-data",
             "ref": "${{ vars.FUTOGRAMA_SITE_DATA_REF || 'main' }}",
             "path": "private-pointer",
+            "fetch-depth": 0,
             "ssh-key": "${{ secrets.FUTOGRAMA_DATA_READ_KEY }}",
             "persist-credentials": false
           }

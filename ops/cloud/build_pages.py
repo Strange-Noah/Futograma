@@ -1,7 +1,9 @@
 import json,shutil,subprocess,os,hashlib
 from squad_pipeline.cloud.hosted_guard import require_hosted
 from squad_pipeline.core import ROOT
-require_hosted();site=ROOT/'private-site';p=json.loads((ROOT/'private-pointer/current.json').read_text());m=json.loads((site/'data/manifest.json').read_text());head=subprocess.check_output(['git','-C','private-pointer','rev-parse','HEAD'],text=True).strip()
+require_hosted();site=ROOT/'private-site';p=json.loads((ROOT/'private-pointer/current.json').read_text());m=json.loads((site/'data/manifest.json').read_text());head=subprocess.check_output(['git', '-C', 'private-pointer', 'log', '-1', '--format=%H', 'HEAD', '--', 'current.json'],text=True).strip()
+if len(head) != 40:
+    raise ValueError('CURRENT_POINTER_COMMIT_NOT_FOUND')
 from squad_pipeline.cloud.release_gate import verify_frontend
 frontend=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
 receipt=verify_frontend(m,p,head,frontend,(site/'data/browser.json').read_bytes())
