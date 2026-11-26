@@ -6,7 +6,7 @@ from zoneinfo import ZoneInfo
 from .hosted_guard import require_hosted
 from ..core import ROOT,BASE
 from ..live_sources import Client,HOSTS
-from ..source_redirects import fetch_public_redirects
+from ..source_redirects import fetch_fixture_discovery
 from ..international_incremental import acquire
 from ..minute_reconciliation import apply_existing
 
@@ -29,7 +29,7 @@ def run(database,work,isolated=False,at=None):
     client=Client('daily-national-'+os.environ['GITHUB_RUN_ID'],budget=750);captures=[]
     HOSTS.update({'www.mancity.com','www.arsenal.com','fcbayern.com','www.psg.fr','www.fcbarcelona.com','www.inter.it','www.fotmob.com'})
     def fetch(url,purpose):
-        r,b=fetch_public_redirects(client,url,purpose);r=dict(r,provider='Sky' if 'www.skysports.com/' in url else 'FotMob');captures.append(r)
+        r,b=fetch_fixture_discovery(client,url,purpose);r=dict(r,provider='Sky' if 'www.skysports.com/' in url else 'FotMob');captures.append(r)
         if r['status']!='SUCCESS':raise ValueError('SOURCE_UNAVAILABLE:'+str(r.get('error') or 'HTTP_'+str(r.get('http_status'))))
         return r,b.decode('utf-8','replace')
     from ..roster_refresh import refresh

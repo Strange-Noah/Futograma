@@ -1,5 +1,5 @@
 import unittest
-from squad_pipeline.source_redirects import fetch_public_redirects
+from squad_pipeline.source_redirects import fetch_fixture_discovery, fetch_public_redirects
 class Client:
  def __init__(self,responses):self.responses=responses;self.calls=[]
  def fetch(self,url,purpose,conditional=False):self.calls.append(url);return self.responses[url]
@@ -24,3 +24,16 @@ class PublicRedirectTests(unittest.TestCase):
  def test_other_provider_redirect_not_implicitly_allowed(self):
   a='https://www.fotmob.com/a';c=Client({a:self.response(301,'/b')})
   with self.assertRaisesRegex(ValueError,'PROVIDER_NOT_ALLOWED'):fetch_public_redirects(c,a,'profile')
+
+ def test_fotmob_player_redirect_must_preserve_requested_id(self):
+  start = 'https://www.fotmob.com/players/10'
+  target = 'https://www.fotmob.com/players/10/verified-name'
+  client = Client({start:self.response(308,target),target:self.response(200)})
+  record, _ = fetch_fixture_discovery(client,start,'public profile')
+  self.assertEqual(client.calls,[start,target])
+  self.assertEqual(record['requested_url'],start)
+  for blocked in ('/players/11/different-player','/teams/10/fixtures'):
+   client = Client({start:self.response(308,blocked)})
+   with self.assertRaisesRegex(ValueError,'ENTITY_MISMATCH'):
+    fetch_fixture_discovery(client,start,'public profile')
+   self.assertEqual(client.calls,[start])

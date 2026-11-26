@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 
 from ops.cloud import release_acceptance
 from ops.cloud.production_entry import with_audits
+from squad_pipeline.cloud.driver import validate_monotonic
 from squad_pipeline.core import ROOT
 
 
@@ -43,9 +44,7 @@ def main():
     candidate_head, candidate_pointer = isolated.head()
     if (production_head != os.environ['EXPECTED_PRODUCTION_HEAD']
             or candidate_head != os.environ['GITHUB_SHA']
-            or (candidate_pointer != production_pointer
-                and (candidate_pointer['current']['database']['sha256'] != os.environ['EXPECTED_CANDIDATE_SHA']
-                     or candidate_pointer['previous'] != production_pointer['current']))
+            or candidate_pointer['current']['database']['sha256'] != os.environ['EXPECTED_CANDIDATE_SHA']
             or production_pointer['current']['database']['sha256'] != os.environ['EXPECTED_DATABASE_SHA']):
         raise ValueError('RECOVERY_REQUIRES_EXACT_FRESH_PRODUCTION_BASE')
 
@@ -57,6 +56,11 @@ def main():
         restored_head, restored_pointer = production.restore(baseline)
         if (restored_head, restored_pointer) != (production_head, production_pointer):
             raise ValueError('PRODUCTION_BASE_MOVED_DURING_COVERAGE_READBACK')
+        detached = Path(temp) / 'candidate.sqlite'
+        restored_candidate = isolated.restore(detached)
+        if restored_candidate != (candidate_head, candidate_pointer):
+            raise ValueError('ISOLATED_CANDIDATE_MOVED_DURING_READBACK')
+        validate_monotonic(baseline, detached)
         start = coverage_start(baseline, published)
     outage_hours = math.ceil((datetime.now(timezone.utc) - start).total_seconds() / 3600)
     settings['lookback_hours'] += max(0, outage_hours)
