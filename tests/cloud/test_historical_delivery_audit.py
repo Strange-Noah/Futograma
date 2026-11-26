@@ -55,3 +55,17 @@ class HistoricalDeliveryAuditTests(unittest.TestCase):
         sync_delivery_matrix(dict(units=[row]), report)
         self.assertEqual(row['R1_R6'], 'EXECUTED / WHOLE-UNIT ACCEPTANCE PENDING')
         self.assertFalse(row['data_accepted'])
+
+    def test_static_retry_only_retires_verified_pending_release_units(self):
+        from ops.cloud.historical_static import update_static_progress
+        original = dict(units=['accepted'], original_bytes=20, delivered_gzip_bytes=4,
+                        pending={'new': {'status': 'RETRY'}, 'another': {'status': 'RETRY'}})
+        complete = dict(release='static-release', results={
+            'new': dict(status='STATIC_EQUIVALENT', database_bytes=12,
+                        static_bytes=2, asset_sha256='verified-sha')})
+        updated = update_static_progress(original, complete)
+        self.assertEqual(updated['units'], ['accepted', 'new'])
+        self.assertEqual(updated['original_bytes'], 32)
+        self.assertEqual(updated['delivered_gzip_bytes'], 6)
+        self.assertEqual(updated['pending'], {'another': {'status': 'RETRY'}})
+        self.assertEqual(update_static_progress(updated, complete), updated)

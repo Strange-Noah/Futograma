@@ -76,6 +76,30 @@ def frozen_receipts(fingerprints):
     return indexed
 
 
+def update_static_progress(previous, projection):
+    """Record published assets once and preserve per-unit retry work."""
+    status = dict(previous)
+    delivered = set(previous.get('units', []))
+    pending = dict(previous.get('pending', {}))
+    for key, item in projection['results'].items():
+        if key in delivered:
+            pending.pop(key, None)
+            continue
+        if projection['release'] and item['status'] == 'STATIC_EQUIVALENT' and 'asset_sha256' in item:
+            delivered.add(key)
+            pending.pop(key, None)
+            status['original_bytes'] = status.get('original_bytes', 0) + item['database_bytes']
+            status['delivered_gzip_bytes'] = status.get('delivered_gzip_bytes', 0) + item['static_bytes']
+        else:
+            pending[key] = item
+    status.update(units=sorted(delivered), pending=pending,
+                  status='VERIFIED_PARTIAL' if pending else 'VERIFIED_ALL_CURRENTLY_ACCEPTED')
+    if projection['release']:
+        status['releases'] = list(dict.fromkeys([
+            *status.get('releases', []), projection['release']]))
+    return status
+
+
 def publish_static(store, handoff, config, matrix, work, receipt, selected=(), recovered_frozen_inputs=None):
     if selected and not set(selected) <= set(handoff['accepted_snapshots']):
         raise ValueError('STATIC_PROJECTION_REQUIRES_ACCEPTED_TARGETS')

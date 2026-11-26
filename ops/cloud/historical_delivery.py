@@ -23,7 +23,7 @@ from zoneinfo import ZoneInfo
 from squad_pipeline.coldstart_national import offlineapply
 from squad_pipeline.roster_policy import roster_decision
 from ops.cloud.historical_batch import continue_batches, discover_gaps, local_path, refresh_matrix, unit_window, write
-from ops.cloud.historical_static import publish_static
+from ops.cloud.historical_static import publish_static, update_static_progress
 from ops.cloud.foundation_hops import plan as plan_foundation_hops, recover_bound_minutes
 from ops.cloud.obligation_execution import adjudicate_packets
 from ops.cloud.verify_historical_handoff import relative_path, relocate_json, verify
@@ -1358,8 +1358,26 @@ def run_delivery(request_path, entry_path, base_checkout):
     if request.get('probe') == 'accepted-static':
         if rebuild_sha or request.get('sources'):
             raise ValueError('STATIC_PROJECTION_MUST_USE_EXACT_ACCEPTED_INPUTS')
-        publish_static(store, handoff, config, matrix, work, receipt, request.get('static_units', ()),
-                       request.get('recovered_frozen_inputs'))
+        status = handoff.get('workstream_checkpoint', {}).get('static', {})
+        selected = sorted(set(request.get('static_units', status.get('pending', {}))) - set(status.get('units', [])))
+        if not selected:
+            receipt('static-no-pending-units')
+            return
+        projection = publish_static(store, handoff, config, matrix, work, receipt, selected,
+                                    request.get('recovered_frozen_inputs'))
+        revised = update_static_progress(status, projection)
+        if store.head()[0] != parent:
+            raise StaleWriter('STATIC_DELIVERY_HANDOFF_PARENT_MOVED')
+        path = store.base + '/contents/historical-handoff.json'
+        previous = store.api('GET', path + '?ref=' + parent)
+        handoff['workstream_checkpoint'] = dict(handoff.get('workstream_checkpoint', {}), static=revised)
+        content = (json.dumps(handoff, ensure_ascii=False, indent=2) + '\n').encode()
+        updated = store.api('PUT', path, dict(branch=store.ref, sha=previous['sha'],
+                         message='Record independently verified static delivery retry',
+                         content=base64.b64encode(content).decode()))
+        actual = store.api('GET', path + '?ref=' + updated['commit']['sha'])
+        if base64.b64decode(actual['content']) != content:
+            raise ValueError('STATIC_DELIVERY_HANDOFF_READBACK_MISMATCH')
         return
     if request.get('probe') == 'acceptance-input-inventory':
         if rebuild_sha or request.get('sources'):
@@ -1492,19 +1510,7 @@ def run_delivery(request_path, entry_path, base_checkout):
                 key: dict(status='STATIC_DELIVERY_RETRY_REQUIRED', reason=type(error).__name__)
                 for key in static_targets})
             receipt('automatic-static-deferred', error_type=type(error).__name__)
-        pending = {}
-        for key, item in projection['results'].items():
-            if projection['release'] and item['status'] == 'STATIC_EQUIVALENT' and 'asset_sha256' in item:
-                delivered.add(key)
-                static_status['original_bytes'] = static_status.get('original_bytes', 0) + item['database_bytes']
-                static_status['delivered_gzip_bytes'] = static_status.get('delivered_gzip_bytes', 0) + item['static_bytes']
-            else:
-                pending[key] = item
-        static_status.update(units=sorted(delivered), pending=pending,
-                             status='VERIFIED_PARTIAL' if pending else 'VERIFIED_ALL_CURRENTLY_ACCEPTED')
-        if projection['release']:
-            static_status['releases'] = list(dict.fromkeys([
-                *static_status.get('releases', []), projection['release']]))
+        static_status = update_static_progress(static_status, projection)
         report['automatic_static'] = projection
     quality = inspect(candidate)
     export_pointer = dict(pointer, current=dict(pointer['current'], database=quality))
