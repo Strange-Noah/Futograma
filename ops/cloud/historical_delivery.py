@@ -88,12 +88,14 @@ class DeliveryReceipt:
         self.unit = request['unit']
         self.archive_bytes = archive_bytes
 
-    def can_start_batch(self, snapshot):
-        # Two compressed evidence copies coexist during publish/readback.
-        # One latest candidate and one readback can also coexist during verification.
+    def can_start_batch(self, snapshot, worker):
+        # Evidence is read back in a stream. Only one compressed bundle is
+        # stored locally; the candidate restore still needs a full SQLite copy.
         snapshot_size = snapshot.stat().st_size
-        publish_reserve = 2 * self.archive_bytes + 2 * snapshot_size + 384 * 1024**2
-        worker_reserve = 4 * snapshot_size + 256 * 1024**2
+        publish_reserve = self.archive_bytes + snapshot_size + 256 * 1024**2
+        # Club batches create fixture-label, ingestion and minute snapshots.
+        worker_copies = 3 if worker == 'club' else 4
+        worker_reserve = worker_copies * snapshot_size + 256 * 1024**2
         return shutil.disk_usage(self.root).free >= max(publish_reserve, worker_reserve)
 
     def __call__(self, stage, **counts):

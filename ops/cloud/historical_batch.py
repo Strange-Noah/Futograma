@@ -596,7 +596,7 @@ def consume_sources(config, work, national_unit=None, national_sources=(), *, na
                 break
         kind = remaining[0][1]
         urls = [url for url, source_kind in remaining if source_kind == kind][:config.get('chunk_size', 8)]
-        if phase_receipt and not phase_receipt.can_start_batch(candidate):
+        if phase_receipt and not phase_receipt.can_start_batch(candidate, kind):
             source_stop = 'RESOURCE_CHECKPOINT'
             phase_receipt('source-batch-deferred', worker=kind, tasks=len(urls), outcome=source_stop)
             break
