@@ -1194,7 +1194,26 @@ def run_delivery(request_path, entry_path, base_checkout):
     if request.get('probe') == 'acceptance-input-inventory':
         if rebuild_sha or request.get('sources'):
             raise ValueError('INPUT_INVENTORY_MUST_BE_READ_ONLY')
-        receipt('acceptance-input-inventory', **acceptance_input_inventory(handoff, config, matrix))
+        inventory = acceptance_input_inventory(handoff, config, matrix)
+        eligible = {f'{row["club_id"]}:{row["unit"]}': row for row in matrix['units']
+                    if row['source_ready'] and not row['data_accepted']}
+        recovered = {}
+        candidate_sha = sha(ROOT / relative_path(matrix['candidate']))
+        for unit_key, freeze in request.get('recovered_frozen_inputs', {}).items():
+            if unit_key not in eligible:
+                raise ValueError('RECOVERED_FREEZE_REQUIRES_OPEN_SOURCE_READY_UNIT')
+            unit = unit_window(eligible[unit_key])
+            if (freeze.get('observed_population_accepted') is not True
+                    or not freeze.get('player_ids')
+                    or any(freeze.get('unit', {}).get(k) != v for k, v in unit.items())
+                    or freeze.get('freeze_sha256') != digest(
+                        {k: v for k, v in freeze.items() if k != 'freeze_sha256'})):
+                raise ValueError('RECOVERED_FREEZE_FINGERPRINT_MISMATCH')
+            recovered[unit_key] = dict(
+                fingerprint=freeze['freeze_sha256'], players=len(freeze['player_ids']),
+                candidate_sha256=candidate_sha,
+                approved_plan_present=unit_key in config.get('unit_plans', {}))
+        receipt('acceptance-input-inventory', **inventory, recovered_observed_freezes=recovered)
         return
     if request.get('matrix_mode') == 'SOURCE_READY_FOUNDATIONS':
         if rebuild_sha or request.get('probe') or request.get('sources'):
