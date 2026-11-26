@@ -1252,6 +1252,83 @@ def replay_foundation_minutes(store, handoff, request, matrix, checkpoint, work,
     return report, candidate, matrix
 
 
+
+def replay_retained_national(store, handoff, request, matrix, checkpoint, work, receipt):
+    source = request['retained_national_evidence']
+    candidate = local_path(read(checkpoint)['candidate'])
+    baseline = handoff['database_sha256']
+    if (sha(candidate) != baseline or any(candidate == ROOT / relative_path(snap['database'])
+                                          for snap in handoff['accepted_snapshots'].values())):
+        raise ValueError('NATIONAL_REPLAY_REQUIRES_DISPOSABLE_BASE')
+    archive = work / 'retained-national-evidence.tar.gz'
+    download(store, source, archive)
+    extracted = work / 'national-replay-evidence'
+    extracted.mkdir()
+    with tarfile.open(archive) as package:
+        for item in package:
+            path = PurePosixPath(item.name)
+            if (path.is_absolute() or '..' in path.parts or not (item.isfile() or item.isdir())
+                    or path.parts[0] not in {'national-obligation-receipt.json', 'artifacts', 'bodies'}):
+                raise ValueError('INVALID_NATIONAL_REPLAY_MEMBER')
+            package.extract(item, extracted, filter='data')
+    retained = read(extracted / 'national-obligation-receipt.json')
+    if retained['candidate_sha256'] != baseline:
+        raise ValueError('NATIONAL_REPLAY_BASE_CHANGED')
+    packet = retained['packet']
+    if packet['domain'] != 'NATIONAL' or packet['artifact']['request']['policy'] != 'ARCHIVE_ONLY':
+        raise ValueError('NATIONAL_REPLAY_REQUIRES_ARCHIVED_NATIONAL_SOURCE')
+    raw = packet['artifact']
+    native = str(raw['request']['expected_ids']['match'])
+    provider = raw['request']['provider']
+    service = SourceService(EvidenceStore(extracted), 'historical-national-replay', set())
+    from ops.cloud.historical_unit import artifact as load_artifact
+    supplied = load_artifact(raw)
+    acquired, parsed = service.observe(supplied.request, supplied)
+    if acquired.outcome != 'FOUND' or not parsed or not (
+            parsed.completeness.get('source_identity') and parsed.completeness.get('squad')):
+        raise ValueError('EXACT_NATIONAL_SOURCE_REPLAY_NOT_VERIFIED')
+    with closing(sqlite3.connect(candidate)) as db:
+        db.row_factory = sqlite3.Row
+        fixture = db.execute(
+            'SELECT m.* FROM international_matches m JOIN international_match_provider_ids v USING(match_id) '
+            'WHERE m.match_id=? AND v.provider=? AND v.provider_match_id=?',
+            (packet['match_id'], provider, native)).fetchone()
+        if not fixture or fixture['kickoff_utc'] != supplied.request.context.get('kickoff'):
+            raise ValueError('NATIONAL_REPLAY_FIXTURE_BINDING_MISMATCH')
+        sides = []
+        for key in ('home_team_key', 'away_team_key'):
+            rows = db.execute(
+                'SELECT provider_team_id FROM football_team_provider_ids '
+                'WHERE provider=? AND team_key=? AND evidence_id IS NOT NULL',
+                (provider, fixture[key])).fetchall()
+            if len(rows) != 1:
+                raise ValueError('EXACT_REPLAY_TEAM_ID_REQUIRED')
+            sides.append(str(rows[0][0]))
+        if sides != [str(sheet['provider_team_id']) for sheet in parsed.native['sheets']]:
+            raise ValueError('NATIONAL_REPLAY_ORDERED_TEAMS_DIFFER')
+        actual = adjudicate_packets(db, [packet], service, fixture['madrid_date'])
+    fields = ('match_id', 'player_id', 'represented_team_key', 'participation_status', 'minutes')
+    def changes(decisions):
+        return Counter(tuple(item['result']['after'][field] for field in fields)
+                       for item in decisions if item.get('result', {}).get('state') == 'RECORDED_NEW')
+    facts = changes(actual)
+    if not facts or facts != changes(retained['decisions']):
+        raise ValueError('NATIONAL_REPLAY_FACTS_DIFFER')
+    inspect(candidate)
+    matrix = refresh_matrix(matrix, candidate)
+    total = sum(facts.values())
+    report = dict(mode='RETAINED_NATIONAL_OBLIGATION', status='VERIFIED_CANONICAL_NATIONAL_INCREMENT',
+                  unit=request['unit'], accepted=sum(row['data_accepted'] for row in matrix['units']),
+                  source_ready=sum(row['source_ready'] for row in matrix['units']),
+                  counts=dict(new_matches=0, new_player_match_rows=0, new_national_matches=0,
+                              new_national_player_rows=total, minutes_recovered=0),
+                  source_requests=0, ordinary_export='PASS', audit_followup=dict(rounds=0),
+                  run=f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}")
+    write(work / 'national-replay-verdict.json', dict(report=report, decisions=actual))
+    receipt('national-obligation-verified', new_national_player_rows=total)
+    return report, candidate, matrix
+
+
 def run_delivery(request_path, entry_path, base_checkout):
     handoff, request = read(entry_path), read(request_path)
     ref = handoff['data_ref']
@@ -1412,7 +1489,14 @@ def run_delivery(request_path, entry_path, base_checkout):
                 approved_plan_present=unit_key in config.get('unit_plans', {}))
         receipt('acceptance-input-inventory', **inventory, recovered_observed_freezes=recovered)
         return
-    if request.get('matrix_mode') == 'RETAINED_FOUNDATION_MINUTES':
+    if request.get('matrix_mode') == 'RETAINED_NATIONAL_OBLIGATION':
+        if rebuild_sha or request.get('probe') or request.get('sources'):
+            raise ValueError('NATIONAL_REPLAY_REQUIRES_STANDARD_SCOPE')
+        report, candidate, matrix = replay_retained_national(
+            store, handoff, request, matrix, checkpoint, work, receipt)
+        write(matrix_path, matrix)
+        reports = [report]
+    elif request.get('matrix_mode') == 'RETAINED_FOUNDATION_MINUTES':
         if rebuild_sha or request.get('probe') or request.get('sources'):
             raise ValueError('BOUND_HOP_REPLAY_REQUIRES_STANDARD_SCOPE')
         report, candidate, matrix = replay_foundation_minutes(
