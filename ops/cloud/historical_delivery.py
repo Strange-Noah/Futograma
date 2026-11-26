@@ -1103,11 +1103,13 @@ def run_foundations(work, handoff, config_path, config, checkpoint, matrix_path,
 
 def acquire_foundation_checkpoint(work, handoff, config, matrix, checkpoint, store, receipt):
     """Preserve shared club inputs independently of the copy-heavy canonical writer."""
-    candidate = Path(read(checkpoint)['candidate']).resolve()
+    state = read(checkpoint)
+    candidate = Path(state['candidate']).resolve()
+    attempted = {url for batch in state['batches'] for url in batch['attempted_urls']}
     active = dict(matrix, units=[row for row in matrix['units'] if not row['source_ready']])
     tasks, gaps = discover_gaps(candidate, active, config.get('catalogues', ()))
     selected = [dict(url=url, claims=[], dates=sorted(days))
-                for url, days, kind in tasks.values() if kind == 'club']
+                for url, days, kind in tasks.values() if kind == 'club' and url not in attempted]
     selected.sort(key=lambda item: item['url'])
     receipt('foundation-capture-start', tasks=len(selected), units=len(active['units']))
     requested, outcomes = collect_club_audit_evidence(work, selected)
