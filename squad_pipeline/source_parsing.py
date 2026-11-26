@@ -32,6 +32,15 @@ def parse(artifact, body):
         http_status=artifact.metadata.get('http_status'),status='SUCCESS')
     if artifact.metadata.get('catalog_candidate'):source['catalog_candidate']=artifact.metadata['catalog_candidate']
     try:
+        if request.provider == 'FotMob' and request.category == 'competition_history':
+            from .international_discovery import competition_fixture_hints
+            competition, season = request.expected_ids.get('competition'), request.context.get('season')
+            if not competition or not season:
+                return _result(artifact, 'INCOMPLETE', {}, {}, ['Exact competition and season required'])
+            matches = competition_fixture_hints(body.decode('utf8'), competition, season)
+            return _result(artifact, 'PARSED', dict(matches=matches),
+                           dict(source_identity=True, canonical_adjudication=False),
+                           ['Fixture discovery requires independent detail or canonical verification'])
         if request.provider=='FotMob' and request.category=='team_identity_hints':
             from .international_discovery import team_identity_hints
             asked=request.expected_ids.get('team')

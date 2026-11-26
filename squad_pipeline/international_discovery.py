@@ -12,6 +12,43 @@ def payload(raw):
     if len(m)!=1:raise ValueError('SSR_NEXT_PAYLOAD_REQUIRED')
     page=json.loads(m[0])['props']['pageProps'];return page.get('data',page)
 
+
+def competition_fixture_hints(raw, competition, season):
+    data = payload(raw)
+    details = data.get('details') or {}
+    if (str(details.get('id')) != str(competition)
+            or details.get('selectedSeason') != season.replace('-', '/')
+            or details.get('gender') != 'male'):
+        raise ValueError('EXACT_MENS_COMPETITION_SEASON_REQUIRED')
+    matches = (data.get('fixtures') or {}).get('allMatches')
+    if not isinstance(matches, list) or not matches:
+        raise ValueError('COMPETITION_FIXTURE_DIRECTORY_EMPTY')
+    seen, results = set(), []
+    for row in matches:
+        native = str(row['id'])
+        if native in seen or not re.fullmatch(r'[0-9]+', native):
+            raise ValueError('COMPETITION_FIXTURE_ID_INVALID')
+        seen.add(native)
+        status = row['status']
+        if not status.get('finished') or status.get('cancelled'):
+            continue
+        sides = {}
+        for side in ('home', 'away'):
+            team = row[side]
+            native_team = str(team['id'])
+            if not re.fullmatch(r'[0-9]+', native_team):
+                raise ValueError('COMPETITION_FIXTURE_TEAM_ID_INVALID')
+            sides[side] = dict(id=native_team, name=team['name'])
+        kickoff = status['utcTime']
+        if (datetime.fromisoformat(kickoff).tzinfo is None
+                or sides['home']['id'] == sides['away']['id']):
+            raise ValueError('COMPETITION_FIXTURE_TUPLE_INVALID')
+        results.append(dict(**sides, provider_match_id=native, kickoff=kickoff,
+                            competition_key=str(competition), competition_label=details['name'],
+                            score=status.get('scoreStr'), domain='CLUB',
+                            url='https://www.fotmob.com/match/' + native))
+    return results
+
 def level(name):
     m=re.search(r'\bU[- ]?(\d{2})\b|Under[- ]?(\d{2})',name,re.I)
     return 'U'+next(x for x in m.groups() if x) if m else 'SENIOR'

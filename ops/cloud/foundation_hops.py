@@ -9,6 +9,9 @@ from urllib.parse import urlsplit
 from ops.cloud.historical_batch import unit_window
 from squad_pipeline.source_interface import SourceRequest
 
+FOTMOB_LEAGUE_ROUTES = {47: 'premier-league', 53: 'ligue-1', 54: 'bundesliga',
+                         55: 'serie', 87: 'laliga'}
+
 
 def plan(candidate, rows):
     """Group coverage obligations by verified provider entity, across units."""
@@ -16,12 +19,13 @@ def plan(candidate, rows):
 
     windows = [(f"{r['club_id']}:{r['unit']}", unit_window(r))
                for r in rows if not r['source_ready'] and not r['data_accepted']]
+    competitions = defaultdict(set)
     anchors = defaultdict(set)
     direct = defaultdict(set)
     profiles = defaultdict(set)
     with closing(sqlite3.connect(candidate.as_uri() + '?mode=ro', uri=True)) as db:
         fixtures = db.execute("""
-            SELECT f.match_id, f.home_key, f.away_key, m.local_date
+            SELECT f.match_id, f.home_key, f.away_key, m.local_date, m.competition_id
             FROM canonical_fixtures f JOIN matches m USING(match_id)
             WHERE f.domain='CLUB'
             ORDER BY m.local_date, f.match_id
@@ -72,12 +76,15 @@ def plan(candidate, rows):
         for key, unit in windows:
             club = unit['club_id']
             start, end = unit['start'], unit['end_exclusive']
-            for mid, home, away, on in fixtures:
+            for mid, home, away, on, competition in fixtures:
                 if not on or not start <= on < end or f'club:{club}' not in (home, away):
                     continue
                 starts, unknown = coverage.get((club, mid), (0, 0))
                 if starts == 11 and not unknown and (club, mid) in complete:
                     continue
+                if competition in FOTMOB_LEAGUE_ROUTES:
+                    first = int(key.split(':', 1)[1].split('/', 1)[0])
+                    competitions[competition, f'{first}-{first + 1}'].add((key, mid, on))
                 for native in players[club, mid]:
                     profiles[native].add((key, mid, on))
                 for native, url in bound_matches[mid]:
@@ -90,6 +97,13 @@ def plan(candidate, rows):
         return [dict(unit=key, match=mid, date=on) for key, mid, on in sorted(values)]
 
     tasks = []
+    for (competition, season), values in sorted(competitions.items()):
+        slug = FOTMOB_LEAGUE_ROUTES[competition]
+        url = f'https://www.fotmob.com/leagues/{competition}/overview/{slug}?season={season}'
+        tasks.append((SourceRequest('FotMob', 'competition_history', url,
+                                    'Verified competition and season fixture directory',
+                                    expected_ids={'competition': str(competition)},
+                                    context={'season': season}, policy='LIVE_ALLOWED'), targets(values)))
     for (native, url), values in sorted(direct.items()):
         tasks.append((SourceRequest('FotMob', 'match', url, 'Exact bound alternate fixture',
                                     expected_ids={'match': native}, context={'domain': 'CLUB'},
@@ -170,7 +184,8 @@ def bind_retained_hints(candidate, observations):
                     url = urlsplit(hint['url'])
                     native = str(hint['provider_match_id'])
                     if (url.scheme != 'https' or url.netloc != 'www.fotmob.com'
-                            or not re.fullmatch(r'[0-9]+', native) or not url.path.startswith('/matches/')):
+                            or not re.fullmatch(r'[0-9]+', native)
+                            or not (url.path.startswith('/matches/') or url.path == '/match/' + native)):
                         rejected['PUBLIC_MATCH_ROUTE_NOT_BOUND'] += 1
                         continue
                     key = mid, native, hint['url']
