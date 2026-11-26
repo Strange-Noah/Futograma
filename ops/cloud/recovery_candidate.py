@@ -92,6 +92,12 @@ def main():
             or production_pointer['current']['database']['sha256'] != os.environ['EXPECTED_DATABASE_SHA']):
         raise ValueError('RECOVERY_REQUIRES_EXACT_FRESH_PRODUCTION_BASE')
 
+    record = isolated.api('GET', isolated.base + '/contents/production-recovery-request.json?ref=' + candidate_head)
+    request = json.loads(base64.b64decode(record['content']))
+    rebase = request.get('rebase_from_production', False)
+    if type(rebase) is not bool:
+        raise ValueError('INVALID_RECOVERY_REBASE_FLAG')
+
     runtime = ROOT / 'ops/cloud/runtime.json'
     settings = json.loads(runtime.read_text())
     published = datetime.fromisoformat(production_pointer['current']['created_at'])
@@ -104,8 +110,16 @@ def main():
         restored_candidate = isolated.restore(detached)
         if restored_candidate != (candidate_head, candidate_pointer):
             raise ValueError('ISOLATED_CANDIDATE_MOVED_DURING_READBACK')
-        validate_monotonic(baseline, detached)
-        start = coverage_start(baseline, published)
+        if rebase:
+            previous = Path(temp) / 'previous-production.sqlite'
+            restored_previous = production.restore(previous, previous=True)
+            if restored_previous != (production_head, production_pointer):
+                raise ValueError('PRODUCTION_BASE_MOVED_DURING_ROLLBACK_READBACK')
+            previous_published = datetime.fromisoformat(production_pointer['previous']['created_at'])
+            start = coverage_start(previous, previous_published)
+        else:
+            validate_monotonic(baseline, detached)
+            start = coverage_start(baseline, published)
     outage_hours = math.ceil((datetime.now(timezone.utc) - start).total_seconds() / 3600)
     settings['lookback_hours'] += max(0, outage_hours)
     runtime.write_text(json.dumps(settings) + '\n')
@@ -116,7 +130,10 @@ def main():
     release_acceptance.run = with_audits(release_acceptance.run)
     with TemporaryDirectory(prefix='retained-daily-', dir=ROOT) as staging:
         retained_profiles(isolated, candidate_head, Path(staging), datetime.now(timezone.utc))
-        release_acceptance.producer()
+        if rebase:
+            release_acceptance.producer(input_store=production, expected_input=(production_head, production_pointer))
+        else:
+            release_acceptance.producer()
 
 
 if __name__ == '__main__':

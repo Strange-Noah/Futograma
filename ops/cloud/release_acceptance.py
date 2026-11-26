@@ -29,8 +29,21 @@ def site(work,db,head,pointer,code):
     for name in ['index.html','app.js','style.css']:shutil.copyfile(ROOT/'web'/name,work/'site'/name)
     return m
 
-def producer():
-    guard();work=ROOT/'.cloud/release-producer';work.mkdir(parents=True,exist_ok=False);s=store(REF);prod=store('main');production=prod.head();base,pointer=s.restore(work/'input.sqlite');snapshot(work/'input.sqlite',work/'working.sqlite');configure_clubs(work/'working.sqlite');code=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
+def producer(*, input_store=None, expected_input=None):
+    guard()
+    work = ROOT / '.cloud/release-producer'
+    work.mkdir(parents=True, exist_ok=False)
+    s = store(REF)
+    prod = store('main')
+    production = prod.head()
+    base, _ = s.head()
+    restored = (input_store or s).restore(work / 'input.sqlite')
+    if (expected_input is not None and restored != expected_input) or (
+            input_store is None and restored[0] != base):
+        raise ValueError('RECOVERY_INPUT_MOVED_DURING_RESTORE')
+    snapshot(work / 'input.sqlite', work / 'working.sqlite')
+    configure_clubs(work / 'working.sqlite')
+    code = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
     db=sqlite3.connect(work/'input.sqlite');old_refs=list(db.execute('SELECT * FROM validation_national_reference ORDER BY player_id,match_id'));old_players={r[0] for r in db.execute('SELECT player_id FROM players')};db.close()
     result=run(work/'working.sqlite',work,isolated=True)
     latest=json.loads((ROOT/'squad_pipeline/audit/live_deployment/latest_run.json').read_text());result['club_summary']={key:latest.get(key) for key in ('run_id','status','requests','status_counts','catalogs','coverage_limitations')}
