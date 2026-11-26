@@ -89,7 +89,7 @@ In particular:
 - R4: use teammate participation as corroborating evidence according to the established conditions.
 - R5: identify international windows before evaluating R3/R4, distinguishing club and national-team obligations.
 
-Triggered anomalies require actual evidence-driven investigation across permitted sources. Pending status is not a substitute for investigation. Prioritize missing data and source-identity errors when elite-club absences appear implausible.
+Keep broad anomaly detection and use targeted verification. Complete, identity-bound facts from a trustworthy source need no routine duplicate proof. For genuine doubt, seek auxiliary evidence across permitted sources or entity routes that answers the specific question. Auxiliary evidence need not duplicate the entire primary record. Close the obligation when its scope and facts are established and no material contradiction remains. Pending status is not investigation. Preserve independent completeness checks, genuine conflict and identity gates, and STABLE fingerprints.
 
 Respect established national-team scope and geographic coverage policies.
 
@@ -122,7 +122,9 @@ Routine database construction must run through reusable, parameterized, determin
 
 Gap discovery → task generation → collection → parsing and verification → canonical ingestion → auditing → renewed gap discovery.
 
-The pipeline must continue autonomously within authorized limits, without requiring Agent intervention between routine stages.
+The pipeline must continue autonomously within authorized limits, without requiring Agent intervention between routine stages. Generate alternative queries from canonical facts and verified entity bindings. Switch among match, team, opponent, player, competition, season and national-window routes and permitted sources. Cache captures and parsers, preserve terminal outcomes, and never infer a missing fact from an exhausted URL.
+
+For each newly DATA-ACCEPTED historical unit, automatically project the frozen roster and scoped facts to static delivery, verify fact and minute equivalence, publish and read back the asset, and record it in the authoritative handoff. Retry only the pending delivery after a delivery failure. Keep original acceptance, conflict and recovery assets. Remove delivered units from routine historical construction.
 
 Agents control execution primarily by changing keywords, target scopes, structured inputs, and task parameters. Agents inspect concise results and resolve only exceptional cases that cannot be handled deterministically.
 
