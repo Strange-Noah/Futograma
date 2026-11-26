@@ -349,7 +349,22 @@ class SourceService:
                     a=result.artifact
                     return SourceAcquisitionResult('FOUND',RawSourceArtifact(request,a.content_sha256,a.locator,a.metadata),metadata=dict(transport='CACHE'))
         if self.bytes>=self.max_bytes:return SourceAcquisitionResult('BUDGET_EXHAUSTED',reason='BYTE_BUDGET')
-        try:record,body=self.client.fetch(request.target_url,request.purpose)
+        try:
+            player = str(request.expected_ids.get('player', ''))
+            if (request.provider == 'FotMob' and request.category == 'player_history'
+                    and re.fullmatch(r'[0-9]+', player)
+                    and urlsplit(request.target_url).path == '/players/' + player):
+                from .source_redirects import fetch_public_redirects
+                try:
+                    record, body = fetch_public_redirects(
+                        self.client, request.target_url, request.purpose,
+                        allowed_hosts=frozenset({'www.fotmob.com'}),
+                        path_allowed=lambda path: bool(re.fullmatch(
+                            r'/players/' + player + r'(?:/[a-zA-Z0-9-]+)?/?', path)))
+                except ValueError as error:
+                    return SourceAcquisitionResult('REDIRECT_REQUIRES_REVIEW', reason=str(error))
+            else:
+                record,body=self.client.fetch(request.target_url,request.purpose)
         except RuntimeError as e:return SourceAcquisitionResult('BUDGET_EXHAUSTED',reason=str(e))
         self.bytes=sum(r.get('size',0) for r in self.client.records)
         if self.bytes>self.max_bytes:return SourceAcquisitionResult('BUDGET_EXHAUSTED',reason='BYTE_BUDGET',metadata=dict(calls=self.client.calls))

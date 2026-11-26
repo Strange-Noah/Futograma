@@ -1,5 +1,6 @@
 """Run and atomically publish an isolated historical continuation."""
 import argparse
+import base64
 import datetime
 import hashlib
 import json
@@ -552,7 +553,8 @@ def runtime_report(candidate, matrix, key, handoff, config, destination, request
             else:
                 calendar_issue = 'SOURCE_OBSERVATION_TIMESTAMP_MISSING'
     if calendar is not None:
-        observed = datetime.datetime.fromtimestamp(calendar.stat().st_mtime, datetime.timezone.utc).isoformat()
+        observed = config.get('calendar_observed_at') or datetime.datetime.fromtimestamp(
+            calendar.stat().st_mtime, datetime.timezone.utc).isoformat()
         calendars = fifa_windows(calendar.read_bytes(),
                     'https://inside.fifa.com/tournament-organisation/international-match-calendars',
                     observed, begin, cutoff)
@@ -901,7 +903,9 @@ def run_unit(request, key, handoff, repository, config_path, config, checkpoint,
         report, candidate, mapped = runtime_report(
             candidate, matrix, key, handoff, config, round_work / 'scope.json', request, receipt, rounds)
         if probe:
-            receipt('probe-done', audit=report['audit'], followup=report['audit_followup'])
+            inputs = write_whole_unit_inputs(round_work, key, candidate, matrix, config, report)
+            receipt('probe-done', audited_unit=key, audit=report['audit'],
+                    followup=report['audit_followup'], verified_inputs=inputs)
             return None, candidate, matrix
         if str(candidate) != state['candidate']:
             state['candidate'] = str(candidate)
@@ -1255,6 +1259,25 @@ def run_delivery(request_path, entry_path, base_checkout):
                 raise ValueError('RECOVERED_FREEZE_CONTENT_CONFLICT')
             if not target.exists():
                 write(target, freeze)
+    calendar_input = request.get('calendar_input') or handoff.get(
+        'workstream_checkpoint', {}).get('audit', {}).get('calendar_input')
+    if calendar_input:
+        base = entry_path.parent.resolve()
+        source = (base / calendar_input).resolve()
+        if not source.is_relative_to(base) or not source.is_file():
+            raise ValueError('RETAINED_CALENDAR_INPUT_PATH_INVALID')
+        material = read(source)
+        url = 'https://inside.fifa.com/tournament-organisation/international-match-calendars'
+        raw = base64.b64decode(material['body_base64'], validate=True)
+        if material['url'] != url or hashlib.sha256(raw).hexdigest() != material['sha256']:
+            raise ValueError('RETAINED_CALENDAR_FINGERPRINT_MISMATCH')
+        datetime.datetime.fromisoformat(material['observed_at'])
+        path = ROOT / '.cloud' / ('fifa-calendar-' + material['sha256'] + '.response')
+        if path.exists() and sha(path) != material['sha256']:
+            raise ValueError('RETAINED_CALENDAR_CONTENT_CONFLICT')
+        if not path.exists():
+            path.write_bytes(raw)
+        config.update(calendar=str(path.relative_to(ROOT)), calendar_observed_at=material['observed_at'])
     work = checkpoint.parent / ('delivery-' + os.environ['GITHUB_RUN_ID'])
     work.mkdir()
     matrix = read(matrix_path)
@@ -1263,6 +1286,17 @@ def run_delivery(request_path, entry_path, base_checkout):
             raise ValueError('FOUNDATION_HOPS_REQUIRES_VERIFIED_SHARED_BASE')
         capture_foundation_hops(work, handoff, matrix, checkpoint, store, receipt,
                                 request.get('hop_limit', 12))
+        targets = request.get('retained_audit_units', [])
+        eligible = {f"{row['club_id']}:{row['unit']}" for row in matrix['units']
+                    if row['source_ready'] and not row['data_accepted']}
+        if len(targets) != len(set(targets)) or not set(targets) <= eligible:
+            raise ValueError('RETAINED_AUDIT_REQUIRES_OPEN_SOURCE_READY_UNIT')
+        for target in targets:
+            unit_work = work / ('audit-' + target.replace(':', '-').replace('/', '_'))
+            unit_work.mkdir()
+            audited = dict(request, probe='retained-audit', unit=target)
+            run_unit(audited, target, handoff, repository, config_path, config, checkpoint,
+                     matrix_path, state_before, None, adopted, unit_work, temp, receipt)
         return
     if request.get('probe') == 'foundation-source-checkpoint':
         if rebuild_sha or request.get('sources'):
