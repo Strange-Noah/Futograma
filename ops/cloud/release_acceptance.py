@@ -29,7 +29,7 @@ def site(work,db,head,pointer,code):
     for name in ['index.html','app.js','style.css']:shutil.copyfile(ROOT/'web'/name,work/'site'/name)
     return m
 
-def producer(*, input_store=None, expected_input=None):
+def producer(*, input_store=None, expected_input=None, expected_destination=None):
     guard()
     work = ROOT / '.cloud/release-producer'
     work.mkdir(parents=True, exist_ok=False)
@@ -37,6 +37,8 @@ def producer(*, input_store=None, expected_input=None):
     prod = store('main')
     production = prod.head()
     base, _ = s.head()
+    if expected_destination is not None and base != expected_destination:
+        raise ValueError('RECOVERY_DESTINATION_MOVED_BEFORE_RESTORE')
     restored = (input_store or s).restore(work / 'input.sqlite')
     if (expected_input is not None and restored != expected_input) or (
             input_store is None and restored[0] != base):

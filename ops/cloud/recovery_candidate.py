@@ -131,9 +131,12 @@ def main():
     with TemporaryDirectory(prefix='retained-daily-', dir=ROOT) as staging:
         retained_profiles(isolated, candidate_head, Path(staging), datetime.now(timezone.utc))
         if rebase:
-            release_acceptance.producer(input_store=production, expected_input=(production_head, production_pointer))
+            release_acceptance.producer(input_store=production,
+                                        expected_input=(production_head, production_pointer),
+                                        expected_destination=candidate_head)
         else:
-            release_acceptance.producer()
+            release_acceptance.producer(expected_input=(candidate_head, candidate_pointer),
+                                        expected_destination=candidate_head)
 
 
 if __name__ == '__main__':
