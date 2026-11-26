@@ -89,10 +89,9 @@ class DeliveryReceipt:
         self.archive_bytes = archive_bytes
 
     def can_start_batch(self, snapshot, worker):
-        # Evidence is read back in a stream. Only one compressed bundle is
-        # stored locally; the candidate restore still needs a full SQLite copy.
+        # One evidence part and the independent candidate restore can coexist.
         snapshot_size = snapshot.stat().st_size
-        publish_reserve = self.archive_bytes + snapshot_size + 256 * 1024**2
+        publish_reserve = snapshot_size + 768 * 1024**2
         # Club batches create fixture-label, ingestion and minute snapshots.
         worker_copies = 3 if worker == 'club' else 4
         worker_reserve = worker_copies * snapshot_size + 256 * 1024**2
@@ -739,10 +738,12 @@ def sync_delivery_matrix(matrix, report):
 class EvidenceArchiveWriter:
     """Split a single compressed tar stream before the GitHub asset size limit."""
 
-    def __init__(self, output, limit=512 * 1024**2):
+    def __init__(self, output, limit=512 * 1024**2, *, retain=None):
         self.output = output
         self.limit = limit
+        self.retain = retain
         self.parts = []
+        self.records = []
         self.stream = None
         self.part_size = 0
         self.size = 0
@@ -770,11 +771,16 @@ class EvidenceArchiveWriter:
         if self.stream is not None:
             self.stream.close()
             self.stream = None
+            if self.retain is not None:
+                path = self.parts[-1]
+                record = self.retain(path)
+                self.records.append({key: record[key] for key in ('name', 'size', 'sha256')})
+                path.unlink()
 
 
-def build_bundle(candidate, progress, matrix, output):
+def build_bundle(candidate, progress, matrix, output, retain):
     files = []
-    archive = EvidenceArchiveWriter(output)
+    archive = EvidenceArchiveWriter(output, retain=retain)
     with closing(archive), tarfile.open(fileobj=archive, mode='w|gz', compresslevel=4) as package:
         for path in sorted((ROOT / '.cloud').rglob('*')):
             if path.is_symlink():
@@ -788,10 +794,10 @@ def build_bundle(candidate, progress, matrix, output):
     write(manifest, dict(files=files, original_workspace=str(ROOT),
              candidate=str(candidate.relative_to(ROOT)), candidate_sha256=sha(candidate),
              evidence_archive=dict(size=archive.size, sha256=archive.digest.hexdigest(),
-                                   parts=[dict(name=p.name, size=p.stat().st_size, sha256=sha(p))
-                                          for p in archive.parts]),
+                                   parts=archive.records),
              units=len(matrix['units']), accepted=progress['accepted'], source_ready=progress['source_ready']))
-    return manifest, archive.parts
+    retain(manifest)
+    return manifest
 
 
 def national_numeric(path):
@@ -1304,20 +1310,24 @@ def run_delivery(request_path, entry_path, base_checkout):
     export(candidate, temp / 'verified-output-export', parent, export_pointer, ROOT / 'web')
     receipt('bundle-start', batches=len(batches), rounds=rounds)
     receipt.archive(work)
-    manifest, archives = build_bundle(candidate, report, matrix, temp)
-    archive_record = read(manifest)['evidence_archive']
-    receipt('bundle-done', archive_bytes=archive_record['size'], parts=len(archives))
     compressed = temp / 'candidate.sqlite.gz'
     pack(candidate, compressed)
 
+    def evidence(retain):
+        manifest = build_bundle(candidate, report, matrix, temp, retain)
+        archive_record = read(manifest)['evidence_archive']
+        receipt('bundle-done', archive_bytes=archive_record['size'], parts=len(archive_record['parts']))
+
     def companion(new, assets):
+        manifest = temp / 'historical-manifest.json'
+        archive_record = read(manifest)['evidence_archive']
         info = new['current']
         entry = dict(handoff, code_commit=code, database_version=info['version'],
                      database_sha256=info['database']['sha256'], release=info['tag'],
                      database_asset=assets[compressed.name], manifest_asset=assets[manifest.name],
                      evidence_asset=dict(name='historical-evidence.tar.gz', size=archive_record['size'],
                                          sha256=archive_record['sha256']),
-                     evidence_assets=[assets[path.name] for path in archives], accepted=report['accepted'],
+                     evidence_assets=[assets[part['name']] for part in archive_record['parts']], accepted=report['accepted'],
                      source_ready=report['source_ready'], accepted_snapshots=snapshots,
                      latest_delivery=report,
                      cloud_acceptance=dict(status='ASSETS_AND_DATABASE_READBACK_PASS',
@@ -1338,7 +1348,7 @@ def run_delivery(request_path, entry_path, base_checkout):
 
     receipt('publish-start')
     head, published = store.publish(candidate, compressed, parent, code,
-                                    evidence=(manifest, *archives), companion=companion)
+                                    evidence=evidence, companion=companion)
     print('HISTORICAL_DELIVERY=' + json.dumps(dict(report, data_commit=head,
           version=published['current']['version']), ensure_ascii=False))
 

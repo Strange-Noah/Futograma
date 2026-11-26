@@ -41,3 +41,22 @@ class HistoricalArchiveTests(unittest.TestCase):
             self.assertEqual(reader.size, writer.size)
             self.assertEqual(reader.digest.hexdigest(), writer.digest.hexdigest())
             self.assertEqual(list(restore.glob('historical-evidence-part-*')), [])
+
+    def test_release_part_is_retired_only_after_retention(self):
+        with TemporaryDirectory() as temp:
+            work = Path(temp)
+            remote = {}
+
+            def retain(path):
+                self.assertEqual(list(work.iterdir()), [path])
+                data = path.read_bytes()
+                remote[path.name] = data
+                return dict(name=path.name, size=len(data),
+                            sha256=hashlib.sha256(data).hexdigest())
+
+            writer = EvidenceArchiveWriter(work, limit=5, retain=retain)
+            writer.write(b'hello archive')
+            writer.close()
+            self.assertEqual(list(work.iterdir()), [])
+            self.assertEqual(b''.join(remote.values()), b'hello archive')
+            self.assertEqual(sum(part['size'] for part in writer.records), 13)

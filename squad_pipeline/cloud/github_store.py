@@ -82,17 +82,26 @@ class GitHubStore:
   # Download the actual uploaded bytes before publishing a pointer; a mere API success is insufficient.
   verify=Path(str(compressed)+'.verify-download.'+m['version']);self.download(asset['id'],verify)
   if sha(verify)!=m['compressed']['sha256']:raise UploadFailed('UPLOADED_ASSET_READBACK_FAILED')
-  checkdb=Path(str(snapshot)+'.verify-restore.'+m['version']+'.sqlite');unpack(verify,checkdb);inspect(checkdb,m['database'])
+  checkdb=Path(str(compressed if callable(evidence) else snapshot)+'.verify-restore.'+m['version']+'.sqlite');unpack(verify,checkdb);inspect(checkdb,m['database'])
+  if callable(evidence):
+   verify.unlink()
+   checkdb.unlink()
 
   pointer=dict(schema_version=1,generation=(old['generation']+1 if old else 1),current=m,previous=old['current'] if old else None)
   assets={compressed.name:dict(id=asset['id'],name=compressed.name,sha256=m['compressed']['sha256'],size=compressed.stat().st_size)}
-  for path in map(Path,evidence):
+  def retain_evidence(path):
+   path=Path(path)
    if path.name in assets:raise ValueError('DUPLICATE_PUBLICATION_ASSET')
    remote=self.upload(release['id'],path)
    digest=sha(path)
    size,remote_digest=self.download(remote['id'],None)
    if remote_digest!=digest or size!=path.stat().st_size:raise UploadFailed('UPLOADED_EVIDENCE_READBACK_FAILED')
    assets[path.name]=dict(id=remote['id'],name=path.name,sha256=digest,size=path.stat().st_size)
+   return assets[path.name]
+  if callable(evidence):
+   evidence(retain_evidence)
+  else:
+   for path in evidence:retain_evidence(path)
   files={'current.json':pointer}
   if companion is not None:
    extra=companion(pointer,assets)
