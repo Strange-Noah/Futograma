@@ -22,7 +22,7 @@ from zoneinfo import ZoneInfo
 
 from squad_pipeline.coldstart_national import offlineapply
 from squad_pipeline.roster_policy import roster_decision
-from ops.cloud.historical_batch import continue_batches, discover_gaps, refresh_matrix, unit_window, write
+from ops.cloud.historical_batch import continue_batches, discover_gaps, local_path, refresh_matrix, unit_window, write
 from ops.cloud.historical_static import publish_static
 from ops.cloud.foundation_hops import plan as plan_foundation_hops, recover_bound_minutes
 from ops.cloud.obligation_execution import adjudicate_packets
