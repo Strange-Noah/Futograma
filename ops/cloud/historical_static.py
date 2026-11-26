@@ -76,7 +76,7 @@ def frozen_receipts(fingerprints):
     return indexed
 
 
-def publish_static(store, handoff, config, matrix, work, receipt, selected=()):
+def publish_static(store, handoff, config, matrix, work, receipt, selected=(), recovered_frozen_inputs=None):
     if selected and not set(selected) <= set(handoff['accepted_snapshots']):
         raise ValueError('STATIC_PROJECTION_REQUIRES_ACCEPTED_TARGETS')
     eligible = {key: item for key, item in handoff['accepted_snapshots'].items()
@@ -84,6 +84,15 @@ def publish_static(store, handoff, config, matrix, work, receipt, selected=()):
     verdicts = {key: json.loads(local_path(item['receipt']).read_text()) for key, item in eligible.items()}
     known = frozen_receipts({item['frozen_union_sha256'] for item in verdicts.values()
                              if item.get('frozen_union_sha256')})
+
+    for key, freeze in (recovered_frozen_inputs or {}).items():
+        if key not in eligible:
+            raise ValueError('RECOVERED_FREEZE_REQUIRES_SELECTED_ACCEPTED_TARGET')
+        fingerprint = verdicts[key].get('frozen_union_sha256')
+        if (not fingerprint or freeze.get('freeze_sha256') != fingerprint
+                or digest({k: v for k, v in freeze.items() if k != 'freeze_sha256'}) != fingerprint):
+            raise ValueError('RECOVERED_FREEZE_FINGERPRINT_MISMATCH')
+        known[fingerprint] = freeze
 
     results, assets = {}, []
     rows = {f'{r["club_id"]}:{r["unit"]}': r for r in matrix['units']}

@@ -1185,7 +1185,8 @@ def run_delivery(request_path, entry_path, base_checkout):
     if request.get('probe') == 'accepted-static':
         if rebuild_sha or request.get('sources'):
             raise ValueError('STATIC_PROJECTION_MUST_USE_EXACT_ACCEPTED_INPUTS')
-        publish_static(store, handoff, config, matrix, work, receipt, request.get('static_units', ()))
+        publish_static(store, handoff, config, matrix, work, receipt, request.get('static_units', ()),
+                       request.get('recovered_frozen_inputs'))
         return
     if request.get('probe') == 'acceptance-input-inventory':
         if rebuild_sha or request.get('sources'):
