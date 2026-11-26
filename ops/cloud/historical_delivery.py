@@ -1140,13 +1140,22 @@ def acquire_foundation_checkpoint(work, handoff, config, matrix, checkpoint, sto
             tasks=len(selected), release=tag, asset_id=asset['id'], sha256=checksum, bytes=size)
 
 
-def capture_foundation_hops(work, handoff, matrix, checkpoint, store, receipt, limit):
+def capture_foundation_hops(work, handoff, matrix, checkpoint, store, receipt, limit, prior_evidence=()):
     """Capture new verified alternative routes without creating SQLite copies."""
     if type(limit) is not int or not 1 <= limit <= 32:
         raise ValueError('INVALID_FOUNDATION_HOP_LIMIT')
     candidate = Path(read(checkpoint)['candidate']).resolve()
     tasks = plan_foundation_hops(candidate, matrix['units'])
-    receipt('foundation-hops-planned', tasks=len(tasks))
+    processed = set()
+    for index, item in enumerate(prior_evidence):
+        source = work / f'prior-foundation-hop-{index:03d}.tar.gz'
+        download(store, item, source)
+        with tarfile.open(source) as package:
+            previous = json.load(package.extractfile('foundation-hop-receipt.json'))
+        processed.update(row['request']['url'] for row in previous['rows']
+                         if row['outcome'] in {'FOUND', 'ACCESS_RESTRICTED', 'ROBOTS_DISALLOWED'})
+    tasks = [task for task in tasks if task[0].url not in processed]
+    receipt('foundation-hops-planned', tasks=len(tasks), previously_checked=len(processed))
     capture = EvidenceStore(work / 'sources')
     retained = retained_store(work)
     service = SourceService(capture, 'historical-foundation-hops', {'www.fotmob.com'},
@@ -1337,7 +1346,7 @@ def run_delivery(request_path, entry_path, base_checkout):
         if rebuild_sha or request.get('sources'):
             raise ValueError('FOUNDATION_HOPS_REQUIRES_VERIFIED_SHARED_BASE')
         capture_foundation_hops(work, handoff, matrix, checkpoint, store, receipt,
-                                request.get('hop_limit', 12))
+                                request.get('hop_limit', 12), request.get('prior_hop_evidence', ()))
         targets = request.get('retained_audit_units', [])
         eligible = {f"{row['club_id']}:{row['unit']}" for row in matrix['units']
                     if row['source_ready'] and not row['data_accepted']}
