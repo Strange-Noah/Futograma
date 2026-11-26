@@ -26,7 +26,7 @@ class RetainedAdapter:
         self.club_id = club_id
         self.calendars = calendars
         self.coverage = {}
-        self.version = digest(['RETAINED_OBLIGATION_V2',VERSION,PARSER_VERSION,club_id,[asdict(w) for w in calendars]])
+        self.version = digest(['RETAINED_OBLIGATION_V6',VERSION,PARSER_VERSION,club_id,[asdict(w) for w in calendars]])
         self.parsed = {}
         self.source_cache = {}
         self.details = {}
@@ -264,7 +264,7 @@ class RetainedAdapter:
                 from dataclasses import replace
                 joined[-1]=replace(joined[-1],end=m.end)
             else:joined.append(m)
-        self.version=digest(['RETAINED_OBLIGATION_V5',VERSION,PARSER_VERSION,self.club_id,self.coverage,[e.sha256 for m in joined for e in m.evidence]])
+        self.version=digest(['RETAINED_OBLIGATION_V6',VERSION,PARSER_VERSION,self.club_id,self.coverage,[e.sha256 for m in joined for e in m.evidence]])
         return joined,fixtures,statuses,self.calendars
 
     def accepted_club_facts(self,start,cutoff):

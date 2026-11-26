@@ -592,6 +592,7 @@ def runtime_report(candidate, matrix, key, handoff, config, destination, request
                     unmapped=len(followup['unmapped']), coverage=adapter.coverage)
             write(work / 'audit-followup-private.json', followup)
             audit_summary = dict(stages=audit['stages'], metrics=audit['metrics'],
+                                 shadow_closed_ancillary_paths=shadow_status_closures(audit['resolutions']),
                                  retained_calendar_supplied=bool(calendars), retained_source_calls=service.parse_calls,
                                  adapter_coverage=adapter.coverage, official_window_count=len(calendars),
                                  calendar_coverage=audit['calendar_coverage'],
