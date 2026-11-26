@@ -12,6 +12,8 @@ from squad_pipeline.source_interface import SourceRequest
 
 def plan(candidate, rows):
     """Group coverage obligations by verified provider entity, across units."""
+    from squad_pipeline.six_club_validation import CLUBS
+
     windows = [(f"{r['club_id']}:{r['unit']}", unit_window(r))
                for r in rows if not r['source_ready'] and not r['data_accepted']]
     anchors = defaultdict(set)
@@ -34,6 +36,10 @@ def plan(candidate, rows):
         """):
             if re.fullmatch(r'[0-9]+', str(native)):
                 teams[key].add(str(native))
+        # The established window planner has FotMob identities for the tracked
+        # clubs even when the historical team registry only has national rows.
+        for club_id in CLUBS:
+            teams[f'club:{club_id}'].add(str(club_id))
         coverage = {(club, match): (starts, unknown) for club, match, starts, unknown in db.execute("""
             SELECT club_id,match_id,sum(participation_status='STARTER'),
                 sum(minutes IS NULL AND participation_status IN ('STARTER','SUBSTITUTE_USED'))

@@ -351,16 +351,16 @@ class SourceService:
         if self.bytes>=self.max_bytes:return SourceAcquisitionResult('BUDGET_EXHAUSTED',reason='BYTE_BUDGET')
         try:
             player = str(request.expected_ids.get('player', ''))
-            if (request.provider == 'FotMob' and request.category == 'player_history'
-                    and re.fullmatch(r'[0-9]+', player)
-                    and urlsplit(request.target_url).path == '/players/' + player):
-                from .source_redirects import fetch_public_redirects
+            team = str(request.expected_ids.get('team', ''))
+            path = urlsplit(request.target_url).path
+            player_route = (request.category == 'player_history' and re.fullmatch(r'[0-9]+', player)
+                            and path == '/players/' + player)
+            team_route = (request.category == 'team_history' and re.fullmatch(r'[0-9]+', team)
+                          and path == '/teams/' + team + '/fixtures')
+            if request.provider == 'FotMob' and (player_route or team_route):
+                from .source_redirects import fetch_fixture_discovery
                 try:
-                    record, body = fetch_public_redirects(
-                        self.client, request.target_url, request.purpose,
-                        allowed_hosts=frozenset({'www.fotmob.com'}),
-                        path_allowed=lambda path: bool(re.fullmatch(
-                            r'/players/' + player + r'(?:/[a-zA-Z0-9-]+)?/?', path)))
+                    record, body = fetch_fixture_discovery(self.client, request.target_url, request.purpose)
                 except ValueError as error:
                     return SourceAcquisitionResult('REDIRECT_REQUIRES_REVIEW', reason=str(error))
             else:
