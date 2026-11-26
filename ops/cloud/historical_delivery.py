@@ -15,7 +15,7 @@ import time
 from collections import Counter
 from dataclasses import asdict, replace
 from contextlib import closing
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from urllib.error import URLError
 from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo
@@ -24,7 +24,7 @@ from squad_pipeline.coldstart_national import offlineapply
 from squad_pipeline.roster_policy import roster_decision
 from ops.cloud.historical_batch import continue_batches, discover_gaps, refresh_matrix, unit_window, write
 from ops.cloud.historical_static import publish_static
-from ops.cloud.foundation_hops import plan as plan_foundation_hops
+from ops.cloud.foundation_hops import plan as plan_foundation_hops, recover_bound_minutes
 from ops.cloud.obligation_execution import adjudicate_packets
 from ops.cloud.verify_historical_handoff import relative_path, relocate_json, verify
 from squad_pipeline.cloud.export import export
@@ -1191,6 +1191,58 @@ def capture_foundation_hops(work, handoff, matrix, checkpoint, store, receipt, l
             attempts=attempted, outcome=dict(outcomes), asset_id=asset['id'])
 
 
+def replay_foundation_minutes(store, handoff, request, matrix, checkpoint, work, receipt):
+    """Replay only an immutable source package into the disposable cloud candidate."""
+    source = request['retained_minute_evidence']
+    if source['candidate_sha256'] != handoff['database_sha256']:
+        raise ValueError('BOUND_HOP_BASE_FINGERPRINT_MISMATCH')
+    archive = work / 'retained-minute-evidence.tar.gz'
+    download(store, source, archive)
+    extracted = work / 'retained-minute-input'
+    extracted.mkdir()
+    with tarfile.open(archive) as package:
+        for item in package:
+            path = PurePosixPath(item.name)
+            if (path.is_absolute() or '..' in path.parts or not (item.isfile() or item.isdir())
+                    or path.parts[0] not in {'profile-discovery.tar.gz', 'bound-replay.json', 'sources'}):
+                raise ValueError('BOUND_HOP_ARCHIVE_MEMBER_INVALID')
+            package.extract(item, extracted, filter='data')
+    with tarfile.open(extracted / 'profile-discovery.tar.gz') as profiles:
+        observations = json.load(profiles.extractfile('foundation-hop-receipt.json'))
+    if observations['candidate_sha256'] != handoff['database_sha256']:
+        raise ValueError('BOUND_HOP_PROFILE_BASE_MISMATCH')
+    candidate = local_path(read(checkpoint)['candidate'])
+    if sha(candidate) != handoff['database_sha256'] or any(
+            candidate == ROOT / relative_path(snap['database'])
+            for snap in handoff['accepted_snapshots'].values()):
+        raise ValueError('BOUND_HOP_REQUIRES_UNMODIFIED_DISPOSABLE_BASE')
+    result = recover_bound_minutes(candidate, observations['rows'], work / 'minute-replay',
+                                   extracted, in_place=True)
+    minutes = result['outcomes'].get('SUPPLEMENTED_UNKNOWN', 0)
+    if minutes != source['expected_minutes'] or minutes < 1:
+        raise ValueError('BOUND_HOP_EXPECTED_INCREMENT_NOT_VERIFIED')
+    from collections import Counter
+    fields = ('club_id', 'match_id', 'player_id', 'participation_status', 'minutes')
+    expected = read(extracted / 'bound-replay.json')['decisions']
+    actual = read(work / 'minute-replay' / 'bound-replay.json')['decisions']
+    def changes(items):
+        return Counter(tuple(item['result']['after'][field] for field in fields)
+                       for item in items if item['result']['state'] == 'SUPPLEMENTED_UNKNOWN')
+    if changes(expected) != changes(actual):
+        raise ValueError('BOUND_HOP_REPLAY_FACTS_DIFFER')
+    matrix = refresh_matrix(matrix, candidate)
+    report = dict(mode='RETAINED_FOUNDATION_MINUTES', status='VERIFIED_CANONICAL_MINUTE_INCREMENT',
+                  accepted=sum(row['data_accepted'] for row in matrix['units']),
+                  source_ready=sum(row['source_ready'] for row in matrix['units']),
+                  counts=dict(new_matches=0, new_player_match_rows=0, new_national_matches=0,
+                              new_national_player_rows=0, minutes_recovered=minutes),
+                  source_requests=0, ordinary_export='PASS', audit_followup=dict(rounds=0),
+                  replay=result, run=f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}")
+    write(work / 'scope.json', report)
+    receipt('foundation-minutes-verified', new_minutes=minutes, holds=result['held'])
+    return report, candidate, matrix
+
+
 def run_delivery(request_path, entry_path, base_checkout):
     handoff, request = read(entry_path), read(request_path)
     ref = handoff['data_ref']
@@ -1333,7 +1385,14 @@ def run_delivery(request_path, entry_path, base_checkout):
                 approved_plan_present=unit_key in config.get('unit_plans', {}))
         receipt('acceptance-input-inventory', **inventory, recovered_observed_freezes=recovered)
         return
-    if request.get('matrix_mode') == 'SOURCE_READY_FOUNDATIONS':
+    if request.get('matrix_mode') == 'RETAINED_FOUNDATION_MINUTES':
+        if rebuild_sha or request.get('probe') or request.get('sources'):
+            raise ValueError('BOUND_HOP_REPLAY_REQUIRES_STANDARD_SCOPE')
+        report, candidate, matrix = replay_foundation_minutes(
+            store, handoff, request, matrix, checkpoint, work, receipt)
+        write(matrix_path, matrix)
+        reports = [report]
+    elif request.get('matrix_mode') == 'SOURCE_READY_FOUNDATIONS':
         if rebuild_sha or request.get('probe') or request.get('sources'):
             raise ValueError('FOUNDATION_DELIVERY_REQUIRES_STANDARD_CONTINUATION')
         report, candidate, matrix = run_foundations(
