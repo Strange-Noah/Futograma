@@ -455,6 +455,40 @@ def classify_unperformed_paths(resolutions):
                 unperformed_supplementary_candidates=supplementary)
 
 
+def shadow_status_closures(resolutions):
+    """Count ancillary paths eligible under a two-source matchday proof.
+
+    This classification leaves the existing acceptance metrics and acquisition
+    behavior intact. Distinct publishers must independently support the same
+    identity, matchday status and minutes.
+    """
+    ancillary = {'injury_availability', 'disciplinary', 'press_conference'}
+    closed = 0
+    for resolution in resolutions:
+        status = resolution.get('resolved_status') or {}
+        if (resolution.get('state') != 'RESOLVED' or resolution.get('challenge')
+                or not resolution.get('canonical') or not status.get('complete_squad')):
+            continue
+        if status.get('status') not in KNOWN - {'OUT_OF_SCOPE'}:
+            continue
+        fields = ('player', 'canonical', 'team', 'status', 'minutes')
+        sources = set()
+        for attempt in resolution['attempts']:
+            observed = attempt.get('status') or {}
+            if (attempt['outcome'] != 'FOUND' or not observed.get('complete_squad')
+                    or any(observed.get(k) != status.get(k) for k in fields)):
+                continue
+            for item in observed.get('evidence') or ():
+                evidence = Evidence(**item)
+                if evidence.authority == 'SOURCE_RESPONSE' and evidence.valid():
+                    sources.add((evidence.origin, evidence.sha256.lower()))
+        if not any(a != b and x != y for a, x in sources for b, y in sources):
+            continue
+        closed += sum(a['outcome'] == 'NOT_REQUESTED' and a['path'] in ancillary
+                      for a in resolution['attempts'])
+    return closed
+
+
 def run(db, adapter, start, cutoff, mode='INCREMENTAL', max_attempts=200):
     if mode not in MODES or (max_attempts is not None and (type(max_attempts) is not int or max_attempts < 0)):
         raise ValueError('INVALID_MODE_OR_BUDGET')

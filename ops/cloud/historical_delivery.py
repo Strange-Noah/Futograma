@@ -33,7 +33,7 @@ from squad_pipeline.core import ROOT
 from squad_pipeline.international_store import digest
 from squad_pipeline.roster_initialization import PeriodUnit
 from squad_pipeline.reconstruction.calendar import fifa_windows
-from squad_pipeline.reconstruction.engine import classify_unperformed_paths, run
+from squad_pipeline.reconstruction.engine import classify_unperformed_paths, run, shadow_status_closures
 from squad_pipeline.reconstruction.retained_adapter import RetainedAdapter
 from squad_pipeline.source_interface import EvidenceStore, SourceRequest, SourceService
 
@@ -1049,6 +1049,7 @@ def acceptance_input_inventory(handoff, config, matrix):
                 audit = read(paths[-1])
                 if audit.get('metrics') == execution.get('metrics'):
                     audit_replay[key] = dict(**classify_unperformed_paths(audit['resolutions']),
+                                             shadow_closed_ancillary_paths=shadow_status_closures(audit['resolutions']),
                                              unresolved=execution['metrics']['source_work_required'],
                                              conflicts=execution['metrics']['conflicts'])
                 break

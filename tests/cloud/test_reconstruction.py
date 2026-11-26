@@ -332,6 +332,29 @@ class ReconstructionTests(unittest.TestCase):
                 'unperformed_fact_or_unresolved_paths': 2,
                 'unperformed_supplementary_candidates': 0})
 
+    def test_shadow_ancillary_closure_preserves_required_checks(self):
+        from dataclasses import asdict, replace
+        from squad_pipeline.reconstruction.engine import shadow_status_closures
+
+        exact = asdict(replace(status('p'), complete_squad=True))
+        first = dict(outcome='FOUND', path='fixture_details', status=exact)
+        another = dict(exact, evidence=[asdict(replace(
+            E, origin='independent publisher', sha256='b' * 64))])
+        second = dict(outcome='FOUND', path='official_squad', status=another)
+        optional = dict(outcome='NOT_REQUESTED', path='injury_availability')
+        required = dict(outcome='NOT_REQUESTED', path='identity_archives')
+        row = dict(state='RESOLVED', canonical='match', resolved_status=exact,
+                   attempts=[first, second, optional, required])
+        self.assertEqual(shadow_status_closures([row]), 1)
+        self.assertEqual(shadow_status_closures([dict(row, challenge=True)]), 0)
+        self.assertEqual(shadow_status_closures([dict(row, state='CONFLICT')]), 0)
+        shared_body = dict(second, status=dict(another, evidence=[asdict(replace(
+            E, origin='independent publisher'))]))
+        disagree = dict(second, status=dict(another, minutes=30))
+        for alternative in (shared_body, disagree):
+            self.assertEqual(shadow_status_closures([
+                dict(row, attempts=[first, alternative, optional, required])]), 0)
+
     def test_conflicting_resolution_does_not_replace_fact(self):
         a=Adapter(answers={
             'fixture_details':Resolution('fixture_details','FOUND','exact squad',(E,),status('p')),
