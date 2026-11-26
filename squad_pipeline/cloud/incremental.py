@@ -28,7 +28,19 @@ def run(database,work,isolated=False,at=None):
     os.environ.update(FUTBOL_DATABASE_PATH=str(database),FUTBOL_SETTINGS_PATH=str(ROOT/'ops/cloud/runtime.json'),FUTBOL_RUN_ORIGIN='github_actions_isolated_prelaunch' if isolated else 'github_actions_automatic')
     client=Client('daily-national-'+os.environ['GITHUB_RUN_ID'],budget=750);captures=[]
     HOSTS.update({'www.mancity.com','www.arsenal.com','fcbayern.com','www.psg.fr','www.fcbarcelona.com','www.inter.it','www.fotmob.com'})
+    retained_path = os.environ.get('FUTOGRAMA_ISOLATED_RETAINED_PROFILES')
+    retained = json.loads(Path(retained_path).read_text()) if isolated and retained_path else {}
     def fetch(url,purpose):
+        if url in retained:
+            r = retained[url]
+            source_path = (ROOT / r['path']).resolve()
+            if not source_path.is_relative_to(ROOT):
+                raise ValueError('RETAINED_PROFILE_OUTSIDE_RUNNER')
+            b = source_path.read_bytes()
+            if hashlib.sha256(b).hexdigest() != r['sha256']:
+                raise ValueError('RETAINED_PROFILE_HASH_MISMATCH')
+            captures.append(r)
+            return r,b.decode('utf-8','replace')
         r,b=fetch_fixture_discovery(client,url,purpose);r=dict(r,provider='Sky' if 'www.skysports.com/' in url else 'FotMob');captures.append(r)
         if r['status']!='SUCCESS':raise ValueError('SOURCE_UNAVAILABLE:'+str(r.get('error') or 'HTTP_'+str(r.get('http_status'))))
         return r,b.decode('utf-8','replace')
@@ -69,4 +81,4 @@ def run(database,work,isolated=False,at=None):
                 if not metadata.exists():
                     with metadata.open('x') as f:json.dump(item,f)
                     t.add(metadata,arcname='metadata/'+metadata.name)
-    return dict(roster=roster,club_exit=club_code,national=national,evidence_archive=str(archive),evidence_tag=asset_ref,isolated=isolated,formal_ingestion=not isolated)
+    return dict(roster=roster,club_exit=club_code,national=national,retained_profiles_available=len(retained),evidence_archive=str(archive),evidence_tag=asset_ref,isolated=isolated,formal_ingestion=not isolated)

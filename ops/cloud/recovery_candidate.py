@@ -1,5 +1,9 @@
 """Run the existing isolated production acceptance over a verified catch-up window."""
+import base64
+import hashlib
 import json
+import re
+import tarfile
 import math
 import os
 import sqlite3
@@ -36,6 +40,46 @@ def coverage_start(path, fallback):
     boundaries.append(min(datetime.fromisoformat(national[0]), fallback) if national else fallback)
     return min(boundaries)
 
+def retained_profiles(store, head, root, now):
+    """Read only same-day, hash-verified public profile captures for an exact retry."""
+    request = store.api('GET', store.base + '/contents/production-recovery-request.json?ref=' + head)
+    material = json.loads(base64.b64decode(request['content'])).get('retained_archive')
+    if not material:
+        return
+    archive = root / 'earlier-daily-evidence.tar.gz'
+    store.download(material['id'], archive)
+    if archive.stat().st_size != material['size'] or hashlib.sha256(archive.read_bytes()).hexdigest() != material['sha256']:
+        raise ValueError('RETAINED_DAILY_EVIDENCE_HASH_MISMATCH')
+    profiles = {}
+    with tarfile.open(archive) as package:
+        for entry in package.getmembers():
+            if not entry.isfile() or not entry.name.startswith('metadata/') or not entry.name.endswith('.metadata.json'):
+                continue
+            record = json.load(package.extractfile(entry))
+            url = record.get('requested_url') or ''
+            if not re.fullmatch(r'https://www\.fotmob\.com/players/[0-9]+', url) or record.get('http_status') != 200:
+                continue
+            stamp = datetime.fromisoformat(record['response_timestamp'])
+            if stamp.date() != now.date() or stamp > now:
+                continue
+            raw_entry = package.getmember(record['path'])
+            if not raw_entry.isfile() or raw_entry.size > 6_000_000:
+                raise ValueError('RETAINED_PROFILE_BODY_INVALID')
+            raw = package.extractfile(raw_entry).read()
+            checksum = hashlib.sha256(raw).hexdigest()
+            if checksum != record['sha256']:
+                raise ValueError('RETAINED_PROFILE_HASH_MISMATCH')
+            path = root / (checksum + '.response')
+            if not path.exists():
+                path.write_bytes(raw)
+            profiles[url] = dict(record, path=str(path.relative_to(ROOT)),
+                                  retained_origin='VERIFIED_ISOLATED_RUN_ARCHIVE')
+    if profiles:
+        index = root / 'profile-index.json'
+        index.write_text(json.dumps(profiles))
+        os.environ['FUTOGRAMA_ISOLATED_RETAINED_PROFILES'] = str(index)
+    print(json.dumps(dict(retained_profile_count=len(profiles))), flush=True)
+
 def main():
     release_acceptance.guard()
     production = release_acceptance.store('main')
@@ -70,7 +114,9 @@ def main():
                           configured_catchup_hours=settings['lookback_hours'])), flush=True)
 
     release_acceptance.run = with_audits(release_acceptance.run)
-    release_acceptance.producer()
+    with TemporaryDirectory(prefix='retained-daily-', dir=ROOT) as staging:
+        retained_profiles(isolated, candidate_head, Path(staging), datetime.now(timezone.utc))
+        release_acceptance.producer()
 
 
 if __name__ == '__main__':

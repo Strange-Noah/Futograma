@@ -30,4 +30,11 @@ def fetch_fixture_discovery(client, url, purpose):
             client, url, purpose, allowed_hosts=frozenset({'www.fotmob.com'}),
             path_allowed=lambda path: bool(re.fullmatch(
                 r'/players/' + player + r'(?:/[a-zA-Z0-9-]+)?/?', path)))
+    team = re.fullmatch(r'/teams/([0-9]+)/(fixtures|squad)/?', origin.path)
+    if origin.scheme == 'https' and origin.netloc == 'www.fotmob.com' and team and not origin.query:
+        native, section = team.groups()
+        return fetch_public_redirects(
+            client, url, purpose, allowed_hosts=frozenset({'www.fotmob.com'}),
+            path_allowed=lambda path: bool(re.fullmatch(
+                r'/teams/' + native + r'(?:/[a-zA-Z0-9-]+)?/' + section + r'/?', path)))
     return fetch_public_redirects(client, url, purpose)
