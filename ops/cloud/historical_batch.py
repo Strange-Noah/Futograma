@@ -192,7 +192,7 @@ def execute(plan_path, work):
         detail = json.loads(local_path(stage['details']).read_text())
         metrics = detail.get('metrics', {})
         open_work = {k: metrics[k] for k in ('final_gap_count', 'source_work_required',
-                     'accepted_challenges', 'human_pending', 'conflicts', 'unperformed_paths')
+                     'accepted_challenges', 'human_pending', 'conflicts', 'pending', 'unperformed_paths')
                      if metrics.get(k)}
         if open_work:
             exceptions.append(dict(kind='BLOCKING', metrics=open_work,

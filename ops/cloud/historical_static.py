@@ -157,5 +157,7 @@ def publish_static(store, handoff, config, matrix, work, receipt, selected=(), r
             raise ValueError('STATIC_ACCEPTANCE_REMOTE_READBACK_MISMATCH')
         store.api('PATCH', store.base + '/releases/' + str(release['id']), dict(draft=False))
         receipt('static-equivalence', release=tag, count=len(assets), results=results)
+        return dict(release=tag, results=results)
     else:
         receipt('static-equivalence', count=0, results=results)
+        return dict(release=None, results=results)

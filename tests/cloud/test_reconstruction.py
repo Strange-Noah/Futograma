@@ -71,6 +71,27 @@ class ReconstructionTests(unittest.TestCase):
         self.assertFalse(replace(accepted,minutes=1).reliable())
         self.assertFalse(status('p',state='BENCH_PARTICIPATION_UNKNOWN',minutes=None).reliable())
 
+    def test_exact_matchday_doubt_skips_only_unnecessary_cause_searches(self):
+        exact = replace(status('p'), complete_squad=True)
+        answers = {
+            'fixture_details': Resolution('fixture_details', 'FOUND', 'Complete exact sheet', (E,), exact),
+            'identity_archives': Resolution('identity_archives', 'NOT_REQUESTED', 'Required identity path'),
+        }
+        result = self.execute(Adapter(answers=answers))
+        finding = next(item for item in result['resolutions'] if item['canonical'] == 'match')
+        self.assertEqual(finding['state'], 'RESOLVED')
+        self.assertEqual(finding['required_unperformed_paths'], ['identity_archives'])
+        self.assertEqual({a['path'] for a in finding['attempts'] if a['outcome'] == 'NOT_NEEDED'},
+                         {'injury_availability', 'disciplinary', 'press_conference'})
+        conflict = Resolution('official_squad', 'FOUND', 'Contradictory source', (E,),
+                              replace(exact, status='UNUSED_SUBSTITUTE', minutes=0))
+        changed = Adapter(answers=dict(answers, official_squad=conflict))
+        changed.version = 'conflicting-retained-evidence'
+        result = self.execute(changed)
+        finding = next(item for item in result['resolutions'] if item['canonical'] == 'match')
+        self.assertEqual(finding['state'], 'CONFLICT')
+        self.assertFalse(any(a['outcome'] == 'NOT_NEEDED' for a in finding['attempts']))
+
     def test_republished_same_body_does_not_become_independent_human_escalation(self):
         other=replace(E,origin='syndicated-outlet',provider='Other')
         a=Adapter(answers=dict(player_history=Resolution('player_history','FOUND','Exact controlled claim',(E,),status('p')),

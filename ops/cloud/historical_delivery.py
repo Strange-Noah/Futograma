@@ -23,6 +23,7 @@ from squad_pipeline.coldstart_national import offlineapply
 from squad_pipeline.roster_policy import roster_decision
 from ops.cloud.historical_batch import continue_batches, discover_gaps, refresh_matrix, unit_window, write
 from ops.cloud.historical_static import publish_static
+from ops.cloud.foundation_hops import plan as plan_foundation_hops
 from ops.cloud.obligation_execution import adjudicate_packets
 from ops.cloud.verify_historical_handoff import relative_path, relocate_json, verify
 from squad_pipeline.cloud.export import export
@@ -1103,13 +1104,11 @@ def run_foundations(work, handoff, config_path, config, checkpoint, matrix_path,
 
 def acquire_foundation_checkpoint(work, handoff, config, matrix, checkpoint, store, receipt):
     """Preserve shared club inputs independently of the copy-heavy canonical writer."""
-    state = read(checkpoint)
-    candidate = Path(state['candidate']).resolve()
-    attempted = {url for batch in state['batches'] for url in batch['attempted_urls']}
+    candidate = Path(read(checkpoint)['candidate']).resolve()
     active = dict(matrix, units=[row for row in matrix['units'] if not row['source_ready']])
     tasks, gaps = discover_gaps(candidate, active, config.get('catalogues', ()))
     selected = [dict(url=url, claims=[], dates=sorted(days))
-                for url, days, kind in tasks.values() if kind == 'club' and url not in attempted]
+                for url, days, kind in tasks.values() if kind == 'club']
     selected.sort(key=lambda item: item['url'])
     receipt('foundation-capture-start', tasks=len(selected), units=len(active['units']))
     requested, outcomes = collect_club_audit_evidence(work, selected)
@@ -1135,6 +1134,57 @@ def acquire_foundation_checkpoint(work, handoff, config, matrix, checkpoint, sto
     store.api('PATCH', store.base + '/releases/' + str(release['id']), dict(draft=False))
     receipt('foundation-capture-done', attempts=len(requested), outcome=dict(outcomes),
             tasks=len(selected), release=tag, asset_id=asset['id'], sha256=checksum, bytes=size)
+
+
+def capture_foundation_hops(work, handoff, matrix, checkpoint, store, receipt, limit):
+    """Capture new verified alternative routes without creating SQLite copies."""
+    if type(limit) is not int or not 1 <= limit <= 32:
+        raise ValueError('INVALID_FOUNDATION_HOP_LIMIT')
+    candidate = Path(read(checkpoint)['candidate']).resolve()
+    tasks = plan_foundation_hops(candidate, matrix['units'])
+    receipt('foundation-hops-planned', tasks=len(tasks))
+    capture = EvidenceStore(work / 'sources')
+    retained = retained_store(work)
+    service = SourceService(capture, 'historical-foundation-hops', {'www.fotmob.com'},
+                            max_calls=2 * limit, max_bytes=32_000_000)
+    outcomes, observations, attempted = Counter(), [], 0
+    for request, units in tasks:
+        acquired = retained.lookup(request)
+        if acquired.outcome == 'FOUND':
+            body = retained.read(acquired.artifact)
+            artifact = capture.import_body(request, body, acquired.artifact.metadata,
+                                           acquired.artifact.authority)
+            acquired, result = service.observe(request, artifact)
+        else:
+            if attempted >= limit:
+                break
+            attempted += 1
+            acquired, result = service.observe(request)
+        outcomes[acquired.outcome] += 1
+        observations.append(dict(request=asdict(request), obligations=units,
+                                 outcome=acquired.outcome, reason=acquired.reason,
+                                 artifact=asdict(acquired.artifact) if acquired.artifact else None,
+                                 observation=asdict(result) if result else None))
+        if acquired.outcome in {'ACCESS_RESTRICTED', 'ROBOTS_DISALLOWED', 'RATE_LIMITED', 'BUDGET_EXHAUSTED'}:
+            break
+    write(work / 'foundation-hop-receipt.json', dict(
+        candidate_sha256=handoff['database_sha256'], planned=len(tasks),
+        requested=attempted, outcomes=dict(outcomes), rows=observations))
+    archive = work / 'foundation-hop-evidence.tar.gz'
+    with tarfile.open(archive, 'w:gz') as package:
+        package.add(work / 'foundation-hop-receipt.json', arcname='foundation-hop-receipt.json')
+        if (work / 'sources').is_dir():
+            package.add(work / 'sources', arcname='sources')
+    tag = 'historical-foundation-hops-' + os.environ['GITHUB_RUN_ID']
+    release = store.api('POST', store.base + '/releases', dict(
+        tag_name=tag, target_commitish=store.ref, draft=True,
+        name='Historical foundation alternative-source evidence'))
+    asset = store.upload(release['id'], archive)
+    if store.download(asset['id'], None) != (archive.stat().st_size, sha(archive)):
+        raise ValueError('FOUNDATION_HOPS_READBACK_MISMATCH')
+    store.api('PATCH', store.base + '/releases/' + str(release['id']), dict(draft=False))
+    receipt('foundation-hops-captured', release=tag, tasks=len(tasks),
+            attempts=attempted, outcome=dict(outcomes), asset_id=asset['id'])
 
 
 def run_delivery(request_path, entry_path, base_checkout):
@@ -1186,9 +1236,34 @@ def run_delivery(request_path, entry_path, base_checkout):
         write(matrix_path, refresh_matrix(read(matrix_path), candidate))
         receipt('rebuild-restored', database_sha256=rebuild_sha)
     config = read(config_path)
+    recovered_path = handoff.get('workstream_checkpoint', {}).get('audit', {}).get('recovered_frozen_inputs')
+    if recovered_path:
+        base = entry_path.parent.resolve()
+        source = (base / recovered_path).resolve()
+        if not source.is_relative_to(base) or not source.is_file():
+            raise ValueError('RECOVERED_FREEZE_INPUT_PATH_INVALID')
+        inputs = read(source)['units']
+        root = ROOT / '.cloud' / 'recovered-observed-freezes'
+        root.mkdir(exist_ok=True)
+        for freeze in inputs.values():
+            fingerprint = freeze.get('freeze_sha256')
+            if (freeze.get('observed_population_accepted') is not True
+                    or fingerprint != digest({k: v for k, v in freeze.items() if k != 'freeze_sha256'})):
+                raise ValueError('RECOVERED_FREEZE_FINGERPRINT_MISMATCH')
+            target = root / ('freeze-' + fingerprint + '.json')
+            if target.exists() and read(target) != freeze:
+                raise ValueError('RECOVERED_FREEZE_CONTENT_CONFLICT')
+            if not target.exists():
+                write(target, freeze)
     work = checkpoint.parent / ('delivery-' + os.environ['GITHUB_RUN_ID'])
     work.mkdir()
     matrix = read(matrix_path)
+    if request.get('probe') == 'foundation-hops':
+        if rebuild_sha or request.get('sources'):
+            raise ValueError('FOUNDATION_HOPS_REQUIRES_VERIFIED_SHARED_BASE')
+        capture_foundation_hops(work, handoff, matrix, checkpoint, store, receipt,
+                                request.get('hop_limit', 12))
+        return
     if request.get('probe') == 'foundation-source-checkpoint':
         if rebuild_sha or request.get('sources'):
             raise ValueError('FOUNDATION_SOURCE_CAPTURE_REQUIRES_STANDARD_SCOPE')
@@ -1308,6 +1383,36 @@ def run_delivery(request_path, entry_path, base_checkout):
                                       database=str(accepted.relative_to(ROOT)),sha256=sha(accepted))
     if len(snapshots) != report['accepted']:
         raise ValueError('ACCUMULATED_ACCEPTANCE_COUNT_MISMATCH')
+    static_status = dict(handoff.get('workstream_checkpoint', {}).get('static', {}))
+    delivered = set(static_status.get('units', []))
+    pending_static = set(static_status.get('pending', {}))
+    static_targets = sorted((set(snapshots) - set(handoff['accepted_snapshots']) | pending_static) - delivered)
+    if static_targets:
+        static_work = temp / 'accepted-static'
+        static_work.mkdir()
+        try:
+            projection = publish_static(store, dict(handoff, accepted_snapshots=snapshots),
+                                        config, matrix, static_work, receipt, static_targets)
+        except (OSError, RuntimeError, ValueError) as error:
+            # Persist the accepted snapshot and retry only the downstream delivery.
+            projection = dict(release=None, results={
+                key: dict(status='STATIC_DELIVERY_RETRY_REQUIRED', reason=type(error).__name__)
+                for key in static_targets})
+            receipt('automatic-static-deferred', error_type=type(error).__name__)
+        pending = {}
+        for key, item in projection['results'].items():
+            if projection['release'] and item['status'] == 'STATIC_EQUIVALENT' and 'asset_sha256' in item:
+                delivered.add(key)
+                static_status['original_bytes'] = static_status.get('original_bytes', 0) + item['database_bytes']
+                static_status['delivered_gzip_bytes'] = static_status.get('delivered_gzip_bytes', 0) + item['static_bytes']
+            else:
+                pending[key] = item
+        static_status.update(units=sorted(delivered), pending=pending,
+                             status='VERIFIED_PARTIAL' if pending else 'VERIFIED_ALL_CURRENTLY_ACCEPTED')
+        if projection['release']:
+            static_status['releases'] = list(dict.fromkeys([
+                *static_status.get('releases', []), projection['release']]))
+        report['automatic_static'] = projection
     quality = inspect(candidate)
     export_pointer = dict(pointer, current=dict(pointer['current'], database=quality))
     export(candidate, temp / 'verified-output-export', parent, export_pointer, ROOT / 'web')
@@ -1336,6 +1441,8 @@ def run_delivery(request_path, entry_path, base_checkout):
                      cloud_acceptance=dict(status='ASSETS_AND_DATABASE_READBACK_PASS',
                                            path='historical-cloud-acceptance.json',action=report['run'],
                                            expected_parent=parent))
+        if static_targets:
+            entry['workstream_checkpoint'] = dict(handoff.get('workstream_checkpoint', {}), static=static_status)
         if adopted:
             entry['incorporated_evidence_checkpoint'] = handoff['latest_evidence_checkpoint']['release']
         matrix_bytes = (json.dumps(matrix,ensure_ascii=False,indent=2)+'\n').encode()

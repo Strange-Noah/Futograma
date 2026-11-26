@@ -345,6 +345,40 @@ def gaps(members, fixtures, statuses, opportunities_, start, cutoff):
     return result
 
 
+ANCILLARY_PATHS = frozenset({'injury_availability', 'disciplinary', 'press_conference'})
+ALTERNATE_STATUS_PATHS = ANCILLARY_PATHS | {
+    'player_history', 'team_history', 'official_squad', 'substitutions',
+    'announcements', 'match_reports',
+}
+UNPERFORMED_OUTCOMES = frozenset({'NOT_REQUESTED', 'PARSER_NOT_IMPLEMENTED', 'ARCHIVE_LOCATOR_UNRESOLVED'})
+
+
+def exact_status_resolves_doubt(finding, status, attempts):
+    """Close a participation question only with an exact, source-backed answer."""
+    if (not status or finding.get('trigger') != 'R4'
+            or finding.get('state') != 'INSUFFICIENT_COVERAGE'
+            or finding.get('challenge') or finding.get('accepted_state_retained')
+            or not status.get('complete_squad') or status.get('status') == 'OUT_OF_SCOPE'
+            or any(a['outcome'] == 'CONFLICT' for a in attempts)):
+        return False
+    if any(status.get(key) != finding.get(key) for key in ('player', 'team', 'canonical')):
+        return False
+    proof = tuple(Evidence(**e) for e in status.get('evidence', ()))
+    return (all(e.authority == 'SOURCE_RESPONSE' for e in proof)
+            and SquadStatus(**dict(status, evidence=proof)).reliable())
+
+
+def required_unperformed_paths(resolution):
+    attempts = resolution['attempts']
+    exact = (resolution['state'] == 'RESOLVED'
+             and exact_status_resolves_doubt(
+                 dict(resolution, state=resolution.get('initial_state')),
+                 resolution.get('resolved_status'), attempts))
+    unperformed = dict.fromkeys([*(a['path'] for a in attempts
+                                    if a['outcome'] in UNPERFORMED_OUTCOMES),
+                                  *resolution.get('remaining_paths', [])])
+    return [path for path in unperformed if not (exact and path in ALTERNATE_STATUS_PATHS)]
+
 def active_resolution(db, finding, adapter, dependency, cutoff, budget):
     """Assess relevant evidence with limits; persist only the audit ledger.
 
@@ -361,8 +395,15 @@ def active_resolution(db, finding, adapter, dependency, cutoff, budget):
             return dict(prior, reused=True, new_attempts=0)
     attempts, candidates, explanations = [], [], []
     plan = PATHS if finding['domain'] == 'NATIONAL' else tuple(p for p in PATHS if p != 'callups_withdrawals')
+    plan = tuple(p for p in plan if p not in ANCILLARY_PATHS) + tuple(
+        p for p in plan if p in ANCILLARY_PATHS)
     exhausted = False
     for path in plan:
+        if path in ANCILLARY_PATHS and candidates and status_agreement(candidates)['accepted']:
+            if any(exact_status_resolves_doubt(finding, asdict(s), attempts) for s in candidates):
+                attempts.append(dict(path=path, outcome='NOT_NEEDED', coverage='Exact matchday question resolved',
+                                     evidence=[], retry_on=None))
+                continue
         if budget[0] <= 0:
             exhausted = True
             break
@@ -403,7 +444,7 @@ def active_resolution(db, finding, adapter, dependency, cutoff, budget):
     unavailable = len(attempts) == len(plan) and all(a['outcome']=='UNAVAILABLE' for a in attempts)
     # Transport unavailability is explicit, never an invented performed search.
     result = dict(finding, claim_key=key, state=state, attempts=attempts,
-        new_attempts=sum(a['outcome'] not in {'NOT_REQUESTED','PARSER_NOT_IMPLEMENTED','ARCHIVE_LOCATOR_UNRESOLVED'} for a in attempts), reused=False, explanations=explanations,
+        new_attempts=sum(a['outcome'] not in UNPERFORMED_OUTCOMES | {'NOT_NEEDED'} for a in attempts), reused=False, explanations=explanations,
         resolution_basis='STATUS_EVIDENCE' if candidates else 'RESOURCE_LIMIT' if exhausted else 'SOURCE_ADAPTER_WORK_REQUIRED' if unperformed else 'PATHS_UNAVAILABLE' if unavailable else 'PLAN_EXHAUSTED',
         why_unresolved=None if state=='RESOLVED' else 'No uncontested identity-bound matchday status recovered',
         resolved_status=asdict(candidates[0]) if candidates and not conflict else None,
@@ -424,6 +465,8 @@ def active_resolution(db, finding, adapter, dependency, cutoff, budget):
         direction='CONFLICTS' if conflict else 'SUPPORTS' if candidates else 'NO_DIRECTION_ESTABLISHED',confidence_status=confidence,
         limitations='Conclusion is scoped to exact verified fixture/player evidence, not an absence cause or authority to change accepted facts; shared origins are not independent corroboration',
         next_action='Independent explicit adjudication before any canonical correction' if candidates else 'Implement or execute remaining relevant paths' if unperformed else 'Resume bounded investigation' if exhausted else 'Reassess on new material evidence')
+    result['initial_state'] = finding['state']
+    result['required_unperformed_paths'] = required_unperformed_paths(result)
     result['independent_source_origins']=len(groups)
     result['independence_limitations']='Distinct retained origin/body groups; unknown syndication is not proven independent corroboration'
     result['human_pending']=bool(conflict and not unperformed and not exhausted and len(groups)>1)
@@ -503,7 +546,7 @@ def run(db, adapter, start, cutoff, mode='INCREMENTAL', max_attempts=200):
             and w.start <= finding['on'] < w.end and w.level==finding['level']
             and (w.team is None or w.team==finding['team'])]
     r3 = gaps(members, fixtures, statuses, r4, start, cutoff)
-    dependency = digest([adapter.version, [asdict(m) for m in members],
+    dependency = digest(['EXCEPTION_DRIVEN_AUDIT_V1', adapter.version, [asdict(m) for m in members],
         [asdict(f) for f in fixtures], [asdict(s) for s in statuses], [asdict(w) for w in context]])
     attempt_limit = len(PATHS) * len(r4) if max_attempts is None else max_attempts
     budget = [attempt_limit]
@@ -536,7 +579,8 @@ def run(db, adapter, start, cutoff, mode='INCREMENTAL', max_attempts=200):
             accepted_challenges=sum(bool(f.get('challenge')) for f in r4),human_pending=sum(r.get('human_pending',False) for r in resolutions),
             compatible_source_variations=sum(f.get('compatible_source_variation',False) for f in r4),
             retained_response_checks=sum(a['outcome'] in {'FOUND','NO_MATCH','CONFLICT'} for r in resolutions for a in r['attempts']),
-            unperformed_paths=sum(a['outcome']=='NOT_REQUESTED' for r in resolutions for a in r['attempts']),
+            unperformed_paths=sum(len(required_unperformed_paths(r)) for r in resolutions),
+            ancillary_paths_not_needed=sum(a['outcome']=='NOT_NEEDED' for r in resolutions for a in r['attempts']),
             supported_absences=sum(f['state']=='ABSENT_COMPLETE_SQUAD' for f in r4),
             **classify_unperformed_paths(resolutions)),
         completeness_certified=False, calendar_coverage='OFFICIAL_AND_OBSERVED' if calendars else 'OBSERVED_ONLY;OFFICIAL_CALENDAR_UNAVAILABLE')
