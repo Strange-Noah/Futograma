@@ -127,6 +127,16 @@ class ReconstructionTests(unittest.TestCase):
         r=adapter.resolve('fixture_details',dict(canonical='match',player='p',team='club'))
         self.assertEqual(r.outcome,'CONFLICT');self.assertIsNone(r.status)
 
+    def test_exact_retained_sheets_keep_independent_matching_evidence(self):
+        from squad_pipeline.reconstruction.retained_adapter import RetainedAdapter
+        adapter = object.__new__(RetainedAdapter)
+        sheet = dict(players=[], complete_squad=True, issues=[])
+        other = replace(E, origin='second origin', sha256='b' * 64)
+        adapter.parsed = {'match': [(sheet, E), (sheet, other)]}
+        result = adapter.resolve('fixture_details', dict(canonical='match', player='p', team='club'))
+        self.assertEqual(result.outcome, 'FOUND')
+        self.assertEqual(result.status.evidence, (E, other))
+
     def test_retained_adapter_consumes_typed_source_and_never_zeros_unknown_bench(self):
         import json,tempfile
         from pathlib import Path

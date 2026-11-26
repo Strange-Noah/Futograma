@@ -5,7 +5,7 @@ not independently recoverable. It reports coverage exclusions rather than using
 appearance unions as proof of continuous management or national membership.
 """
 from datetime import timedelta
-from dataclasses import asdict
+from dataclasses import asdict, replace
 import json
 import re
 from pathlib import Path
@@ -285,7 +285,7 @@ class RetainedAdapter:
 
     def keep_candidate(self,domain,mid,team,pid,player,artifact,state,minutes):
         """Stage verified native material; canonical persistence remains elsewhere."""
-        from dataclasses import asdict
+        from dataclasses import asdict, replace
         if state not in {'STARTER','SUBSTITUTE_USED','UNUSED_SUBSTITUTE'} or type(minutes) is not int:return
         if artifact.key not in self.retained_artifacts:
             self.retained_artifacts[artifact.key]=self.service.store.import_body(artifact.request,self.service.store.read(artifact),artifact.metadata,artifact.authority)
@@ -448,21 +448,35 @@ class RetainedAdapter:
             pairs=self.parsed.get(finding.get('canonical'),[])
             if pairs:
                 candidates=[];evidence=[];listed_unknown=False
+                complete_statuses = []
                 for sheet,e in pairs:
                     evidence.append(e)
                     player=next((p for p in sheet['players'] if str(p.get('player_id'))==finding['player']),None)
-                    if player is None and ((sheet.get('complete_squad') and not sheet.get('issues')) or self.exact_native_exclusion(sheet,finding['player'])):
-                        candidates.append(SquadStatus(finding['player'],finding['canonical'],finding['team'],'ABSENT_COMPLETE_SQUAD',None,(e,),True))
+                    complete = bool(sheet.get('complete_squad') and not sheet.get('issues'))
+                    if player is None and (complete or self.exact_native_exclusion(sheet,finding['player'])):
+                        status = SquadStatus(finding['player'],finding['canonical'],finding['team'],'ABSENT_COMPLETE_SQUAD',None,(e,),True)
+                        candidates.append(status)
+                        if complete:
+                            complete_statuses.append(status)
                     elif player is not None:
-                        status=SquadStatus(finding['player'],finding['canonical'],finding['team'],player['status'],player['reported_minutes'],(e,))
-                        if status.reliable():candidates.append(status)
-                        else:listed_unknown=True
+                        status=SquadStatus(finding['player'],finding['canonical'],finding['team'],player['status'],player['reported_minutes'],(e,),complete)
+                        if status.reliable():
+                            candidates.append(status)
+                            if complete:
+                                complete_statuses.append(status)
+                        else:
+                            listed_unknown=True
                 evidence=tuple(dict.fromkeys(evidence))
                 agreement=status_agreement(candidates)
                 if (candidates and not agreement['accepted']) or (listed_unknown and any(s.status=='ABSENT_COMPLETE_SQUAD' for s in candidates)):
                     return Resolution(path,'CONFLICT','Conflicting exact-source squad claims; no last-source-wins',evidence)
                 if candidates:
                     selected=next(s for s in candidates if s.minutes==agreement.get('minutes'))
+                    matching = tuple(dict.fromkeys(e for status in complete_statuses
+                        if (status.status, status.minutes) == (selected.status, selected.minutes)
+                        for e in status.evidence))
+                    if matching:
+                        selected = replace(selected, complete_squad=True, evidence=matching)
                     return Resolution(path,'FOUND','Retained typed exact-fixture claim; existing minute policy applied; not a new independent search',evidence,selected)
                 return Resolution(path,'NO_MATCH','Retained typed sheets checked; no certified status',evidence)
         return Resolution(path,'NOT_REQUESTED','No source request mapped for this path; not a website availability result')
