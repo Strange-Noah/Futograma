@@ -279,9 +279,10 @@ def discover_gaps(candidate, matrix, catalogues):
             ) s USING(match_id)
             WHERE f.domain='CLUB'
         """).fetchall()
-        coverage = {(club, mid): (starts, unknown) for club, mid, starts, unknown in db.execute("""
+        coverage = {(club, mid): (starts, unknown, bench) for club, mid, starts, unknown, bench in db.execute("""
             SELECT club_id,match_id,sum(participation_status='STARTER'),
-                   sum(minutes IS NULL AND participation_status IN ('STARTER','SUBSTITUTE_USED'))
+                   sum(minutes IS NULL AND participation_status IN ('STARTER','SUBSTITUTE_USED')),
+                   sum(participation_status='BENCH_PARTICIPATION_UNKNOWN')
             FROM player_match_minutes GROUP BY club_id,match_id
         """)}
         complete = {(club, mid) for club, mid in db.execute("""
@@ -315,12 +316,13 @@ def discover_gaps(candidate, matrix, catalogues):
                 if club != cid or not unit['start'] <= day < unit['end_exclusive']:
                     continue
                 for mid in mids:
-                    starts, unknown = coverage.get((cid, mid), (0, 0))
+                    starts, unknown, bench = coverage.get((cid, mid), (0, 0, 0))
                     needs_squad = starts != 11 or (cid, mid) not in complete
-                    if not (needs_squad or unknown):
+                    if not (needs_squad or unknown or bench):
                         continue
                     gap['squads_without_complete_canonical_coverage'] += needs_squad
                     gap['observed_played_rows_without_numeric_minutes'] += unknown or 0
+                    gap['observed_bench_rows_without_participation_proof'] += bench or 0
                     for url in sorted(urls_by_match.get(mid, ())):
                         offer(day, url, 'club')
             if not row['source_ready']:

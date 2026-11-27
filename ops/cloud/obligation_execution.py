@@ -105,6 +105,46 @@ def observe_packet(db, packet, service):
     return acquired, replace(parsed, native=observed, outcome='INCOMPLETE',
                               completeness=dict(source_identity=True, squad=True))
 
+
+def corroborated_club_player(db, packet, observed, artifact, service):
+    """Bind an archived Sky player to one verified matchday shirt and official name."""
+    from unicodedata import normalize, combining
+    from urllib.parse import urlsplit
+    from squad_pipeline.live_parse import Tree
+
+    proof = packet['official_club_player_evidence']
+    parsed_url = urlsplit(proof['url'])
+    digest = proof['sha256']
+    if (parsed_url.scheme != 'https' or parsed_url.hostname not in
+            {'www.laliga.com', 'www.fcbarcelona.com', 'players.fcbarcelona.com'}
+            or not re.fullmatch(r'[0-9a-f]{64}', digest) or artifact.request.provider != 'Sky'):
+        return False
+    club, match, pid = packet['managing_club_id'], packet['match_id'], packet['player_id']
+    registry = db.execute(
+        "SELECT 1 FROM canonical_fixture_sources WHERE domain='CLUB' AND match_id=? "
+        "AND provider='Sky' AND json_extract(evidence_json,'$.sha256')=?",
+        (match, artifact.content_sha256)).fetchone()
+    lineup = db.execute(
+        'SELECT s.shirt_number, p.display_name FROM squad_observations s JOIN players p USING(player_id) '
+        'WHERE s.club_id=? AND s.match_id=? AND s.player_id=?', (club, match, pid)).fetchall()
+    if not registry or len(lineup) != 1 or not observed.get('shirt') or str(lineup[0][0]) != str(observed['shirt']):
+        return False
+    shirt_count = db.execute(
+        'SELECT count(*) FROM squad_observations WHERE club_id=? AND match_id=? AND shirt_number=?',
+        (club, match, lineup[0][0])).fetchone()[0]
+    if shirt_count != 1 or not str(packet['player'].get('provider_key', '')).startswith('fotmob:'):
+        return False
+
+    def normalized(value):
+        return ' '.join(''.join(c for c in normalize('NFKD', value.casefold()) if not combining(c)).split())
+
+    body = (service.store.root / 'bodies' / (digest + '.response')).read_bytes()
+    if sha(body) != digest:
+        return False
+    text = normalized(Tree(body.decode()).root.txt())
+    return all(re.search(r'(?<!\w)' + re.escape(name) + r'(?!\w)', text)
+               for name in (normalized(lineup[0][1]), normalized(observed['name'])))
+
 def adjudicate(db,packet,service,on):
     """Validate a staged packet, then call the established persistence functions."""
     from ops.cloud.coldstart_acceptance import apply_appearance
@@ -143,9 +183,14 @@ def adjudicate(db,packet,service,on):
             if represented!=packet['team']:continue
         for player in sheet['players']:
             key=player.get('provider_key') or 'fotmob:'+str(player.get('provider_player_id'))
-            if key==p['provider_key']:native.append(player)
+            if key == packet.get('source_player_key', p['provider_key']):
+                native.append(player)
     if len(native)!=1:return dict(state='HELD_SOURCE_PROOF',reason='Unique exact-player native claim required')
     observed=native[0];state=observed.get('participation_status') or observed.get('status')
+    if 'source_player_key' in packet and (packet['domain'] != 'CLUB'
+            or 'official_club_player_evidence' not in packet
+            or not corroborated_club_player(db, packet, observed, artifact, service)):
+        return dict(state='HELD_IDENTITY', reason='Verified official name and exact matchday shirt required')
     if state!=p['participation_status']:return dict(state='HELD_SOURCE_PROOF',reason='Packet participation differs from replay')
     values=[dict(status=state,minutes=observed.get('reported_minutes'),provider=packet['source']['provider']),dict(status=state,minutes=observed.get('derived_minutes'),provider='DERIVED_CLOCK')]
     selection=select(values)
