@@ -25,7 +25,7 @@ from squad_pipeline.roster_policy import roster_decision
 from ops.cloud.historical_batch import continue_batches, discover_gaps, local_path, refresh_matrix, unit_window, write
 from ops.cloud.historical_static import publish_static, update_static_progress
 from ops.cloud.foundation_hops import plan as plan_foundation_hops, recover_bound_minutes
-from ops.cloud.obligation_execution import adjudicate_packets
+from ops.cloud.obligation_execution import adjudicate_packets, observe_packet
 from ops.cloud.verify_historical_handoff import relative_path, relocate_json, verify
 from squad_pipeline.cloud.export import export
 from squad_pipeline.cloud.github_store import GitHubStore
@@ -1283,16 +1283,20 @@ def replay_retained_national(store, handoff, request, matrix, checkpoint, work, 
     service = SourceService(EvidenceStore(extracted), 'historical-national-replay', set())
     from ops.cloud.historical_unit import artifact as load_artifact
     supplied = load_artifact(raw)
-    acquired, parsed = service.observe(supplied.request, supplied)
-    if acquired.outcome != 'FOUND' or not parsed or not (
-            parsed.completeness.get('source_identity') and parsed.completeness.get('squad')):
-        raise ValueError('EXACT_NATIONAL_SOURCE_REPLAY_NOT_VERIFIED')
     with closing(sqlite3.connect(candidate)) as db:
         db.row_factory = sqlite3.Row
-        fixture = db.execute(
-            'SELECT m.* FROM international_matches m JOIN international_match_provider_ids v USING(match_id) '
-            'WHERE m.match_id=? AND v.provider=? AND v.provider_match_id=?',
-            (packet['match_id'], provider, native)).fetchone()
+        acquired, parsed = observe_packet(db, packet, service)
+        if acquired.outcome != 'FOUND' or not parsed or not (
+                parsed.completeness.get('source_identity') and parsed.completeness.get('squad')):
+            raise ValueError('EXACT_NATIONAL_SOURCE_REPLAY_NOT_VERIFIED')
+        if packet.get('official_qualifier_evidence'):
+            fixture = db.execute('SELECT * FROM international_matches WHERE match_id=?',
+                                 (packet['match_id'],)).fetchone()
+        else:
+            fixture = db.execute(
+                'SELECT m.* FROM international_matches m JOIN international_match_provider_ids v USING(match_id) '
+                'WHERE m.match_id=? AND v.provider=? AND v.provider_match_id=?',
+                (packet['match_id'], provider, native)).fetchone()
         if not fixture or fixture['kickoff_utc'] != supplied.request.context.get('kickoff'):
             raise ValueError('NATIONAL_REPLAY_FIXTURE_BINDING_MISMATCH')
         sides = []
@@ -1309,23 +1313,24 @@ def replay_retained_national(store, handoff, request, matrix, checkpoint, work, 
         actual = adjudicate_packets(db, [packet], service, fixture['madrid_date'])
     fields = ('match_id', 'player_id', 'represented_team_key', 'participation_status', 'minutes')
     def changes(decisions):
-        return Counter(tuple(item['result']['after'][field] for field in fields)
-                       for item in decisions if item.get('result', {}).get('state') == 'RECORDED_NEW')
+        return Counter((item['result']['state'], *(item['result']['after'][field] for field in fields))
+                       for item in decisions if item.get('result', {}).get('state') in {'RECORDED_NEW', 'SUPPLEMENTED_UNKNOWN'})
     facts = changes(actual)
     if not facts or facts != changes(retained['decisions']):
         raise ValueError('NATIONAL_REPLAY_FACTS_DIFFER')
     inspect(candidate)
     matrix = refresh_matrix(matrix, candidate)
-    total = sum(facts.values())
+    new_rows = sum(n for key, n in facts.items() if key[0] == 'RECORDED_NEW')
+    new_minutes = sum(facts.values())
     report = dict(mode='RETAINED_NATIONAL_OBLIGATION', status='VERIFIED_CANONICAL_NATIONAL_INCREMENT',
                   unit=request['unit'], accepted=sum(row['data_accepted'] for row in matrix['units']),
                   source_ready=sum(row['source_ready'] for row in matrix['units']),
                   counts=dict(new_matches=0, new_player_match_rows=0, new_national_matches=0,
-                              new_national_player_rows=total, minutes_recovered=0),
+                              new_national_player_rows=new_rows, minutes_recovered=new_minutes - new_rows),
                   source_requests=0, ordinary_export='PASS', audit_followup=dict(rounds=0),
                   run=f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}")
     write(work / 'national-replay-verdict.json', dict(report=report, decisions=actual))
-    receipt('national-obligation-verified', new_national_player_rows=total)
+    receipt('national-obligation-verified', new_national_player_rows=new_rows, verified_numeric_facts=new_minutes)
     return report, candidate, matrix
 
 

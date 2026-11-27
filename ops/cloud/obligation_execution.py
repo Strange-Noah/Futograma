@@ -3,7 +3,7 @@
 This runner owns isolated copies and audit records. It neither collects through
 a second transport nor writes canonical football tables itself.
 """
-import argparse,json,sqlite3,shutil
+import argparse,json,re,sqlite3,shutil
 from pathlib import Path
 from collections import Counter,defaultdict
 from dataclasses import asdict
@@ -55,14 +55,64 @@ def corroborated_club_fixture(db, existing, parsed, request):
             return True
     return False
 
+
+def observe_packet(db, packet, service):
+    raw = packet['artifact']
+    request = SourceRequest(**raw['request'])
+    artifact = RawSourceArtifact(**dict(raw, request=request))
+    acquired, parsed = service.observe(request, artifact)
+    proof = packet.get('official_qualifier_evidence')
+    if not proof or acquired.outcome != 'FOUND' or request.provider != 'FotMob':
+        return acquired, parsed
+    from dataclasses import replace
+    from squad_pipeline.international_discovery import payload
+    from squad_pipeline.international_fotmob import parse_public_match
+
+    retained = db.execute(
+        "SELECT m.*, e.source_url FROM international_matches m "
+        "JOIN international_fact_evidence f USING(match_id) "
+        "JOIN persistent_source_evidence e USING(evidence_id) "
+        "WHERE m.match_id=? AND f.player_id=? AND f.accepted=1 AND e.body_sha256=?",
+        (packet['match_id'], packet['player_id'], proof['sha256'])).fetchall()
+    if len(retained) != 1 or retained[0]['competition_key'] != 'OFFICIAL_COMPETITION:CAF_AFCON_QUALIFIERS':
+        raise ValueError('OFFICIAL_QUALIFIER_EVIDENCE_NOT_BOUND_TO_FACT')
+    fixture = retained[0]
+    locator = service.store.root / 'bodies' / (proof['sha256'] + '.response')
+    if (fixture['source_url'] != proof['url'] or not re.fullmatch(r'[0-9a-f]{64}', proof['sha256'])
+            or sha(locator.read_bytes()) != proof['sha256']):
+        raise ValueError('OFFICIAL_QUALIFIER_EVIDENCE_HASH_MISMATCH')
+    sides = []
+    for key in ('home_team_key', 'away_team_key'):
+        rows = db.execute(
+            "SELECT provider_team_id FROM football_team_provider_ids WHERE provider='FotMob' "
+            "AND team_key=? AND evidence_id IS NOT NULL", (fixture[key],)).fetchall()
+        if len(rows) != 1:
+            raise ValueError('OFFICIAL_QUALIFIER_TEAM_ID_NOT_BOUND')
+        sides.append(dict(id=str(rows[0][0])))
+    match_body = service.store.read(artifact).decode()
+    general = payload(match_body)['general']
+    if not str(general.get('leagueName', '')).startswith('Africa Cup of Nations Qualification'):
+        raise ValueError('OFFICIAL_QUALIFIER_COMPETITION_DIFFERS')
+    native = str(request.expected_ids['match'])
+    exact = dict(provider_match_id=native, home=sides[0], away=sides[1],
+                 kickoff=fixture['kickoff_utc'], level='SENIOR',
+                 competition_key=str(general.get('parentLeagueId') or general['leagueId']),
+                 official_mens_fixture=dict(scope='EXACT_OFFICIAL_MENS_QUALIFIER', provider_match_id=native,
+                    match_source_sha256=artifact.content_sha256, official_source_sha256=proof['sha256']))
+    observed = parse_public_match(match_body, dict(url=request.url, sha256=artifact.content_sha256), exact)
+    if observed['score'].replace(' ', '') != fixture['score'].replace(' ', '') or observed['identity_issues']:
+        raise ValueError('OFFICIAL_QUALIFIER_FACTS_DIFFER')
+    return acquired, replace(parsed, native=observed, outcome='INCOMPLETE',
+                              completeness=dict(source_identity=True, squad=True))
+
 def adjudicate(db,packet,service,on):
     """Validate a staged packet, then call the established persistence functions."""
     from ops.cloud.coldstart_acceptance import apply_appearance
     from squad_pipeline.international_store import evidence,put_appearance,complete_missing_minutes
     from squad_pipeline.quality_pipeline import verify_participation
-    raw=packet['artifact'];request=SourceRequest(**raw['request'])
-    artifact=RawSourceArtifact(**dict(raw,request=request))
-    acquired,parsed=service.observe(request,artifact)
+    acquired, parsed = observe_packet(db, packet, service)
+    artifact = acquired.artifact
+    request = SourceRequest(**packet['artifact']['request'])
     if acquired.outcome!='FOUND' or parsed is None or not parsed.completeness.get('source_identity'):
         return dict(state='HELD_SOURCE_PROOF',reason=acquired.outcome if not parsed else parsed.outcome)
     p=packet['player'];pid=packet['player_id'];mid=packet['match_id'];cid=packet['managing_club_id']
