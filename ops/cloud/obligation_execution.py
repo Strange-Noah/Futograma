@@ -22,6 +22,39 @@ def obligations(path):
     return [r for r in rows if r.get('assessment',{}).get('confidence_status')=='NOT_CHECKED']
 
 
+
+def corroborated_club_fixture(db, existing, parsed, request):
+    """Use the official ordered fixture tuple when one legacy native side is unset."""
+    from datetime import datetime
+    from squad_pipeline.live_parse import canon
+
+    if (request.provider != 'FotMob' or not parsed.completeness.get('squad')
+            or str(existing['competition_id']) != str(parsed.native.get('competition_key'))):
+        return False
+    found = db.execute(
+        "SELECT evidence_json FROM canonical_fixture_sources WHERE domain='CLUB' AND match_id=?",
+        (existing['match_id'],)).fetchall()
+    sides = parsed.native.get('sheets', ())
+    score = str(parsed.native.get('score', '')).replace(' ', '').split('-')
+    if len(sides) != 2 or len(score) != 2 or not all(value.isdigit() for value in score):
+        return False
+    ids = [str(sheet['provider_team_id']) for sheet in sides]
+    known = [existing['home_id'], existing['away_id']]
+    if sum(value is not None for value in known) != 1 or any(
+            value is not None and str(value) != native for value, native in zip(known, ids)):
+        return False
+    names = [canon(sheet['name']) for sheet in sides]
+    kickoff = datetime.fromisoformat(existing['kickoff'])
+    if datetime.fromisoformat(parsed.native['kickoff_utc']) != kickoff:
+        return False
+    for row in found:
+        proof = json.loads(row[0]).get('fixture_correspondence') or {}
+        if (proof.get('explicit_utc') and datetime.fromisoformat(proof['explicit_utc']) == kickoff
+                and proof.get('score') == [int(value) for value in score]
+                and [canon(label) for label in proof.get('ordered_teams', ())] == names):
+            return True
+    return False
+
 def adjudicate(db,packet,service,on):
     """Validate a staged packet, then call the established persistence functions."""
     from ops.cloud.coldstart_acceptance import apply_appearance
@@ -40,7 +73,9 @@ def adjudicate(db,packet,service,on):
         existing=db.execute('SELECT * FROM matches WHERE match_id=?',(mid,)).fetchone()
         if not existing:return dict(state='HELD_FIXTURE',reason='Existing accepted fixture required')
         context=request.context
-        if str(context.get('home_id'))!=str(existing['home_id']) or str(context.get('away_id'))!=str(existing['away_id']):return dict(state='HELD_FIXTURE',reason='Ordered fixture context differs')
+        ids_match = str(context.get('home_id')) == str(existing['home_id']) and str(context.get('away_id')) == str(existing['away_id'])
+        if not ids_match and not corroborated_club_fixture(db, existing, parsed, request):
+            return dict(state='HELD_FIXTURE', reason='Ordered fixture context differs')
         table='player_match_minutes';where='club_id=? AND match_id=? AND player_id=?';args=(cid,mid,pid)
     else:
         existing=db.execute('SELECT * FROM international_matches WHERE match_id=?',(mid,)).fetchone()

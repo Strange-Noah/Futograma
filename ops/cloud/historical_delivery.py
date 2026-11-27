@@ -1329,6 +1329,65 @@ def replay_retained_national(store, handoff, request, matrix, checkpoint, work, 
     return report, candidate, matrix
 
 
+
+def replay_retained_club(store, handoff, request, matrix, checkpoint, work, receipt):
+    """Reproduce numeric enrichments from archived, already scoped club packets."""
+    candidate = local_path(read(checkpoint)['candidate'])
+    baseline = handoff['database_sha256']
+    if (sha(candidate) != baseline or any(candidate == ROOT / relative_path(snap['database'])
+                                          for snap in handoff['accepted_snapshots'].values())):
+        raise ValueError('CLUB_REPLAY_REQUIRES_DISPOSABLE_BASE')
+    archive = work / 'retained-club-evidence.tar.gz'
+    download(store, request['retained_club_evidence'], archive)
+    extracted = work / 'club-replay-evidence'
+    extracted.mkdir()
+    with tarfile.open(archive) as package:
+        for item in package:
+            path = PurePosixPath(item.name)
+            if (path.is_absolute() or '..' in path.parts or not (item.isfile() or item.isdir())
+                    or path.parts[0] not in {'club-obligation-receipt.json', 'artifacts', 'bodies'}):
+                raise ValueError('INVALID_CLUB_REPLAY_MEMBER')
+            package.extract(item, extracted, filter='data')
+    retained = read(extracted / 'club-obligation-receipt.json')
+    if retained['candidate_sha256'] != baseline:
+        raise ValueError('CLUB_REPLAY_BASE_CHANGED')
+    service = SourceService(EvidenceStore(extracted), 'historical-archived-club-obligations', set())
+    actual = []
+    with closing(sqlite3.connect(candidate)) as db:
+        db.row_factory = sqlite3.Row
+        for on, packets in sorted(retained['packet_groups'].items()):
+            for packet in packets:
+                if packet['domain'] != 'CLUB' or packet['artifact']['request']['policy'] != 'ARCHIVE_ONLY':
+                    raise ValueError('RETAINED_CLUB_PACKET_REQUIRED')
+                match = db.execute('SELECT local_date FROM matches WHERE match_id=?',
+                                   (packet['match_id'],)).fetchone()
+                if not match or match[0] != on:
+                    raise ValueError('RETAINED_CLUB_MATCH_SCOPE_DIFFERS')
+            actual.extend(adjudicate_packets(db, packets, service, on))
+    fields = ('club_id', 'match_id', 'player_id', 'participation_status', 'minutes')
+    def changes(decisions):
+        return Counter(tuple(item['result']['after'][field] for field in fields)
+                       for item in decisions if item.get('result', {}).get('state') == 'SUPPLEMENTED_UNKNOWN')
+    facts = changes(actual)
+    if not facts or facts != changes(retained['decisions']):
+        raise ValueError('CLUB_REPLAY_FACTS_DIFFER')
+    inspect(candidate)
+    matrix = refresh_matrix(matrix, candidate)
+    total = sum(facts.values())
+    report = dict(mode='RETAINED_CLUB_OBLIGATIONS', status='VERIFIED_CANONICAL_MINUTE_INCREMENT',
+                  accepted=sum(row['data_accepted'] for row in matrix['units']),
+                  source_ready=sum(row['source_ready'] for row in matrix['units']),
+                  counts=dict(new_matches=0, new_player_match_rows=0, new_national_matches=0,
+                              new_national_player_rows=0, minutes_recovered=total),
+                  source_requests=0, ordinary_export='PASS', audit_followup=dict(rounds=0),
+                  club_minutes={club:sum(n for key,n in facts.items() if key[0]==club)
+                                for club in sorted({key[0] for key in facts})},
+                  run=f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}")
+    write(work / 'club-replay-verdict.json', dict(report=report, decisions=actual))
+    receipt('club-obligations-verified', new_minutes=total)
+    return report, candidate, matrix
+
+
 def run_delivery(request_path, entry_path, base_checkout):
     handoff, request = read(entry_path), read(request_path)
     ref = handoff['data_ref']
@@ -1489,7 +1548,14 @@ def run_delivery(request_path, entry_path, base_checkout):
                 approved_plan_present=unit_key in config.get('unit_plans', {}))
         receipt('acceptance-input-inventory', **inventory, recovered_observed_freezes=recovered)
         return
-    if request.get('matrix_mode') == 'RETAINED_NATIONAL_OBLIGATION':
+    if request.get('matrix_mode') == 'RETAINED_CLUB_OBLIGATIONS':
+        if rebuild_sha or request.get('probe') or request.get('sources'):
+            raise ValueError('CLUB_REPLAY_REQUIRES_STANDARD_SCOPE')
+        report, candidate, matrix = replay_retained_club(
+            store, handoff, request, matrix, checkpoint, work, receipt)
+        write(matrix_path, matrix)
+        reports = [report]
+    elif request.get('matrix_mode') == 'RETAINED_NATIONAL_OBLIGATION':
         if rebuild_sha or request.get('probe') or request.get('sources'):
             raise ValueError('NATIONAL_REPLAY_REQUIRES_STANDARD_SCOPE')
         report, candidate, matrix = replay_retained_national(
