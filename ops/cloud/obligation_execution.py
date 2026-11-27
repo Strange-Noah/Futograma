@@ -56,6 +56,45 @@ def corroborated_club_fixture(db, existing, parsed, request):
     return False
 
 
+
+def corroborated_sky_kickoff(db, match, parsed, artifact, service):
+    """Verify a retained Sky schedule against an admitted delayed kickoff decision."""
+    from datetime import datetime
+    from urllib.parse import urlsplit
+    from squad_pipeline.live_parse import canon
+
+    native = artifact.request.expected_ids.get('match')
+    fixture = parsed.native.get('fixture') or {}
+    if (not parsed.completeness.get('squad') or not parsed.completeness.get('events')
+            or artifact.request.provider != 'Sky' or not native):
+        return False
+    proofs = db.execute(
+        "SELECT c.evidence_json FROM canonical_fixture_sources c WHERE c.match_id=? AND c.domain='CLUB'",
+        (match['match_id'],)).fetchall()
+    for row in proofs:
+        correspondence = json.loads(row[0]).get('fixture_correspondence') or {}
+        clock = correspondence.get('kickoff_adjudication') or {}
+        digest = clock.get('sha256', '')
+        if (clock.get('provider') != 'Sky' or not re.fullmatch(r'[0-9a-f]{64}', digest)
+                or urlsplit(clock.get('url', '')).path.rsplit('/', 1)[-1] != str(native)):
+            continue
+        if not all((fixture.get('kickoff'), clock.get('original_pdf_scheduled_utc'),
+                    clock.get('revised_published_kickoff_utc'), match['kickoff'])):
+            continue
+        if (datetime.fromisoformat(fixture['kickoff']) != datetime.fromisoformat(clock['original_pdf_scheduled_utc'])
+                or datetime.fromisoformat(match['kickoff']) != datetime.fromisoformat(clock['revised_published_kickoff_utc'])):
+            continue
+        labels = [canon(label) for label in correspondence.get('ordered_teams', ())]
+        if labels != [canon(fixture.get('home_team', '')), canon(fixture.get('away_team', ''))]:
+            continue
+        source_score = str(fixture.get('score') or '').replace(' ', '').split('-')
+        if not all(part.isdigit() for part in source_score) or list(map(int, source_score)) != correspondence.get('score'):
+            continue
+        body = service.store.root / 'bodies' / (digest + '.response')
+        if body.is_file() and sha(body.read_bytes()) == digest:
+            return True
+    return False
+
 def observe_packet(db, packet, service):
     raw = packet['artifact']
     request = SourceRequest(**raw['request'])
@@ -145,6 +184,39 @@ def corroborated_club_player(db, packet, observed, artifact, service):
     return all(re.search(r'(?<!\w)' + re.escape(name) + r'(?!\w)', text)
                for name in (normalized(lineup[0][1]), normalized(observed['name'])))
 
+
+def corroborated_matchday_player(db, packet, observed, source, service):
+    """Cross-check one exact Sky squad member with a complete native match lineup."""
+    from datetime import datetime
+    from squad_pipeline.live_parse import canon
+    from ops.cloud.historical_unit import artifact as load_artifact
+
+    club, match = packet['managing_club_id'], packet['match_id']
+    registered = db.execute(
+        "SELECT 1 FROM canonical_fixture_sources WHERE domain='CLUB' AND match_id=? "
+        "AND provider='Sky' AND json_extract(evidence_json,'$.sha256')=?",
+        (match, source.content_sha256)).fetchone()
+    alternative = load_artifact(packet['matchday_identity_evidence'])
+    _, detail = service.observe(alternative.request, alternative)
+    if (not registered or source.request.provider != 'Sky' or alternative.request.provider != 'FotMob'
+            or not detail or not detail.completeness.get('source_identity') or not detail.completeness.get('squad')):
+        return False
+    existing = db.execute('SELECT home_id,away_id,kickoff,competition_id,result FROM matches WHERE match_id=?',
+                          (match,)).fetchone()
+    native = detail.native
+    sides = [str(sheet['provider_team_id']) for sheet in native['sheets']]
+    if (sides != [str(existing[0]), str(existing[1])]
+            or datetime.fromisoformat(existing[2]) != datetime.fromisoformat(native['kickoff_utc'])
+            or str(existing[3]) != str(native['competition_key'])
+            or existing[4].replace(' ', '') != native['score'].replace(' ', '')):
+        return False
+    hits = [p for sheet in native['sheets'] if str(sheet['provider_team_id']) == str(club)
+            for p in sheet['players'] if str(p.get('shirt')) == str(observed.get('shirt'))]
+    return (len(hits) == 1 and observed.get('shirt')
+            and canon(hits[0]['name']) == canon(observed['name'])
+            and str(hits[0]['provider_player_id']) == str(packet['player']['provider_player_id'])
+            and hits[0]['role'] == observed['role'])
+
 def adjudicate(db,packet,service,on):
     """Validate a staged packet, then call the established persistence functions."""
     from ops.cloud.coldstart_acceptance import apply_appearance
@@ -164,7 +236,10 @@ def adjudicate(db,packet,service,on):
         if not existing:return dict(state='HELD_FIXTURE',reason='Existing accepted fixture required')
         context=request.context
         ids_match = str(context.get('home_id')) == str(existing['home_id']) and str(context.get('away_id')) == str(existing['away_id'])
-        if not ids_match and not corroborated_club_fixture(db, existing, parsed, request):
+        if packet.get('retained_sky_kickoff_binding'):
+            if not corroborated_sky_kickoff(db, existing, parsed, artifact, service):
+                return dict(state='HELD_FIXTURE', reason='Retained official kickoff corroboration required')
+        elif not ids_match and not corroborated_club_fixture(db, existing, parsed, request):
             return dict(state='HELD_FIXTURE', reason='Ordered fixture context differs')
         table='player_match_minutes';where='club_id=? AND match_id=? AND player_id=?';args=(cid,mid,pid)
     else:
@@ -187,10 +262,16 @@ def adjudicate(db,packet,service,on):
                 native.append(player)
     if len(native)!=1:return dict(state='HELD_SOURCE_PROOF',reason='Unique exact-player native claim required')
     observed=native[0];state=observed.get('participation_status') or observed.get('status')
-    if 'source_player_key' in packet and (packet['domain'] != 'CLUB'
-            or 'official_club_player_evidence' not in packet
-            or not corroborated_club_player(db, packet, observed, artifact, service)):
-        return dict(state='HELD_IDENTITY', reason='Verified official name and exact matchday shirt required')
+    if 'source_player_key' in packet:
+        if packet['domain'] != 'CLUB':
+            return dict(state='HELD_IDENTITY', reason='Cross-source club proof required')
+        if 'matchday_identity_evidence' in packet:
+            identity_ok = corroborated_matchday_player(db, packet, observed, artifact, service)
+        else:
+            identity_ok = ('official_club_player_evidence' in packet
+                           and corroborated_club_player(db, packet, observed, artifact, service))
+        if not identity_ok:
+            return dict(state='HELD_IDENTITY', reason='Verified independent source and exact matchday shirt required')
     if state!=p['participation_status']:return dict(state='HELD_SOURCE_PROOF',reason='Packet participation differs from replay')
     values=[dict(status=state,minutes=observed.get('reported_minutes'),provider=packet['source']['provider']),dict(status=state,minutes=observed.get('derived_minutes'),provider='DERIVED_CLOCK')]
     selection=select(values)

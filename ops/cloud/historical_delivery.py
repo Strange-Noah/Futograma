@@ -1371,25 +1371,27 @@ def replay_retained_club(store, handoff, request, matrix, checkpoint, work, rece
             actual.extend(adjudicate_packets(db, packets, service, on))
     fields = ('club_id', 'match_id', 'player_id', 'participation_status', 'minutes')
     def changes(decisions):
-        return Counter(tuple(item['result']['after'][field] for field in fields)
-                       for item in decisions if item.get('result', {}).get('state') == 'SUPPLEMENTED_UNKNOWN')
+        return Counter((item['result']['state'], *(item['result']['after'][field] for field in fields))
+                       for item in decisions
+                       if item.get('result', {}).get('state') in {'RECORDED_NEW', 'SUPPLEMENTED_UNKNOWN'})
     facts = changes(actual)
     if not facts or facts != changes(retained['decisions']):
         raise ValueError('CLUB_REPLAY_FACTS_DIFFER')
     inspect(candidate)
     matrix = refresh_matrix(matrix, candidate)
-    total = sum(facts.values())
+    new_rows = sum(n for key,n in facts.items() if key[0] == 'RECORDED_NEW')
+    total = sum(facts.values()) - new_rows
     report = dict(mode='RETAINED_CLUB_OBLIGATIONS', status='VERIFIED_CANONICAL_MINUTE_INCREMENT',
                   accepted=sum(row['data_accepted'] for row in matrix['units']),
                   source_ready=sum(row['source_ready'] for row in matrix['units']),
-                  counts=dict(new_matches=0, new_player_match_rows=0, new_national_matches=0,
+                  counts=dict(new_matches=0, new_player_match_rows=new_rows, new_national_matches=0,
                               new_national_player_rows=0, minutes_recovered=total),
                   source_requests=0, ordinary_export='PASS', audit_followup=dict(rounds=0),
-                  club_minutes={club:sum(n for key,n in facts.items() if key[0]==club)
-                                for club in sorted({key[0] for key in facts})},
+                  club_minutes={club:sum(n for key,n in facts.items() if key[1]==club and key[0]=='SUPPLEMENTED_UNKNOWN')
+                                for club in sorted({key[1] for key in facts})},
                   run=f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}")
     write(work / 'club-replay-verdict.json', dict(report=report, decisions=actual))
-    receipt('club-obligations-verified', new_minutes=total)
+    receipt('club-obligations-verified', new_minutes=total, new_club_player_rows=new_rows)
     return report, candidate, matrix
 
 
